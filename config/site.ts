@@ -9,6 +9,7 @@ export const siteConfig: SiteConfig = {
   },
   mainNav: [
     { title: "기능", href: "/#features" },
+    { title: "컴포넌트", href: "/components" },
     { title: "대시보드", href: "/dashboard" },
   ],
   footerNav: [
