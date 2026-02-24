@@ -4,7 +4,14 @@
 
 set -euo pipefail
 
-# 환경변수 확인
+# 환경변수 확인 (CLAUDE_ENV_FILE에서 주입되지 않은 경우 .env.local에서 직접 로드)
+if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
+  ENV_FILE="${CLAUDE_PROJECT_DIR:-.}/.env.local"
+  if [ -f "$ENV_FILE" ]; then
+    SLACK_WEBHOOK_URL=$(grep '^SLACK_WEBHOOK_URL=' "$ENV_FILE" | cut -d'=' -f2-)
+  fi
+fi
+
 if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
   exit 0
 fi
@@ -15,12 +22,15 @@ INPUT=$(cat)
 EVENT=$(echo "$INPUT" | jq -r '.hook_event_name // empty')
 PROJECT=$(basename "${CLAUDE_PROJECT_DIR:-unknown}")
 
+CHANNEL="#starter-kit-noti"
+USERNAME="Claude Code"
+
 if [ "$EVENT" = "Notification" ]; then
   TITLE=$(echo "$INPUT" | jq -r '.title // "알림"')
   MESSAGE=$(echo "$INPUT" | jq -r '.message // ""')
-  PAYLOAD=$(jq -n \
-    --arg text "🔐 *[$PROJECT]* 권한 요청\n${TITLE}: ${MESSAGE}" \
-    '{text: $text}')
+  ICON=":lock:"
+  STATUS="권한 요청"
+  TEXT="*[${PROJECT}]* ${STATUS}\n${TITLE}: ${MESSAGE}"
 
 elif [ "$EVENT" = "Stop" ]; then
   RAW=$(echo "$INPUT" | jq -r '.last_assistant_message // "작업 완료"')
@@ -29,15 +39,21 @@ elif [ "$EVENT" = "Stop" ]; then
   if [ ${#RAW} -gt 100 ]; then
     SUMMARY="${SUMMARY}..."
   fi
-  PAYLOAD=$(jq -n \
-    --arg text "✅ *[$PROJECT]* 작업 완료\n${SUMMARY}" \
-    '{text: $text}')
+  ICON=":white_check_mark:"
+  STATUS="작업 완료"
+  TEXT="*[${PROJECT}]* ${STATUS}\n${SUMMARY}"
 
 else
   exit 0
 fi
 
+PAYLOAD=$(jq -n \
+  --arg channel "$CHANNEL" \
+  --arg username "$USERNAME" \
+  --arg text "$TEXT" \
+  --arg icon_emoji "$ICON" \
+  '{channel: $channel, username: $username, text: $text, icon_emoji: $icon_emoji}')
+
 curl -s -o /dev/null -X POST \
-  -H 'Content-type: application/json' \
-  --data "$PAYLOAD" \
+  --data-urlencode "payload=$PAYLOAD" \
   "$SLACK_WEBHOOK_URL"
