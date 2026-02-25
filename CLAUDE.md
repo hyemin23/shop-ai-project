@@ -43,9 +43,21 @@ React Hook Form + Zod + shadcn Form 컴포넌트 조합. `zodResolver`로 스키
 
 Tailwind CSS 4 + CSS 변수(OKLCH 색공간). 클래스 병합은 `lib/utils.ts`의 `cn()` 함수(clsx + tailwind-merge). 다크모드는 next-themes의 class 전략.
 
+### Claude Code Hooks
+
+`.claude/settings.local.json`에 정의된 Hook 시스템으로 Slack 알림과 커밋 전 검증을 수행.
+
+- **SessionStart** — `.env.local`에서 `SLACK_WEBHOOK_URL`을 `CLAUDE_ENV_FILE`로 로드
+- **Notification** (`permission_prompt`) — 권한 요청 시 Slack 알림 전송 (`:lock:` 아이콘)
+- **Stop** — 작업 완료 시 Slack 알림 전송 (`:white_check_mark:` 아이콘)
+- **PreToolUse** (`Bash`) — `git commit` 감지 시 `npm run lint` + `npm run build` 검증, 실패 시 커밋 차단
+
+Slack 알림 스크립트: `.claude/hooks/notify-slack.sh`. 채널 `#starter-kit-noti`로 전송. `SLACK_WEBHOOK_URL` 미설정 시 조용히 무시.
+
 ## Conventions
 
 - 언어: HTML lang="ko", 모든 UI 텍스트 한국어. 코드(변수명, 컴포넌트명)는 영어.
 - 경로 별칭: `@/*` → 프로젝트 루트
 - 인증: 현재 플레이스홀더(폼만 존재). 실제 auth 서비스 미연동.
 - API/DB: 미설정 상태. API routes 없음.
+- 환경변수: `.env.local`에 `SLACK_WEBHOOK_URL` 설정 필요 (Slack 알림용). 형식: `https://hooks.slack.com/services/...`
