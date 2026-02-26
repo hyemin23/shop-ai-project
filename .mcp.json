@@ -37,6 +37,17 @@
         "<SUPABASE_PERSONAL_ACCESS_TOKEN>"
       ]
     },
+    "shrimp-task-manager": {
+      "command": "node",
+      "args": [
+        "/Users/xion/dev/mcp-shrimp-task-manager/dist/index.js"
+      ],
+      "env": {
+        "DATA_DIR": "/Users/xion/dev/shop-ai-project/shrimp_data",
+        "TEMPLATES_USE": "en",
+        "ENABLE_GUI": "false"
+      }
+    },
     "vercel": {
       "command": "npx",
       "args": [

@@ -7,14 +7,25 @@
       "WebFetch(domain:ui.shadcn.com)",
       "Bash(npm install:*)",
       "Bash(npm run:*)",
-      "mcp__playwright"
+      "mcp__playwright",
+      "mcp__sequential-thinking__sequentialthinking",
+      "WebFetch(domain:ai.google.dev)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.tosspayments.com)",
+      "WebFetch(domain:buildupspace.vercel.app)",
+      "WebFetch(domain:npm.im)",
+      "WebFetch(domain:www.npmjs.com)"
     ]
   },
-  "enabledMcpjsonServers": [
-    "playwright"
-  ],
   "enableAllProjectMcpServers": true,
-  "skipDangerousModePermissionPrompt": true,
+  "enabledMcpjsonServers": [
+    "playwright",
+    "context7",
+    "sequential-thinking",
+    "shadcn",
+    "supabase",
+    "vercel"
+  ],
   "hooks": {
     "SessionStart": [
       {
@@ -60,5 +71,6 @@
         ]
       }
     ]
-  }
+  },
+  "skipDangerousModePermissionPrompt": true
 }
