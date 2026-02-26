@@ -39,9 +39,8 @@ export default function LoginPage() {
     },
   })
 
-  function onSubmit(data: LoginValues) {
-    // TODO: 실제 인증 로직
-    console.log(data)
+  function onSubmit() {
+    // Phase 2: Supabase Auth 카카오/구글 소셜 로그인 연동 예정
   }
 
   return (

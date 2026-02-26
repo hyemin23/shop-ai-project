@@ -1,3 +1,5 @@
+import Link from "next/link"
+import { Shirt, Palette, PersonStanding, ArrowRight } from "lucide-react"
 import {
   Card,
   CardContent,
@@ -5,100 +7,64 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Users, CreditCard, Activity, TrendingUp } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
-const stats = [
-  { title: "총 사용자", value: "1,234", change: "+12%", icon: Users },
-  { title: "매출", value: "₩12,345,000", change: "+8%", icon: CreditCard },
-  { title: "활성 세션", value: "573", change: "+2%", icon: Activity },
-  { title: "성장률", value: "24%", change: "+4%", icon: TrendingUp },
-]
-
-const recentActivities = [
-  { user: "김민수", action: "회원가입", status: "완료", date: "2분 전" },
-  { user: "이영희", action: "결제", status: "완료", date: "5분 전" },
-  { user: "박철수", action: "프로필 수정", status: "완료", date: "12분 전" },
-  { user: "최지은", action: "문의 등록", status: "대기", date: "30분 전" },
-  { user: "정수현", action: "구독 갱신", status: "완료", date: "1시간 전" },
+const studioFeatures = [
+  {
+    icon: Shirt,
+    title: "의류 교체",
+    description: "모델 사진에 원하는 의류를 자동으로 교체합니다. Base 이미지와 Reference 이미지를 업로드하세요.",
+    href: "/dashboard/studio",
+    badge: "Virtual Try-On",
+  },
+  {
+    icon: Palette,
+    title: "색상 변경",
+    description: "의류 색상을 원하는 색으로 변경합니다. 컬러피커 또는 12가지 프리셋 팔레트를 활용하세요.",
+    href: "/dashboard/studio/color-swap",
+    badge: "Color Swap",
+  },
+  {
+    icon: PersonStanding,
+    title: "포즈 변경",
+    description: "모델의 포즈를 10가지 프리셋 중에서 선택하거나 참조 이미지로 변경합니다.",
+    href: "/dashboard/studio/pose-transfer",
+    badge: "Pose Transfer",
+  },
 ]
 
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">대시보드</h1>
-        <p className="text-muted-foreground">서비스 현황을 한눈에 확인하세요.</p>
+        <h1 className="text-2xl font-bold tracking-tight">스튜디오</h1>
+        <p className="text-muted-foreground">AI로 의류 이미지를 편집하세요. 촬영 없이 수 분 이내에 완성합니다.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {studioFeatures.map((feature) => (
+          <Card key={feature.title} className="flex flex-col">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <feature.icon className="h-8 w-8 text-primary" />
+                <div>
+                  <CardTitle className="text-base">{feature.title}</CardTitle>
+                  <p className="text-xs text-muted-foreground">{feature.badge}</p>
+                </div>
+              </div>
+              <CardDescription>{feature.description}</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                전월 대비{" "}
-                <span className="text-emerald-600 dark:text-emerald-400">
-                  {stat.change}
-                </span>
-              </p>
+            <CardContent className="mt-auto pt-0">
+              <Button asChild className="w-full">
+                <Link href={feature.href}>
+                  시작하기
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         ))}
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>최근 활동</CardTitle>
-          <CardDescription>최근 사용자 활동 내역입니다.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>사용자</TableHead>
-                <TableHead>활동</TableHead>
-                <TableHead>상태</TableHead>
-                <TableHead className="text-right">시간</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentActivities.map((activity, i) => (
-                <TableRow key={i}>
-                  <TableCell className="font-medium">
-                    {activity.user}
-                  </TableCell>
-                  <TableCell>{activity.action}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        activity.status === "완료" ? "default" : "secondary"
-                      }
-                    >
-                      {activity.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">{activity.date}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
     </div>
   )
 }

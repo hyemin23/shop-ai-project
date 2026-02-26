@@ -1,12 +1,12 @@
-import { LayoutDashboard, Settings, User, FileText, BarChart3 } from "lucide-react"
+import { Shirt, Palette, PersonStanding, History, Settings } from "lucide-react"
 import { type DashboardConfig } from "@/types"
 
 export const dashboardConfig: DashboardConfig = {
   sidebarNav: [
-    { title: "대시보드", href: "/dashboard", icon: LayoutDashboard },
-    { title: "분석", href: "#", icon: BarChart3 },
-    { title: "콘텐츠", href: "#", icon: FileText },
-    { title: "프로필", href: "#", icon: User },
-    { title: "설정", href: "#", icon: Settings },
+    { title: "의류 교체", href: "/dashboard/studio", icon: Shirt },
+    { title: "색상 변경", href: "/dashboard/studio/color-swap", icon: Palette },
+    { title: "포즈 변경", href: "/dashboard/studio/pose-transfer", icon: PersonStanding },
+    { title: "작업 히스토리", href: "/dashboard/history", icon: History },
+    { title: "설정", href: "/dashboard/settings", icon: Settings },
   ],
 }

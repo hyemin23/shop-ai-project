@@ -1,32 +1,31 @@
 import { type SiteConfig } from "@/types"
 
 export const siteConfig: SiteConfig = {
-  name: "Starter Kit",
-  description: "Next.js 풀스택 스타터킷. 인증, 대시보드, 마케팅 페이지를 포함합니다.",
-  url: "https://example.com",
+  name: "똑픽",
+  description: "동대문 의류 셀러를 위한 AI 이미지 편집 B2B SaaS. 의류 교체, 색상 변경, 포즈 변경을 건당 수백 원, 수 분 이내로.",
+  url: "https://ddokpick.com",
   links: {
     github: "https://github.com",
   },
   mainNav: [
     { title: "기능", href: "/#features" },
-    { title: "컴포넌트", href: "/components" },
-    { title: "대시보드", href: "/dashboard" },
+    { title: "가격", href: "/#pricing" },
+    { title: "스튜디오", href: "/dashboard" },
   ],
   footerNav: [
     {
-      title: "제품",
+      title: "서비스",
       items: [
-        { title: "기능", href: "/#features" },
-        { title: "가격", href: "#" },
-        { title: "문서", href: "#" },
+        { title: "기능 소개", href: "/#features" },
+        { title: "가격 안내", href: "/#pricing" },
+        { title: "스튜디오", href: "/dashboard" },
       ],
     },
     {
-      title: "회사",
+      title: "고객 지원",
       items: [
-        { title: "소개", href: "#" },
-        { title: "블로그", href: "#" },
-        { title: "채용", href: "#" },
+        { title: "자주 묻는 질문", href: "#" },
+        { title: "문의하기", href: "#" },
       ],
     },
     {

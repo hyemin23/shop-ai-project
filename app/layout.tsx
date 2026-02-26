@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Starter Kit",
-  description: "Next.js 풀스택 스타터킷. 인증, 대시보드, 마케팅 페이지를 포함합니다.",
+  title: "똑픽 (DDokPick)",
+  description: "동대문 의류 셀러를 위한 AI 이미지 편집 서비스. 의류 교체, 색상 변경, 포즈 변경을 건당 1,000원 이하, 수 분 이내로.",
 };
 
 export default function RootLayout({

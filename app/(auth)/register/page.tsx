@@ -41,9 +41,8 @@ export default function RegisterPage() {
     },
   })
 
-  function onSubmit(data: RegisterValues) {
-    // TODO: 실제 회원가입 로직
-    console.log(data)
+  function onSubmit() {
+    // Phase 2: Supabase Auth 카카오/구글 소셜 회원가입 연동 예정
   }
 
   return (

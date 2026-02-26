@@ -1,5 +1,11 @@
 # CLAUDE.md
 
+**똑픽 (DDokPick)**: 동대문 의류 셀러를 위한 AI 이미지 편집 B2B SaaS — 의류 교체/색상 변경/포즈 변경을 Gemini API로 구현, Supabase 인프라 통합.
+
+📋 상세 요구사항 및 기술 스펙은 @/docs/PRD.md 참조
+
+---
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands
@@ -29,7 +35,7 @@ Next.js 16 App Router 기반 풀스택 스타터킷. React 19, TypeScript strict
 - `components/marketing/` — site-header, site-footer, hero-section, features-section
 - `components/dashboard/` — app-sidebar, dashboard-header
 - `components/providers/` — ThemeProvider (next-themes)
-- `components/showcase/` — 컴포넌트 쇼케이스 페이지 전용
+- `components/studio/` — 스튜디오 전용 컴포넌트 (Phase 1에서 추가 예정)
 
 ### Config → Type → Component 패턴
 
@@ -37,7 +43,7 @@ Next.js 16 App Router 기반 풀스택 스타터킷. React 19, TypeScript strict
 
 ### Form Pattern
 
-React Hook Form + Zod + shadcn Form 컴포넌트 조합. `zodResolver`로 스키마 검증, `toast`(sonner)로 피드백 표시. auth 페이지와 쇼케이스에서 이 패턴 사용.
+React Hook Form + Zod + shadcn Form 컴포넌트 조합. `zodResolver`로 스키마 검증, `toast`(sonner)로 피드백 표시. auth 페이지와 스튜디오 폼에서 이 패턴 사용.
 
 ### Styling
 
@@ -58,6 +64,6 @@ Slack 알림 스크립트: `.claude/hooks/notify-slack.sh`. 채널 `#starter-kit
 
 - 언어: HTML lang="ko", 모든 UI 텍스트 한국어. 코드(변수명, 컴포넌트명)는 영어.
 - 경로 별칭: `@/*` → 프로젝트 루트
-- 인증: 현재 플레이스홀더(폼만 존재). 실제 auth 서비스 미연동.
-- API/DB: 미설정 상태. API routes 없음.
-- 환경변수: `.env.local`에 `SLACK_WEBHOOK_URL` 설정 필요 (Slack 알림용). 형식: `https://hooks.slack.com/services/...`
+- 인증: Phase 2에서 Supabase Auth 카카오/구글 소셜 로그인 연동 예정. 현재는 폼 구조만 존재.
+- API/DB: Phase 1에서 `app/api/studio/` API Routes + Supabase DB/Storage 연동 예정.
+- 환경변수: `.env.local`에 `SLACK_WEBHOOK_URL` 설정 필요 (Slack 알림용). Phase 1부터 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY` 필요. `.env.example` 참조.
