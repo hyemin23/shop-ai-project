@@ -26,12 +26,14 @@
 
 ### 현재 프로젝트 상태
 
-- Route Groups 구성 완료: `(marketing)`, `(auth)`, `(dashboard)`
-- 대시보드 레이아웃 완료: `AppSidebar` + `DashboardHeader` + 스튜디오 메뉴 항목
-- Config 파일 구조: `config/site.ts`, `config/dashboard.ts` (스튜디오 메뉴 포함)
-- 타입 정의: `types/index.ts` (NavItem, SidebarNavItem, SiteConfig, DashboardConfig)
-- shadcn/ui 컴포넌트 라이브러리 설치 완료 (30+ 컴포넌트)
-- 마케팅 페이지 기본 구조 완료 (Hero, Features)
+- Phase 1 완료: 애플리케이션 골격 구축 (Task 001~004)
+- Phase 2 진행 중: UI/UX 완성 (Task 005, 007, 008, 009 완료 / Task 006, 010 부분 완료)
+- 스튜디오 공통 컴포넌트 6개 완성: `components/studio/` (image-upload-zone, before-after-slider, result-viewer, processing-indicator, studio-layout, mode-selector)
+- 스튜디오 페이지 UI 완성: 의류 교체, 색상 변경 (color-picker), 포즈 변경 (pose-preset-gallery)
+- 작업 히스토리 페이지 완성: 필터링/정렬/빈 상태 UI + 더미 데이터 (`lib/dummy-data.ts`)
+- 접근성 기본 적용: 반응형 레이아웃, 키보드 접근, aria-live, 터치 지원
+- 미완료 항목: `public/dummy/` 더미 이미지 미배치 (Task 006), 데스크톱 권장 배너 미구현 (Task 010)
+- 다음 단계: Task 006 더미 이미지 + Task 010 데스크톱 배너 완료 후 Phase 3 진입
 
 ---
 
@@ -46,19 +48,19 @@
 
 ## 개발 단계
 
-### Phase 1: 애플리케이션 골격 구축 (1주)
+### Phase 1: 애플리케이션 골격 구축 (1주) ✅
 
 > 전체 앱의 구조를 먼저 잡는다. 빈 페이지 셸, TypeScript 인터페이스, Config 파일, DB 스키마 설계를 완료하여 이후 UI/기능 개발의 토대를 마련한다.
 
-#### Task 001: 정의하다 -- Studio TypeScript 인터페이스/타입 -- 전체 앱의 타입 안전성 확보
+#### ✅ Task 001: 정의하다 -- Studio TypeScript 인터페이스/타입 -- 전체 앱의 타입 안전성 확보 `See: /tasks/001-studio-types.md`
 
-- `types/studio.ts` 생성: `StudioBaseRequest`, `StudioBaseResponse`, `TryOnRequest`, `ColorSwapRequest`, `PoseTransferRequest`, `StudioHistoryItem` 인터페이스
-- `types/payment.ts` 생성: `Profile`, `TokenTransaction`, `TokenPackage` 인터페이스 (Phase 4 대비 선제 정의)
-- `lib/errors.ts` 생성: `StudioError` 인터페이스 + 에러 코드 상수 (`STUDIO_001` ~ `STUDIO_007`)
-- Gemini 모델 관련 타입: `GeminiModel`, `GenerationMode` (`"standard" | "premium"`)
-- 처리 상태 타입: `StudioStatus` (`"idle" | "uploading" | "processing" | "success" | "error"`)
-- 포즈 프리셋 타입: `PosePreset` (id, name, description, thumbnailUrl)
-- 색상 프리셋 타입: `ColorPreset` (name, hex, nameKo)
+- ✅ `types/studio.ts` 생성: `StudioBaseRequest`, `StudioBaseResponse`, `TryOnRequest`, `ColorSwapRequest`, `PoseTransferRequest`, `StudioHistoryItem` 인터페이스
+- ✅ `types/payment.ts` 생성: `Profile`, `TokenTransaction`, `TokenPackage` 인터페이스 (Phase 4 대비 선제 정의)
+- ✅ `lib/errors.ts` 생성: `StudioError` 클래스 + `StudioErrorCode` 타입 + `STUDIO_ERROR_CODES` 상수 (`STUDIO_001` ~ `STUDIO_007`, 한국어 메시지)
+- ✅ Gemini 모델 관련 타입: `GeminiModel`, `GenerationMode` (`"standard" | "premium"`)
+- ✅ 처리 상태 타입: `StudioStatus` (`"idle" | "uploading" | "processing" | "success" | "error"`)
+- ✅ 포즈 프리셋 타입: `PosePreset` (id, name, description, thumbnailUrl)
+- ✅ 색상 프리셋 타입: `ColorPreset` (name, hex, nameKo)
 
 **의존성**: 없음 (첫 번째 Task)
 **산출물**: `types/studio.ts`, `types/payment.ts`, `lib/errors.ts`
@@ -66,12 +68,12 @@
 
 ---
 
-#### Task 002: 확장하다 -- Config 파일 -- 스튜디오 설정값 중앙 관리
+#### ✅ Task 002: 확장하다 -- Config 파일 -- 스튜디오 설정값 중앙 관리 `See: /tasks/002-studio-config.md`
 
-- `config/studio.ts` 생성: 포즈 프리셋 10종 목록, 색상 프리셋 12색 팔레트, 이미지 제한(최대 10MB, 512~4096px), 지원 포맷(JPG/PNG/WebP), 쿨다운 시간(3초)
-- `config/pricing.ts` 생성: `TOKEN_COST` (모드별/기능별/해상도별 토큰 소모량), `TOKEN_PACKAGES` (라이트/프로/맥스), `FREE_TRIAL_TOKENS` (30토큰)
-- `config/prompts.ts` 생성: Gemini 프롬프트 템플릿 (`tryOn`, `colorSwap`, `poseTransfer`), 모델 설정 (`GEMINI_MODELS`)
-- `config/dashboard.ts` 검증: 기존 사이드바 메뉴 항목이 PRD 라우트 구조와 일치하는지 확인
+- ✅ `config/studio.ts` 생성: `POSE_PRESETS` 10종 목록, `COLOR_PRESETS` 12색 팔레트, `IMAGE_CONSTRAINTS` (최대 10MB, 512~4096px), 지원 포맷(JPG/PNG/WebP), `COOLDOWN_MS` (3초)
+- ✅ `config/pricing.ts` 생성: `TOKEN_COST` (standard/premium x 3타입 x 해상도별 토큰 소모량), `TOKEN_PACKAGES` 3종 (Lite/Pro/Max), `FREE_TRIAL_TOKENS` (30토큰)
+- ✅ `config/prompts.ts` 생성: Gemini 프롬프트 템플릿 함수 3개 (`tryOn`, `colorSwap`, `poseTransfer`), `GEMINI_MODELS` (standard->flash, premium->pro)
+- ✅ `config/dashboard.ts` 검증: 기존 사이드바 메뉴 항목이 PRD 라우트 구조와 일치하는지 확인
 
 **의존성**: Task 001 (타입 정의 참조)
 **산출물**: `config/studio.ts`, `config/pricing.ts`, `config/prompts.ts`
@@ -79,17 +81,18 @@
 
 ---
 
-#### Task 003: 생성하다 -- Route 구조 및 빈 페이지 셸 -- 전체 앱 네비게이션 완성
+#### ✅ Task 003: 생성하다 -- Route 구조 및 빈 페이지 셸 -- 전체 앱 네비게이션 완성 `See: /tasks/003-route-structure.md`
 
-- `app/(dashboard)/dashboard/studio/page.tsx` 생성: 의류 교체 스튜디오 빈 셸 (제목 + "준비 중" Skeleton)
-- `app/(dashboard)/dashboard/studio/color-swap/page.tsx` 생성: 색상 변경 스튜디오 빈 셸
-- `app/(dashboard)/dashboard/studio/pose-transfer/page.tsx` 생성: 포즈 변경 스튜디오 빈 셸
-- `app/(dashboard)/dashboard/history/page.tsx` 생성: 작업 히스토리 빈 셸
-- `app/(dashboard)/dashboard/settings/page.tsx` 생성: 설정 빈 셸
-- `app/api/studio/try-on/route.ts` 생성: POST 엔드포인트 스텁 (501 Not Implemented)
-- `app/api/studio/color-swap/route.ts` 생성: POST 엔드포인트 스텁
-- `app/api/studio/pose-transfer/route.ts` 생성: POST 엔드포인트 스텁
-- `app/api/upload/route.ts` 생성: POST 엔드포인트 스텁
+- ✅ `app/(dashboard)/dashboard/studio/page.tsx` 생성: 의류 교체 스튜디오 빈 셸 (제목 + Skeleton UI)
+- ✅ `app/(dashboard)/dashboard/studio/color-swap/page.tsx` 생성: 색상 변경 스튜디오 빈 셸
+- ✅ `app/(dashboard)/dashboard/studio/pose-transfer/page.tsx` 생성: 포즈 변경 스튜디오 빈 셸
+- ✅ `app/(dashboard)/dashboard/history/page.tsx` 생성: 작업 히스토리 빈 셸
+- ✅ `app/(dashboard)/dashboard/settings/page.tsx` 생성: 설정 빈 셸
+- ✅ `app/api/studio/try-on/route.ts` 생성: POST 엔드포인트 스텁 (501 Not Implemented)
+- ✅ `app/api/studio/color-swap/route.ts` 생성: POST 엔드포인트 스텁
+- ✅ `app/api/studio/pose-transfer/route.ts` 생성: POST 엔드포인트 스텁
+- ✅ `app/api/upload/route.ts` 생성: POST 엔드포인트 스텁
+- ✅ `npm run build` 성공: 16개 라우트 정상 등록 확인
 
 **의존성**: 없음 (기존 dashboard 레이아웃 활용)
 **산출물**: 스튜디오 3개 페이지 + 히스토리/설정 페이지 + API Route 4개 스텁
@@ -97,12 +100,12 @@
 
 ---
 
-#### Task 004: 설계하다 -- Supabase DB 스키마 -- 데이터 모델 사전 확정
+#### ✅ Task 004: 설계하다 -- Supabase DB 스키마 -- 데이터 모델 사전 확정 `See: /tasks/004-db-schema.md`
 
-- `supabase/migrations/001_studio_history.sql` 생성: `studio_history` 테이블 DDL, 인덱스, RLS 정책 (session_id 기반)
-- `supabase/migrations/002_users_and_tokens.sql` 생성: `profiles`, `token_transactions` 테이블 DDL, 트리거, RLS 정책 (Phase 4 대비)
-- `supabase/migrations/003_storage_buckets.sql` 생성: `studio-images` 버킷 생성 SQL, 폴더 구조 (`source/`, `result/`, `thumb/`), 공개 읽기 + service_role 쓰기 정책
-- `docs/SCHEMA.md` 생성: ERD 다이어그램 (Mermaid), 테이블 관계 설명, RLS 정책 요약
+- ✅ `supabase/migrations/001_studio_history.sql` 생성: `studio_history` 테이블 DDL + RLS 정책 (session_id 기반) + 인덱스
+- ✅ `supabase/migrations/002_users_and_tokens.sql` 생성: `profiles` 테이블 + `handle_new_user()` 자동 생성 트리거 + `token_transactions` 테이블 + RLS 정책
+- ✅ `supabase/migrations/003_storage_buckets.sql` 생성: `studio-images` 공개 버킷 생성, 폴더 구조 (`source/`, `result/`, `thumb/`), 공개 읽기 + service_role 쓰기 정책
+- ✅ `docs/SCHEMA.md` 생성: Mermaid ERD 다이어그램 + 테이블/RLS/Storage 문서
 
 **의존성**: Task 001 (타입과 DB 스키마 정합성)
 **산출물**: SQL 마이그레이션 파일 3개, 스키마 문서
@@ -114,15 +117,15 @@
 
 > 모든 페이지의 UI를 더미 데이터로 완성한다. 실제 API 연동 없이 전체 사용자 흐름을 시각적으로 경험할 수 있도록 한다. 이 단계에서 디자인 피드백을 받아 조기에 반영한다.
 
-#### Task 005: 구축하다 -- 공통 컴포넌트 라이브러리 -- 스튜디오 UI 재사용 기반 마련
+#### ✅ Task 005: 구축하다 -- 공통 컴포넌트 라이브러리 -- 스튜디오 UI 재사용 기반 마련
 
-- `components/studio/image-upload-zone.tsx` 생성: 드래그앤드롭 + 클릭 업로드 영역, 파일 유효성 검증 (크기/포맷/해상도), 프리뷰 표시, 키보드 접근 가능
-- `components/studio/before-after-slider.tsx` 생성: 결과 비교 슬라이더 (드래그 핸들, 마우스/터치 지원)
-- `components/studio/result-viewer.tsx` 생성: 결과 이미지 표시 + 다운로드 버튼 (PNG/JPG) + 재생성 버튼
-- `components/studio/processing-indicator.tsx` 생성: 생성 중 로딩 상태 (프로그레스 인디케이터, aria-live 안내)
-- `components/studio/studio-layout.tsx` 생성: 스튜디오 공통 레이아웃 (입력 영역 + 결과 영역 2단 구조)
-- `components/studio/mode-selector.tsx` 생성: 기본 모드/고품질 모드 선택 UI (Switch 또는 RadioGroup)
-- 추가 shadcn/ui 컴포넌트 설치 필요 시 `npx shadcn@latest add` 실행
+- ✅ `components/studio/image-upload-zone.tsx` 생성: 드래그앤드롭 + 클릭 업로드 영역, 파일 유효성 검증 (크기/포맷/해상도), 프리뷰 표시, 키보드 접근 가능
+- ✅ `components/studio/before-after-slider.tsx` 생성: 결과 비교 슬라이더 (드래그 핸들, 마우스/터치 지원)
+- ✅ `components/studio/result-viewer.tsx` 생성: 결과 이미지 표시 + 다운로드 버튼 (PNG/JPG) + 재생성 버튼
+- ✅ `components/studio/processing-indicator.tsx` 생성: 생성 중 로딩 상태 (프로그레스 인디케이터, aria-live 안내)
+- ✅ `components/studio/studio-layout.tsx` 생성: 스튜디오 공통 레이아웃 (입력 영역 + 결과 영역 2단 구조)
+- ✅ `components/studio/mode-selector.tsx` 생성: 기본 모드/고품질 모드 선택 UI (Switch 또는 RadioGroup)
+- ✅ 추가 shadcn/ui 컴포넌트 설치 필요 시 `npx shadcn@latest add` 실행
 
 **의존성**: Task 001 (타입), Task 002 (Config 설정값 참조)
 **산출물**: `components/studio/` 하위 6개 컴포넌트
@@ -132,12 +135,12 @@
 
 #### Task 006: 구현하다 -- 의류 교체 스튜디오 UI -- 더미 데이터 기반 전체 화면 완성
 
-- `app/(dashboard)/dashboard/studio/page.tsx` 업데이트: 의류 교체 전용 레이아웃 적용
-- Base 이미지 업로드 영역: `ImageUploadZone` 컴포넌트 연결 ("모델 사진을 업로드하세요")
-- Reference 이미지 업로드 영역: `ImageUploadZone` 컴포넌트 연결 ("교체할 의류 사진을 업로드하세요")
-- "생성하기" 버튼: 클릭 시 더미 로딩 (3초) -> 더미 결과 이미지 표시
-- 결과 영역: `BeforeAfterSlider` + `ResultViewer` 컴포넌트 연결
-- `ModeSelector` 컴포넌트: 기본/고품질 모드 선택 UI 배치
+- ✅ `app/(dashboard)/dashboard/studio/page.tsx` 업데이트: 의류 교체 전용 레이아웃 적용
+- ✅ Base 이미지 업로드 영역: `ImageUploadZone` 컴포넌트 연결 ("모델 사진을 업로드하세요")
+- ✅ Reference 이미지 업로드 영역: `ImageUploadZone` 컴포넌트 연결 ("교체할 의류 사진을 업로드하세요")
+- ✅ "생성하기" 버튼: 클릭 시 더미 로딩 (3초) -> 더미 결과 이미지 표시
+- ✅ 결과 영역: `BeforeAfterSlider` + `ResultViewer` 컴포넌트 연결
+- ✅ `ModeSelector` 컴포넌트: 기본/고품질 모드 선택 UI 배치
 - 더미 데이터: `/public/dummy/` 디렉토리에 샘플 이미지 배치
 
 **의존성**: Task 003 (페이지 셸), Task 005 (공통 컴포넌트)
@@ -146,14 +149,14 @@
 
 ---
 
-#### Task 007: 구현하다 -- 색상 변경 스튜디오 UI -- 더미 데이터 기반 전체 화면 완성
+#### ✅ Task 007: 구현하다 -- 색상 변경 스튜디오 UI -- 더미 데이터 기반 전체 화면 완성
 
-- `app/(dashboard)/dashboard/studio/color-swap/page.tsx` 업데이트: 색상 변경 전용 레이아웃 적용
-- 원본 이미지 업로드 영역: `ImageUploadZone` 컴포넌트 연결
-- `components/studio/color-picker.tsx` 생성: 12색 프리셋 팔레트 그리드 + HEX 입력 필드 + 실시간 색상 프리뷰
-- 의류 영역 표시: 프리뷰에서 의류 영역 하이라이트 (더미 오버레이)
-- "색상 변경" 버튼: 더미 로딩 -> 더미 결과 이미지 표시
-- 결과 영역: `BeforeAfterSlider` + `ResultViewer`
+- ✅ `app/(dashboard)/dashboard/studio/color-swap/page.tsx` 업데이트: 색상 변경 전용 레이아웃 적용
+- ✅ 원본 이미지 업로드 영역: `ImageUploadZone` 컴포넌트 연결
+- ✅ `components/studio/color-picker.tsx` 생성: 12색 프리셋 팔레트 그리드 + HEX 입력 필드 + 실시간 색상 프리뷰
+- ✅ 의류 영역 표시: 프리뷰에서 의류 영역 하이라이트 (더미 오버레이)
+- ✅ "색상 변경" 버튼: 더미 로딩 -> 더미 결과 이미지 표시
+- ✅ 결과 영역: `BeforeAfterSlider` + `ResultViewer`
 
 **의존성**: Task 003 (페이지 셸), Task 005 (공통 컴포넌트), Task 002 (색상 프리셋 Config)
 **산출물**: 색상 변경 스튜디오 완성 화면 (더미), `components/studio/color-picker.tsx`
@@ -161,13 +164,13 @@
 
 ---
 
-#### Task 008: 구현하다 -- 포즈 변경 스튜디오 UI -- 더미 데이터 기반 전체 화면 완성
+#### ✅ Task 008: 구현하다 -- 포즈 변경 스튜디오 UI -- 더미 데이터 기반 전체 화면 완성
 
-- `app/(dashboard)/dashboard/studio/pose-transfer/page.tsx` 업데이트: 포즈 변경 전용 레이아웃 적용
-- 원본 이미지 업로드 영역: `ImageUploadZone` 컴포넌트 연결
-- `components/studio/pose-preset-gallery.tsx` 생성: 10종 포즈 프리셋 썸네일 그리드 (선택 시 하이라이트), 커스텀 포즈 이미지 업로드 탭
-- "포즈 변경" 버튼: 더미 로딩 -> 더미 결과 이미지 표시
-- 결과 영역: `BeforeAfterSlider` + `ResultViewer`
+- ✅ `app/(dashboard)/dashboard/studio/pose-transfer/page.tsx` 업데이트: 포즈 변경 전용 레이아웃 적용
+- ✅ 원본 이미지 업로드 영역: `ImageUploadZone` 컴포넌트 연결
+- ✅ `components/studio/pose-preset-gallery.tsx` 생성: 10종 포즈 프리셋 썸네일 그리드 (선택 시 하이라이트), 커스텀 포즈 이미지 업로드 탭
+- ✅ "포즈 변경" 버튼: 더미 로딩 -> 더미 결과 이미지 표시
+- ✅ 결과 영역: `BeforeAfterSlider` + `ResultViewer`
 
 **의존성**: Task 003 (페이지 셸), Task 005 (공통 컴포넌트), Task 002 (포즈 프리셋 Config)
 **산출물**: 포즈 변경 스튜디오 완성 화면 (더미), `components/studio/pose-preset-gallery.tsx`
@@ -175,15 +178,15 @@
 
 ---
 
-#### Task 009: 구현하다 -- 작업 히스토리 페이지 UI -- 더미 데이터 기반 목록/상세 화면
+#### ✅ Task 009: 구현하다 -- 작업 히스토리 페이지 UI -- 더미 데이터 기반 목록/상세 화면
 
-- `app/(dashboard)/dashboard/history/page.tsx` 업데이트: 히스토리 목록 UI
-- 히스토리 카드 컴포넌트: 썸네일(Before/After), 작업 유형 Badge, 생성 일시, 모델 정보, 처리 시간
-- 필터링: 작업 유형별 (전체/의류교체/색상변경/포즈변경), 날짜 범위
-- 정렬: 최신순/오래된순
-- 상세 보기: 카드 클릭 시 Dialog 또는 페이지 전환으로 원본/결과 이미지 큰 화면 표시
-- 더미 데이터: 10~15건의 샘플 히스토리 항목 (`lib/dummy-data.ts`)
-- 빈 상태 UI: 히스토리가 없을 때 안내 메시지 + 스튜디오 바로가기
+- ✅ `app/(dashboard)/dashboard/history/page.tsx` 업데이트: 히스토리 목록 UI
+- ✅ 히스토리 카드 컴포넌트: 썸네일(Before/After), 작업 유형 Badge, 생성 일시, 모델 정보, 처리 시간
+- ✅ 필터링: 작업 유형별 (전체/의류교체/색상변경/포즈변경), 날짜 범위
+- ✅ 정렬: 최신순/오래된순
+- ✅ 상세 보기: 카드 클릭 시 Dialog 또는 페이지 전환으로 원본/결과 이미지 큰 화면 표시
+- ✅ 더미 데이터: 10~15건의 샘플 히스토리 항목 (`lib/dummy-data.ts`)
+- ✅ 빈 상태 UI: 히스토리가 없을 때 안내 메시지 + 스튜디오 바로가기
 
 **의존성**: Task 003 (페이지 셸), Task 001 (`StudioHistoryItem` 타입)
 **산출물**: 히스토리 페이지 완성 화면 (더미)
@@ -193,12 +196,12 @@
 
 #### Task 010: 적용하다 -- 접근성 및 반응형 디자인 -- WCAG 2.1 AA 준수 및 모바일 대응
 
-- 전체 스튜디오 페이지 반응형 레이아웃: 데스크톱 2단 -> 모바일 1단 스택
-- 이미지 업로드 영역 키보드 접근: Tab/Enter/Space로 파일 선택 가능
-- 로딩 상태 `aria-live="polite"` 안내: "이미지를 생성하고 있습니다..."
-- 색상 대비 WCAG 2.1 AA 검증 (shadcn/ui 기본 테마 기반)
-- 결과 이미지 `alt` 텍스트: 작업 유형 + 생성 일시 조합
-- 모바일 웹 터치 지원: BeforeAfterSlider 터치 드래그, 업로드 영역 탭 인터랙션
+- ✅ 전체 스튜디오 페이지 반응형 레이아웃: 데스크톱 2단 -> 모바일 1단 스택
+- ✅ 이미지 업로드 영역 키보드 접근: Tab/Enter/Space로 파일 선택 가능
+- ✅ 로딩 상태 `aria-live="polite"` 안내: "이미지를 생성하고 있습니다..."
+- ✅ 색상 대비 WCAG 2.1 AA 검증 (shadcn/ui 기본 테마 기반)
+- ✅ 결과 이미지 `alt` 텍스트: 작업 유형 + 생성 일시 조합
+- ✅ 모바일 웹 터치 지원: BeforeAfterSlider 터치 드래그, 업로드 영역 탭 인터랙션
 - 데스크톱 권장 안내 배너: 모바일에서 스튜디오 접근 시 "데스크톱에서 더 편리하게 사용하세요" 표시
 
 **의존성**: Task 005~009 (모든 UI 컴포넌트 완성 후)
