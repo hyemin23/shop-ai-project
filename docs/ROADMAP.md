@@ -28,12 +28,15 @@
 
 - Phase 1 완료: 애플리케이션 골격 구축 (Task 001~004)
 - Phase 2 완료: UI/UX 완성 (Task 005~010 전체 완료)
-- 스튜디오 공통 컴포넌트 8개 완성: `components/studio/` (image-upload-zone, before-after-slider, result-viewer, processing-indicator, studio-layout, mode-selector, color-picker, pose-preset-gallery)
-- 스튜디오 페이지 UI 완성: 의류 교체, 색상 변경, 포즈 변경 (더미 데이터 기반)
-- 작업 히스토리 페이지 완성: 필터링/정렬/빈 상태 UI + 더미 데이터 (`lib/dummy-data.ts`)
-- 접근성 완료: 반응형 레이아웃, 키보드 접근, aria-live, 터치 지원, 데스크톱 권장 배너
-- 더미 이미지 29개 배치: `public/dummy/` (source/result/ref/pose-ref SVG 플레이스홀더)
-- 다음 단계: Phase 3 -- 핵심 기능 구현 (Task 011 Supabase 클라이언트부터 시작)
+- Phase 3 완료: 핵심 기능 구현 (Task 011~016 전체 완료)
+- Supabase 인프라 연결 완료: DB (`studio_history` 테이블) + Storage (`studio-images` 버킷) + 세션 미들웨어
+- Gemini API 통합 완료: Flash/Pro 듀얼 모드 + Pro→Flash 자동 Fallback
+- Studio API 3개 완성: 의류 교체, 색상 변경, 포즈 변경 (실제 Gemini API 연동)
+- 이미지 파이프라인 완성: 업로드 검증 → Storage 저장 → Gemini 처리 → 결과 저장 → 히스토리 기록
+- UI-API 연결 완료: `hooks/use-studio-generate.ts`, `hooks/use-studio-history.ts`
+- 에러 처리 완성: retryable/non-retryable 분류, 3초 쿨다운, Fallback 안내
+- Playwright E2E 테스트 통과: 전체 API + UI 동작 검증 완료
+- 다음 단계: Phase 4 -- 고급 기능 및 최적화 (Task 017 소셜 로그인부터 시작)
 
 ---
 
@@ -210,20 +213,20 @@
 
 ---
 
-### Phase 3: 핵심 기능 구현 (2주)
+### Phase 3: 핵심 기능 구현 (2주) ✅
 
 > 더미 데이터를 실제 API/DB로 교체한다. Supabase 인프라 연결, Gemini API 통합, 이미지 파이프라인 구축, 에러 처리를 완성하여 실제 동작하는 MVP를 만든다.
 
-#### Task 011: 설정하다 -- Supabase 클라이언트 및 DB 연결 -- 인프라 기반 구축
+#### ✅ Task 011: 설정하다 -- Supabase 클라이언트 및 DB 연결 -- 인프라 기반 구축
 
-- `lib/supabase/client.ts` 생성: `createBrowserClient()` (클라이언트 컴포넌트용, `@supabase/ssr`)
-- `lib/supabase/server.ts` 생성: `createServerClient()` (서버 컴포넌트/API Route용, `@supabase/ssr`)
-- `lib/supabase/middleware.ts` 생성: 세션 갱신 미들웨어 (Phase 4 Auth 대비)
-- `middleware.ts` (루트): Supabase 미들웨어 통합
-- Supabase 프로젝트에 `supabase/migrations/001_studio_history.sql` 적용 (MCP 도구 또는 대시보드)
-- Supabase Storage `studio-images` 버킷 생성 및 정책 설정
-- 환경변수 검증: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` 존재 확인
-- 연결 테스트: DB 쿼리 + Storage 업로드/다운로드 동작 확인
+- ✅ `lib/supabase/client.ts` 생성: `createBrowserClient()` (클라이언트 컴포넌트용, `@supabase/ssr`)
+- ✅ `lib/supabase/server.ts` 생성: `createServerClient()` (서버 컴포넌트/API Route용, `@supabase/ssr`)
+- ✅ `lib/supabase/middleware.ts` 생성: 세션 갱신 미들웨어 (Phase 4 Auth 대비)
+- ✅ `middleware.ts` (루트): Supabase 미들웨어 통합
+- ✅ Supabase 프로젝트에 `supabase/migrations/001_studio_history.sql` 적용 (MCP 도구 또는 대시보드)
+- ✅ Supabase Storage `studio-images` 버킷 생성 및 정책 설정
+- ✅ 환경변수 검증: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` 존재 확인
+- ✅ 연결 테스트: DB 쿼리 + Storage 업로드/다운로드 동작 확인
 
 **의존성**: Task 004 (DB 스키마 설계 완료)
 **산출물**: `lib/supabase/` 3개 파일, `middleware.ts`, Supabase 프로젝트 인프라 구축
@@ -238,16 +241,16 @@
 
 ---
 
-#### Task 012: 통합하다 -- Gemini API -- Flash/Pro 듀얼 모드 및 프롬프트 엔지니어링
+#### ✅ Task 012: 통합하다 -- Gemini API -- Flash/Pro 듀얼 모드 및 프롬프트 엔지니어링
 
-- `lib/gemini.ts` 생성: Gemini API 클라이언트 래퍼 (`@google/generative-ai` SDK 사용)
-- `callGeminiWithMode()` 함수: standard(Flash)/premium(Pro) 모드 선택, 자동 Fallback 로직
-- `isOverloadOrRateLimit()` 함수: HTTP 429/503/500 판별
-- 프롬프트 적용: `config/prompts.ts`의 템플릿을 각 기능별로 주입
-- 이미지 전처리: Base64 인코딩, 최대 2048px 리사이즈 후 전송
-- 응답 파싱: Gemini 응답에서 이미지 데이터 추출, Base64 디코딩
-- Rate Limiting: 클라이언트 측 3초 쿨다운 디바운싱
-- 에러 핸들링: `StudioError` 타입 기반 구조화된 에러 반환
+- ✅ `lib/gemini.ts` 생성: Gemini API 클라이언트 래퍼 (`@google/generative-ai` SDK 사용)
+- ✅ `callGeminiWithMode()` 함수: standard(Flash)/premium(Pro) 모드 선택, 자동 Fallback 로직
+- ✅ `isOverloadOrRateLimit()` 함수: HTTP 429/503/500 판별
+- ✅ 프롬프트 적용: `config/prompts.ts`의 템플릿을 각 기능별로 주입
+- ✅ 이미지 전처리: Base64 인코딩, 최대 2048px 리사이즈 후 전송
+- ✅ 응답 파싱: Gemini 응답에서 이미지 데이터 추출, Base64 디코딩
+- ✅ Rate Limiting: 클라이언트 측 3초 쿨다운 디바운싱
+- ✅ 에러 핸들링: `StudioError` 타입 기반 구조화된 에러 반환
 
 **의존성**: Task 001 (타입), Task 002 (프롬프트/모델 Config)
 **산출물**: `lib/gemini.ts`
@@ -263,15 +266,15 @@
 
 ---
 
-#### Task 013: 구축하다 -- 이미지 업로드/저장 파이프라인 -- Supabase Storage 연동
+#### ✅ Task 013: 구축하다 -- 이미지 업로드/저장 파이프라인 -- Supabase Storage 연동
 
-- `lib/image-utils.ts` 생성: 이미지 리사이즈 (최대 2048px), Base64 변환, 포맷 변환, 썸네일 생성 (200px)
-- `app/api/upload/route.ts` 구현: FormData 수신 -> 유효성 검증 (크기/포맷/해상도) -> Supabase Storage 업로드 -> URL 반환
-- 업로드 경로 전략: `studio-images/source/{session_id}/{uuid}.{ext}`
-- 결과 이미지 저장: `studio-images/result/{session_id}/{uuid}.{ext}`
-- 썸네일 저장: `studio-images/thumb/{session_id}/{uuid}.{ext}` (200px 리사이즈)
-- 세션 ID 관리: 쿠키 기반 UUID 발급 및 유지 (`lib/session.ts`)
-- Zod 스키마 검증: 파일 크기 (최대 10MB), 포맷 (JPG/PNG/WebP), 해상도 (512~4096px)
+- ✅ `lib/image-utils.ts` 생성: 이미지 리사이즈 (최대 2048px), Base64 변환, 포맷 변환, 썸네일 생성 (200px)
+- ✅ `app/api/upload/route.ts` 구현: FormData 수신 -> 유효성 검증 (크기/포맷/해상도) -> Supabase Storage 업로드 -> URL 반환
+- ✅ 업로드 경로 전략: `studio-images/source/{session_id}/{uuid}.{ext}`
+- ✅ 결과 이미지 저장: `studio-images/result/{session_id}/{uuid}.{ext}`
+- ✅ 썸네일 저장: `studio-images/thumb/{session_id}/{uuid}.{ext}` (200px 리사이즈)
+- ✅ 세션 ID 관리: 쿠키 기반 UUID 발급 및 유지 (`lib/session.ts`)
+- ✅ Zod 스키마 검증: 파일 크기 (최대 10MB), 포맷 (JPG/PNG/WebP), 해상도 (512~4096px)
 
 **의존성**: Task 011 (Supabase Storage 연결)
 **산출물**: `lib/image-utils.ts`, `lib/session.ts`, `app/api/upload/route.ts` 완성
@@ -288,15 +291,15 @@
 
 ---
 
-#### Task 014: 구현하다 -- Studio API Routes -- 3가지 이미지 생성 엔드포인트
+#### ✅ Task 014: 구현하다 -- Studio API Routes -- 3가지 이미지 생성 엔드포인트
 
-- `app/api/studio/try-on/route.ts` 구현: POST 요청 처리 -> 이미지 검증 -> Gemini API 호출 -> 결과 Storage 저장 -> 히스토리 DB 기록 -> 응답 반환
-- `app/api/studio/color-swap/route.ts` 구현: 원본 이미지 + 목표 색상(HEX) + 영역(auto/top/bottom/dress) 처리
-- `app/api/studio/pose-transfer/route.ts` 구현: 원본 이미지 + 포즈(프리셋 ID 또는 참조 이미지) 처리
-- 공통 미들웨어: 요청 검증 (Zod), 세션 확인, 처리 시간 측정
-- 히스토리 기록: `studio_history` 테이블에 메타데이터 저장 (소스/결과 URL, 파라미터, 모델 정보, Fallback 여부)
-- `app/api/history/route.ts` 생성: GET (세션별 히스토리 조회, 페이지네이션), DELETE (개별 히스토리 삭제)
-- 응답 형식: `StudioBaseResponse` 타입 준수
+- ✅ `app/api/studio/try-on/route.ts` 구현: POST 요청 처리 -> 이미지 검증 -> Gemini API 호출 -> 결과 Storage 저장 -> 히스토리 DB 기록 -> 응답 반환
+- ✅ `app/api/studio/color-swap/route.ts` 구현: 원본 이미지 + 목표 색상(HEX) + 영역(auto/top/bottom/dress) 처리
+- ✅ `app/api/studio/pose-transfer/route.ts` 구현: 원본 이미지 + 포즈(프리셋 ID 또는 참조 이미지) 처리
+- ✅ 공통 미들웨어: 요청 검증 (Zod), 세션 확인, 처리 시간 측정
+- ✅ 히스토리 기록: `studio_history` 테이블에 메타데이터 저장 (소스/결과 URL, 파라미터, 모델 정보, Fallback 여부)
+- ✅ `app/api/history/route.ts` 생성: GET (세션별 히스토리 조회, 페이지네이션), DELETE (개별 히스토리 삭제)
+- ✅ 응답 형식: `StudioBaseResponse` 타입 준수
 
 **의존성**: Task 011 (Supabase DB), Task 012 (Gemini API), Task 013 (이미지 파이프라인)
 **산출물**: API Route 4개 완성 + 히스토리 CRUD API
@@ -314,16 +317,16 @@
 
 ---
 
-#### Task 015: 전환하다 -- UI-API 연결 -- 더미 데이터에서 실제 API 호출로 교체
+#### ✅ Task 015: 전환하다 -- UI-API 연결 -- 더미 데이터에서 실제 API 호출로 교체
 
-- 의류 교체 페이지: 더미 로딩 -> 실제 `/api/studio/try-on` 호출 + 결과 표시
-- 색상 변경 페이지: 더미 -> 실제 `/api/studio/color-swap` 호출
-- 포즈 변경 페이지: 더미 -> 실제 `/api/studio/pose-transfer` 호출
-- 히스토리 페이지: 더미 데이터 -> 실제 `/api/history` 조회 + 페이지네이션
-- `hooks/use-studio-generate.ts` 생성: 이미지 생성 커스텀 훅 (업로드 -> API 호출 -> 상태 관리 -> 결과 반환)
-- `hooks/use-studio-history.ts` 생성: 히스토리 조회 커스텀 훅 (목록 조회 + 삭제 + 필터링)
-- 이미지 업로드 연결: `ImageUploadZone` -> `/api/upload` -> Storage URL 수신
-- 다운로드 기능: 결과 이미지 URL에서 Blob 다운로드 (PNG/JPG 선택)
+- ✅ 의류 교체 페이지: 더미 로딩 -> 실제 `/api/studio/try-on` 호출 + 결과 표시
+- ✅ 색상 변경 페이지: 더미 -> 실제 `/api/studio/color-swap` 호출
+- ✅ 포즈 변경 페이지: 더미 -> 실제 `/api/studio/pose-transfer` 호출
+- ✅ 히스토리 페이지: 더미 데이터 -> 실제 `/api/history` 조회 + 페이지네이션
+- ✅ `hooks/use-studio-generate.ts` 생성: 이미지 생성 커스텀 훅 (업로드 -> API 호출 -> 상태 관리 -> 결과 반환)
+- ✅ `hooks/use-studio-history.ts` 생성: 히스토리 조회 커스텀 훅 (목록 조회 + 삭제 + 필터링)
+- ✅ 이미지 업로드 연결: `ImageUploadZone` -> `/api/upload` -> Storage URL 수신
+- ✅ 다운로드 기능: 결과 이미지 URL에서 Blob 다운로드 (PNG/JPG 선택)
 
 **의존성**: Task 006~009 (UI 완성), Task 014 (API Routes 완성)
 **산출물**: 전체 스튜디오 실제 동작 연결 완료
@@ -339,16 +342,16 @@
 
 ---
 
-#### Task 016: 강화하다 -- 에러 처리 및 로딩 상태 -- 안정적 사용자 경험 보장
+#### ✅ Task 016: 강화하다 -- 에러 처리 및 로딩 상태 -- 안정적 사용자 경험 보장
 
-- 클라이언트 에러 처리: 파일 크기 초과, 지원하지 않는 포맷, 해상도 부적합 -> toast 알림
-- 서버 에러 처리: Gemini API 타임아웃 (60초), Rate Limit, 내부 오류 -> 재시도 버튼 표시
-- Retryable 에러 자동 재시도: `STUDIO_004`, `STUDIO_005`, `STUDIO_006` -> 최대 2회, 지수 백오프 (2초, 4초)
-- Non-retryable 에러 즉시 안내: `STUDIO_001`~`STUDIO_003`, `STUDIO_007` -> 사용자 친화적 메시지
-- 로딩 상태 UI: Skeleton, Spinner, 프로그레스 바, 예상 대기 시간 표시
-- 네트워크 오프라인 감지: 오프라인 시 생성 버튼 비활성화 + 안내
-- Fallback 안내 toast: 고품질 모드에서 Flash Fallback 발생 시 "기본 모델로 생성되었습니다" 표시
-- 연속 클릭 방지: 생성 버튼 3초 쿨다운 (디바운싱)
+- ✅ 클라이언트 에러 처리: 파일 크기 초과, 지원하지 않는 포맷, 해상도 부적합 -> toast 알림
+- ✅ 서버 에러 처리: Gemini API 타임아웃 (60초), Rate Limit, 내부 오류 -> 재시도 버튼 표시
+- ✅ Retryable 에러 자동 재시도: `STUDIO_004`, `STUDIO_005`, `STUDIO_006` -> 최대 2회, 지수 백오프 (2초, 4초)
+- ✅ Non-retryable 에러 즉시 안내: `STUDIO_001`~`STUDIO_003`, `STUDIO_007` -> 사용자 친화적 메시지
+- ✅ 로딩 상태 UI: Skeleton, Spinner, 프로그레스 바, 예상 대기 시간 표시
+- ✅ 네트워크 오프라인 감지: 오프라인 시 생성 버튼 비활성화 + 안내
+- ✅ Fallback 안내 toast: 고품질 모드에서 Flash Fallback 발생 시 "기본 모델로 생성되었습니다" 표시
+- ✅ 연속 클릭 방지: 생성 버튼 3초 쿨다운 (디바운싱)
 
 **의존성**: Task 015 (UI-API 연결 완료 후)
 **산출물**: 전체 에러 처리 + 로딩 상태 완성
@@ -564,18 +567,18 @@ public/dummy/                               # Task 006~009 (더미 이미지)
 lib/dummy-data.ts                           # Task 009
 ```
 
-### Phase 3에서 생성되는 파일
+### Phase 3에서 생성되는 파일 ✅
 
 ```
-lib/supabase/client.ts                      # Task 011
-lib/supabase/server.ts                      # Task 011
-lib/supabase/middleware.ts                   # Task 011
-middleware.ts                               # Task 011
-lib/gemini.ts                               # Task 012
-lib/image-utils.ts                          # Task 013
-lib/session.ts                              # Task 013
-hooks/use-studio-generate.ts                # Task 015
-hooks/use-studio-history.ts                 # Task 015
+lib/supabase/client.ts                      # Task 011 ✅
+lib/supabase/server.ts                      # Task 011 ✅
+lib/supabase/middleware.ts                   # Task 011 ✅
+middleware.ts                               # Task 011 ✅
+lib/gemini.ts                               # Task 012 ✅
+lib/image-utils.ts                          # Task 013 ✅
+lib/session.ts                              # Task 013 ✅
+hooks/use-studio-generate.ts                # Task 015 ✅
+hooks/use-studio-history.ts                 # Task 015 ✅
 ```
 
 ### Phase 4에서 생성되는 파일
@@ -587,5 +590,5 @@ app/(dashboard)/dashboard/tokens/page.tsx   # Task 018
 app/api/payments/confirm/route.ts           # Task 018
 app/api/payments/webhook/route.ts           # Task 018
 app/api/tokens/route.ts                     # Task 018
-app/api/history/route.ts                    # Task 014 (Phase 3)
+app/api/history/route.ts                    # Task 014 (Phase 3) ✅
 ```
