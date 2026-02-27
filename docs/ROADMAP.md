@@ -15,25 +15,25 @@
 
 ### 기술 스택
 
-| 영역 | 기술 |
-|------|------|
+| 영역       | 기술                                               |
+| ---------- | -------------------------------------------------- |
 | 프레임워크 | Next.js 16 App Router, React 19, TypeScript strict |
-| 스타일링 | Tailwind CSS 4, shadcn/ui (Radix UI + CVA) |
-| AI | Google Gemini API (Flash + Pro 모델) |
-| 인프라 | Supabase (PostgreSQL + Storage + Auth) |
-| 결제 | 토스 페이먼츠 (Phase 4) |
-| 패턴 | Config -> Type -> Component |
+| 스타일링   | Tailwind CSS 4, shadcn/ui (Radix UI + CVA)         |
+| AI         | Google Gemini API (Flash + Pro 모델)               |
+| 인프라     | Supabase (PostgreSQL + Storage + Auth)             |
+| 결제       | 토스 페이먼츠 (Phase 4)                            |
+| 패턴       | Config -> Type -> Component                        |
 
 ### 현재 프로젝트 상태
 
 - Phase 1 완료: 애플리케이션 골격 구축 (Task 001~004)
-- Phase 2 진행 중: UI/UX 완성 (Task 005, 007, 008, 009 완료 / Task 006, 010 부분 완료)
-- 스튜디오 공통 컴포넌트 6개 완성: `components/studio/` (image-upload-zone, before-after-slider, result-viewer, processing-indicator, studio-layout, mode-selector)
-- 스튜디오 페이지 UI 완성: 의류 교체, 색상 변경 (color-picker), 포즈 변경 (pose-preset-gallery)
+- Phase 2 완료: UI/UX 완성 (Task 005~010 전체 완료)
+- 스튜디오 공통 컴포넌트 8개 완성: `components/studio/` (image-upload-zone, before-after-slider, result-viewer, processing-indicator, studio-layout, mode-selector, color-picker, pose-preset-gallery)
+- 스튜디오 페이지 UI 완성: 의류 교체, 색상 변경, 포즈 변경 (더미 데이터 기반)
 - 작업 히스토리 페이지 완성: 필터링/정렬/빈 상태 UI + 더미 데이터 (`lib/dummy-data.ts`)
-- 접근성 기본 적용: 반응형 레이아웃, 키보드 접근, aria-live, 터치 지원
-- 미완료 항목: `public/dummy/` 더미 이미지 미배치 (Task 006), 데스크톱 권장 배너 미구현 (Task 010)
-- 다음 단계: Task 006 더미 이미지 + Task 010 데스크톱 배너 완료 후 Phase 3 진입
+- 접근성 완료: 반응형 레이아웃, 키보드 접근, aria-live, 터치 지원, 데스크톱 권장 배너
+- 더미 이미지 29개 배치: `public/dummy/` (source/result/ref/pose-ref SVG 플레이스홀더)
+- 다음 단계: Phase 3 -- 핵심 기능 구현 (Task 011 Supabase 클라이언트부터 시작)
 
 ---
 
@@ -113,7 +113,7 @@
 
 ---
 
-### Phase 2: UI/UX 완성 -- 더미 데이터 활용 (1.5주)
+### Phase 2: UI/UX 완성 -- 더미 데이터 활용 (1.5주) ✅
 
 > 모든 페이지의 UI를 더미 데이터로 완성한다. 실제 API 연동 없이 전체 사용자 흐름을 시각적으로 경험할 수 있도록 한다. 이 단계에서 디자인 피드백을 받아 조기에 반영한다.
 
@@ -133,7 +133,7 @@
 
 ---
 
-#### Task 006: 구현하다 -- 의류 교체 스튜디오 UI -- 더미 데이터 기반 전체 화면 완성
+#### ✅ Task 006: 구현하다 -- 의류 교체 스튜디오 UI -- 더미 데이터 기반 전체 화면 완성
 
 - ✅ `app/(dashboard)/dashboard/studio/page.tsx` 업데이트: 의류 교체 전용 레이아웃 적용
 - ✅ Base 이미지 업로드 영역: `ImageUploadZone` 컴포넌트 연결 ("모델 사진을 업로드하세요")
@@ -141,7 +141,7 @@
 - ✅ "생성하기" 버튼: 클릭 시 더미 로딩 (3초) -> 더미 결과 이미지 표시
 - ✅ 결과 영역: `BeforeAfterSlider` + `ResultViewer` 컴포넌트 연결
 - ✅ `ModeSelector` 컴포넌트: 기본/고품질 모드 선택 UI 배치
-- 더미 데이터: `/public/dummy/` 디렉토리에 샘플 이미지 배치
+- ✅ 더미 데이터: `/public/dummy/` 디렉토리에 샘플 이미지 배치
 
 **의존성**: Task 003 (페이지 셸), Task 005 (공통 컴포넌트)
 **산출물**: 의류 교체 스튜디오 완성 화면 (더미)
@@ -194,7 +194,7 @@
 
 ---
 
-#### Task 010: 적용하다 -- 접근성 및 반응형 디자인 -- WCAG 2.1 AA 준수 및 모바일 대응
+#### ✅ Task 010: 적용하다 -- 접근성 및 반응형 디자인 -- WCAG 2.1 AA 준수 및 모바일 대응
 
 - ✅ 전체 스튜디오 페이지 반응형 레이아웃: 데스크톱 2단 -> 모바일 1단 스택
 - ✅ 이미지 업로드 영역 키보드 접근: Tab/Enter/Space로 파일 선택 가능
@@ -202,7 +202,7 @@
 - ✅ 색상 대비 WCAG 2.1 AA 검증 (shadcn/ui 기본 테마 기반)
 - ✅ 결과 이미지 `alt` 텍스트: 작업 유형 + 생성 일시 조합
 - ✅ 모바일 웹 터치 지원: BeforeAfterSlider 터치 드래그, 업로드 영역 탭 인터랙션
-- 데스크톱 권장 안내 배너: 모바일에서 스튜디오 접근 시 "데스크톱에서 더 편리하게 사용하세요" 표시
+- ✅ 데스크톱 권장 안내 배너: 모바일에서 스튜디오 접근 시 "데스크톱에서 더 편리하게 사용하세요" 표시
 
 **의존성**: Task 005~009 (모든 UI 컴포넌트 완성 후)
 **산출물**: 전체 스튜디오 접근성/반응형 검증 완료
@@ -230,6 +230,7 @@
 **참조**: `@/docs/PRD.md` 6.1절 시스템 구성도, `@/.env.example`
 
 ## 테스트 체크리스트
+
 - [ ] Supabase 브라우저 클라이언트로 `studio_history` 테이블 SELECT 성공
 - [ ] Supabase 서버 클라이언트(service_role)로 `studio_history` INSERT 성공
 - [ ] Storage 버킷에 테스트 이미지 업로드/다운로드 성공
@@ -253,6 +254,7 @@
 **참조**: `@/docs/PRD.md` 6.2절 Gemini API 연동 설계, Fallback 전략
 
 ## 테스트 체크리스트
+
 - [ ] Flash 모델로 의류 교체 이미지 생성 성공
 - [ ] Pro 모델로 의류 교체 이미지 생성 성공
 - [ ] Pro 모델 실패 시 Flash Fallback 동작 확인
@@ -276,6 +278,7 @@
 **참조**: `@/docs/PRD.md` 6.1절 이미지 저장 전략, Storage 버킷 구조
 
 ## 테스트 체크리스트
+
 - [ ] 10MB 이하 JPG/PNG/WebP 이미지 업로드 성공
 - [ ] 10MB 초과 이미지 업로드 시 에러 반환
 - [ ] 지원하지 않는 포맷 업로드 시 에러 반환
@@ -300,6 +303,7 @@
 **참조**: `@/docs/PRD.md` 5.4절 API 설계, 에러 핸들링 전략
 
 ## 테스트 체크리스트
+
 - [ ] `/api/studio/try-on` POST: Base + Reference 이미지 -> 결과 이미지 URL 반환
 - [ ] `/api/studio/color-swap` POST: 원본 이미지 + HEX 색상 -> 결과 이미지 URL 반환
 - [ ] `/api/studio/pose-transfer` POST: 원본 이미지 + 프리셋 ID -> 결과 이미지 URL 반환
@@ -326,6 +330,7 @@
 **참조**: `@/docs/PRD.md` 6.3절 상태 관리
 
 ## 테스트 체크리스트
+
 - [ ] 의류 교체: 이미지 업로드 -> 생성 -> 결과 표시 -> 다운로드 전체 플로우
 - [ ] 색상 변경: 이미지 업로드 -> 색상 선택 -> 생성 -> 결과 표시 전체 플로우
 - [ ] 포즈 변경: 이미지 업로드 -> 프리셋 선택 -> 생성 -> 결과 표시 전체 플로우
@@ -350,6 +355,7 @@
 **참조**: `@/docs/PRD.md` 5.2절 에러 케이스, 6.2절 Fallback 전략, `@/lib/errors.ts`
 
 ## 테스트 체크리스트
+
 - [ ] 10MB 초과 파일 업로드 시 토스트 알림 표시
 - [ ] API 타임아웃 시 재시도 버튼 표시 + 자동 재시도 동작
 - [ ] Rate Limit 초과 시 대기 안내 메시지 표시
@@ -380,6 +386,7 @@
 **참조**: `@/docs/PRD.md` 9절 Phase 2-A 소셜 로그인
 
 ## 테스트 체크리스트
+
 - [ ] 카카오 로그인 -> 프로필 자동 생성 확인
 - [ ] 구글 로그인 -> 프로필 자동 생성 확인
 - [ ] 로그인 후 기존 세션 히스토리가 user_id에 연결되는지 확인
@@ -404,6 +411,7 @@
 **참조**: `@/docs/PRD.md` 9절 Phase 2-B 토큰 결제 시스템, `@/config/pricing.ts`
 
 ## 테스트 체크리스트
+
 - [ ] 토큰 패키지 선택 -> 토스 결제 -> 토큰 충전 전체 플로우
 - [ ] 결제 취소 시 토큰 미충전 확인
 - [ ] 이미지 생성 시 토큰 차감 확인 (모드/해상도별 정확한 양)
@@ -500,18 +508,18 @@ Phase 4 (고급)
 
 ## 병렬 작업 가이드
 
-| 기간 | 프론트엔드 | 백엔드 |
-|------|-----------|--------|
-| 1주차 | Task 001, 002, 003 (골격) | Task 004 (DB 스키마 설계) |
-| 2주차 | Task 005 (공통 컴포넌트) | Task 011 (Supabase 설정) |
-| 2~3주차 | Task 006, 007, 008 (스튜디오 UI) | Task 012, 013 (Gemini + 이미지) |
-| 3주차 | Task 009 (히스토리 UI) | Task 014 (API Routes) |
-| 3~4주차 | Task 010 (접근성) | Task 015 (UI-API 연결) |
-| 4주차 | Task 016 (에러 처리) | Task 016 (에러 처리) |
-| 5~6주차 | Task 017 (인증 UI) | Task 017 (인증 백엔드) |
-| 7~8주차 | Task 019 (토큰 UI) | Task 018 (결제 연동) |
-| 9~10주차 | Task 020 (배치 UI) | Task 020 (배치 큐) |
-| 10주차+ | Task 021 (성능 최적화) | Task 021 (모니터링) |
+| 기간     | 프론트엔드                       | 백엔드                          |
+| -------- | -------------------------------- | ------------------------------- |
+| 1주차    | Task 001, 002, 003 (골격)        | Task 004 (DB 스키마 설계)       |
+| 2주차    | Task 005 (공통 컴포넌트)         | Task 011 (Supabase 설정)        |
+| 2~3주차  | Task 006, 007, 008 (스튜디오 UI) | Task 012, 013 (Gemini + 이미지) |
+| 3주차    | Task 009 (히스토리 UI)           | Task 014 (API Routes)           |
+| 3~4주차  | Task 010 (접근성)                | Task 015 (UI-API 연결)          |
+| 4주차    | Task 016 (에러 처리)             | Task 016 (에러 처리)            |
+| 5~6주차  | Task 017 (인증 UI)               | Task 017 (인증 백엔드)          |
+| 7~8주차  | Task 019 (토큰 UI)               | Task 018 (결제 연동)            |
+| 9~10주차 | Task 020 (배치 UI)               | Task 020 (배치 큐)              |
+| 10주차+  | Task 021 (성능 최적화)           | Task 021 (모니터링)             |
 
 ---
 

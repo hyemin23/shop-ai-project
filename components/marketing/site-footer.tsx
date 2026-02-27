@@ -1,6 +1,6 @@
-import Link from "next/link"
-import { Logo } from "@/components/logo"
-import { siteConfig } from "@/config/site"
+import Link from "next/link";
+import { Logo } from "@/components/logo";
+import { siteConfig } from "@/config/site";
 
 export function SiteFooter() {
   return (
@@ -39,5 +39,5 @@ export function SiteFooter() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

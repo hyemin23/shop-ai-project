@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -13,13 +13,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { Logo } from "@/components/logo"
-import { UserMenu } from "@/components/user-menu"
-import { dashboardConfig } from "@/config/dashboard"
+} from "@/components/ui/sidebar";
+import { Logo } from "@/components/logo";
+import { UserMenu } from "@/components/user-menu";
+import { dashboardConfig } from "@/config/dashboard";
 
 export function AppSidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <Sidebar>
@@ -52,10 +52,12 @@ export function AppSidebar() {
           <UserMenu />
           <div className="flex flex-col text-sm">
             <span className="font-medium">사용자</span>
-            <span className="text-xs text-muted-foreground">user@example.com</span>
+            <span className="text-xs text-muted-foreground">
+              user@example.com
+            </span>
           </div>
         </div>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

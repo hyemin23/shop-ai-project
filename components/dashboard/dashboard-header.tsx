@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,9 +9,9 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { UserMenu } from "@/components/user-menu"
+} from "@/components/ui/breadcrumb";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { UserMenu } from "@/components/user-menu";
 
 export function DashboardHeader() {
   return (
@@ -36,5 +36,5 @@ export function DashboardHeader() {
         <UserMenu />
       </div>
     </header>
-  )
+  );
 }

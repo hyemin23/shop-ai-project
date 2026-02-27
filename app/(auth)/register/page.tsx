@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -11,9 +11,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,15 +21,15 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 
 const registerSchema = z.object({
   name: z.string().min(2, "2자 이상 입력하세요"),
   email: z.string().email("유효한 이메일을 입력하세요"),
   password: z.string().min(8, "8자 이상 입력하세요"),
-})
+});
 
-type RegisterValues = z.infer<typeof registerSchema>
+type RegisterValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const form = useForm<RegisterValues>({
@@ -39,7 +39,7 @@ export default function RegisterPage() {
       email: "",
       password: "",
     },
-  })
+  });
 
   function onSubmit() {
     // Phase 2: Supabase Auth 카카오/구글 소셜 회원가입 연동 예정
@@ -106,11 +106,14 @@ export default function RegisterPage() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           이미 계정이 있으신가요?{" "}
-          <Link href="/login" className="font-medium text-primary hover:underline">
+          <Link
+            href="/login"
+            className="font-medium text-primary hover:underline"
+          >
             로그인
           </Link>
         </p>
       </CardFooter>
     </Card>
-  )
+  );
 }

@@ -1,11 +1,11 @@
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/dashboard/app-sidebar"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/dashboard/app-sidebar";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <SidebarProvider>
@@ -15,5 +15,5 @@ export default function DashboardLayout({
         <main className="flex-1 p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

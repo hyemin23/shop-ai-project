@@ -17,7 +17,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "똑픽 (DDokPick)",
-  description: "동대문 의류 셀러를 위한 AI 이미지 편집 서비스. 의류 교체, 색상 변경, 포즈 변경을 건당 1,000원 이하, 수 분 이내로.",
+  description:
+    "동대문 의류 셀러를 위한 AI 이미지 편집 서비스. 의류 교체, 색상 변경, 포즈 변경을 건당 1,000원 이하, 수 분 이내로.",
 };
 
 export default function RootLayout({

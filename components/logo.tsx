@@ -1,6 +1,6 @@
-import { Zap } from "lucide-react"
-import Link from "next/link"
-import { siteConfig } from "@/config/site"
+import { Zap } from "lucide-react";
+import Link from "next/link";
+import { siteConfig } from "@/config/site";
 
 export function Logo() {
   return (
@@ -8,5 +8,5 @@ export function Logo() {
       <Zap className="h-5 w-5 text-primary" />
       <span>{siteConfig.name}</span>
     </Link>
-  )
+  );
 }

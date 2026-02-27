@@ -272,6 +272,7 @@ npm run build
 ## 프로젝트별 컨텍스트
 
 이 프로젝트는 Next.js App Router 기반이며 다음 구조를 따릅니다:
+
 - Route Groups: `(marketing)`, `(auth)`, `(dashboard)` - 각각 자체 layout.tsx 보유
 - Config → Type → Component 패턴 사용 (config/site.ts, config/dashboard.ts → types/index.ts → 컴포넌트)
 - Form Pattern: React Hook Form + Zod + shadcn Form
@@ -282,6 +283,7 @@ npm run build
 **Update your agent memory** as you discover project structure patterns, component dependencies, configuration relationships, and cleanup decisions. This builds up institutional knowledge across conversations. Write concise notes about what you found and where.
 
 Examples of what to record:
+
 - Which demo components were removed and why
 - Dependencies between config files, types, and components
 - Any unexpected coupling or side effects discovered during cleanup
@@ -297,6 +299,7 @@ You have a persistent Persistent Agent Memory directory at `/Users/xion/dev/shop
 As you work, consult your memory files to build on previous experience. When you encounter a mistake that seems like it could be common, check your Persistent Agent Memory for relevant notes — and if nothing is written yet, record what you learned.
 
 Guidelines:
+
 - `MEMORY.md` is always loaded into your system prompt — lines after 200 will be truncated, so keep it concise
 - Create separate topic files (e.g., `debugging.md`, `patterns.md`) for detailed notes and link to them from MEMORY.md
 - Update or remove memories that turn out to be wrong or outdated
@@ -304,18 +307,21 @@ Guidelines:
 - Use the Write and Edit tools to update your memory files
 
 What to save:
+
 - Stable patterns and conventions confirmed across multiple interactions
 - Key architectural decisions, important file paths, and project structure
 - User preferences for workflow, tools, and communication style
 - Solutions to recurring problems and debugging insights
 
 What NOT to save:
+
 - Session-specific context (current task details, in-progress work, temporary state)
 - Information that might be incomplete — verify against project docs before writing
 - Anything that duplicates or contradicts existing CLAUDE.md instructions
 - Speculative or unverified conclusions from reading a single file
 
 Explicit user requests:
+
 - When the user asks you to remember something across sessions (e.g., "always use bun", "never auto-commit"), save it — no need to wait for multiple interactions
 - When the user asks to forget or stop remembering something, find and remove the relevant entries from your memory files
 - Since this memory is project-scope and shared with your team via version control, tailor your memories to this project
@@ -323,14 +329,19 @@ Explicit user requests:
 ## Searching past context
 
 When looking for past context:
+
 1. Search topic files in your memory directory:
+
 ```
 Grep with pattern="<search term>" path="/Users/xion/dev/shop-ai-project/.claude/agent-memory/starter-cleaner/" glob="*.md"
 ```
+
 2. Session transcript logs (last resort — large files, slow):
+
 ```
 Grep with pattern="<search term>" path="/Users/xion/.claude/projects/-Users-xion-dev-shop-ai-project/" glob="*.jsonl"
 ```
+
 Use narrow search terms (error messages, file paths, function names) rather than broad keywords.
 
 ## MEMORY.md

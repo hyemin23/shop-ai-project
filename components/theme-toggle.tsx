@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useTheme } from "next-themes"
-import { Sun, Moon } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useTheme } from "next-themes";
+import { Sun, Moon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const { setTheme, resolvedTheme } = useTheme()
+  const { setTheme, resolvedTheme } = useTheme();
 
   return (
     <Button
@@ -17,5 +17,5 @@ export function ThemeToggle() {
       <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
       <span className="sr-only">테마 전환</span>
     </Button>
-  )
+  );
 }

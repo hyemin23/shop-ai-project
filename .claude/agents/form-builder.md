@@ -78,17 +78,17 @@ export function MyForm() {
 
 **지원하는 필드 타입과 shadcn/ui 컴포넌트 매핑**:
 
-| 필드 타입 | shadcn/ui 컴포넌트 | Zod 타입 |
-|-----------|-------------------|----------|
-| 텍스트 | `Input` | `z.string()` |
-| 이메일 | `Input type="email"` | `z.string().email()` |
-| 비밀번호 | `Input type="password"` | `z.string().min()` |
-| 숫자 | `Input type="number"` | `z.coerce.number()` |
-| 긴 텍스트 | `Textarea` | `z.string()` |
-| 선택 | `Select` | `z.string()` 또는 `z.enum()` |
-| 체크박스 | `Checkbox` | `z.boolean()` |
-| 스위치 | `Switch` | `z.boolean()` |
-| 날짜 | `DatePicker` 또는 `Input type="date"` | `z.date()` 또는 `z.string()` |
+| 필드 타입 | shadcn/ui 컴포넌트                    | Zod 타입                     |
+| --------- | ------------------------------------- | ---------------------------- |
+| 텍스트    | `Input`                               | `z.string()`                 |
+| 이메일    | `Input type="email"`                  | `z.string().email()`         |
+| 비밀번호  | `Input type="password"`               | `z.string().min()`           |
+| 숫자      | `Input type="number"`                 | `z.coerce.number()`          |
+| 긴 텍스트 | `Textarea`                            | `z.string()`                 |
+| 선택      | `Select`                              | `z.string()` 또는 `z.enum()` |
+| 체크박스  | `Checkbox`                            | `z.boolean()`                |
+| 스위치    | `Switch`                              | `z.boolean()`                |
+| 날짜      | `DatePicker` 또는 `Input type="date"` | `z.date()` 또는 `z.string()` |
 
 **폼 생성 프로세스**:
 

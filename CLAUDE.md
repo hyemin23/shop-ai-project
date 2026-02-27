@@ -67,3 +67,24 @@ Slack 알림 스크립트: `.claude/hooks/notify-slack.sh`. 채널 `#starter-kit
 - 인증: Phase 2에서 Supabase Auth 카카오/구글 소셜 로그인 연동 예정. 현재는 폼 구조만 존재.
 - API/DB: Phase 1에서 `app/api/studio/` API Routes + Supabase DB/Storage 연동 예정.
 - 환경변수: `.env.local`에 `SLACK_WEBHOOK_URL` 설정 필요 (Slack 알림용). Phase 1부터 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY` 필요. `.env.example` 참조.
+
+## ⚡ 자주 사용하는 명령어
+
+```bash
+# 개발
+npm run dev         # 개발 서버 실행 (Turbopack)
+npm run build       # 프로덕션 빌드
+npm run check-all   # 모든 검사 통합 실행 (권장)
+
+# UI 컴포넌트
+npx shadcn@latest add button    # 새 컴포넌트 추가
+```
+
+## ✅ 작업 완료 체크리스트
+
+```bash
+npm run check-all   # 모든 검사 통과 확인
+npm run build       # 빌드 성공 확인
+```
+
+💡 **상세 규칙은 위 개발 가이드 문서들을 참조하세요**

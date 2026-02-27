@@ -1,5 +1,5 @@
-import { HeroSection } from "@/components/marketing/hero-section"
-import { FeaturesSection } from "@/components/marketing/features-section"
+import { HeroSection } from "@/components/marketing/hero-section";
+import { FeaturesSection } from "@/components/marketing/features-section";
 
 export default function HomePage() {
   return (
@@ -7,5 +7,5 @@ export default function HomePage() {
       <HeroSection />
       <FeaturesSection />
     </>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,8 +8,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { LogOut, Settings, User } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { LogOut, Settings, User } from "lucide-react";
 
 export function UserMenu() {
   return (
@@ -39,5 +39,5 @@ export function UserMenu() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

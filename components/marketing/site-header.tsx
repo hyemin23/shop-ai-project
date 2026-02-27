@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Logo } from "@/components/logo"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { MobileNav } from "@/components/mobile-nav"
-import { Button } from "@/components/ui/button"
-import { siteConfig } from "@/config/site"
+import Link from "next/link";
+import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { MobileNav } from "@/components/mobile-nav";
+import { Button } from "@/components/ui/button";
+import { siteConfig } from "@/config/site";
 
 export function SiteHeader() {
   return (
@@ -37,5 +37,5 @@ export function SiteHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }

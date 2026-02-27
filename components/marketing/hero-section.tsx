@@ -1,7 +1,7 @@
-import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ArrowRight } from "lucide-react"
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -17,8 +17,8 @@ export function HeroSection() {
       </h1>
 
       <p className="max-w-xl text-lg text-muted-foreground">
-        동대문 의류 셀러를 위한 AI 이미지 편집 서비스.
-        의류 교체, 색상 변경, 포즈 변경을 건당 1,000원 이하, 수 분 이내로.
+        동대문 의류 셀러를 위한 AI 이미지 편집 서비스. 의류 교체, 색상 변경,
+        포즈 변경을 건당 1,000원 이하, 수 분 이내로.
       </p>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -33,5 +33,5 @@ export function HeroSection() {
         </Button>
       </div>
     </section>
-  )
+  );
 }
