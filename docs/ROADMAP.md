@@ -29,14 +29,14 @@
 - Phase 1 완료: 애플리케이션 골격 구축 (Task 001~004)
 - Phase 2 완료: UI/UX 완성 (Task 005~010 전체 완료)
 - Phase 3 완료: 핵심 기능 구현 (Task 011~016 전체 완료)
-- Supabase 인프라 연결 완료: DB (`studio_history` 테이블) + Storage (`studio-images` 버킷) + 세션 미들웨어
-- Gemini API 통합 완료: Flash/Pro 듀얼 모드 + Pro→Flash 자동 Fallback
-- Studio API 3개 완성: 의류 교체, 색상 변경, 포즈 변경 (실제 Gemini API 연동)
-- 이미지 파이프라인 완성: 업로드 검증 → Storage 저장 → Gemini 처리 → 결과 저장 → 히스토리 기록
-- UI-API 연결 완료: `hooks/use-studio-generate.ts`, `hooks/use-studio-history.ts`
-- 에러 처리 완성: retryable/non-retryable 분류, 3초 쿨다운, Fallback 안내
-- Playwright E2E 테스트 통과: 전체 API + UI 동작 검증 완료
-- 다음 단계: Phase 4 -- 고급 기능 및 최적화 (Task 017 소셜 로그인부터 시작)
+- Phase 4 완료: 고급 기능 구현 (Task 017~021 전체 완료)
+- 소셜 로그인 완료: Supabase Auth 카카오/구글 OAuth 연동, 보호 라우트, 세션→유저 연결
+- 토스 페이먼츠 결제 완료: 토큰 충전 결제 플로우, 패키지 선택, 결제 승인/웹훅
+- 토큰 관리 UI 완료: 잔액 Badge, 거래 내역, 무료 체험 배너, 토큰 부족 모달, 설정 페이지
+- 토큰 차감 시스템 완료: 이미지 생성 시 자동 차감 + Fallback 환불 + 무료 체험 한도
+- 배치 처리 완료: SSE 스트리밍 배치 API, 다중 이미지 업로드, ZIP 다운로드, 공통 처리 로직 추출
+- 성능 최적화 완료: 이미지 리사이즈/WebP, LRU 캐시, DB 인덱스, SEO 메타데이터/JSON-LD, CI/CD, Sentry
+- 프로젝트 상태: 전체 Phase 1~4 완료, 프로덕션 배포 준비 완료
 
 ---
 
@@ -369,20 +369,20 @@
 
 ---
 
-### Phase 4: 고급 기능 및 최적화 (4-6주)
+### Phase 4: 고급 기능 및 최적화 (4-6주) ✅
 
 > MVP 핵심 기능 완성 후, 인증/결제/배치 처리 등 고급 기능을 추가하고 성능을 최적화한다. Phase 2(PRD 기준)의 소셜 로그인, 토큰 결제를 이 단계에서 구현한다.
 
-#### Task 017: 구현하다 -- Supabase Auth 소셜 로그인 -- 카카오/구글 OAuth 연동
+#### ✅ Task 017: 구현하다 -- Supabase Auth 소셜 로그인 -- 카카오/구글 OAuth 연동
 
-- Supabase 대시보드에서 Kakao, Google OAuth Provider 활성화 (클라이언트 ID/Secret 설정)
-- `app/(auth)/login/page.tsx` 업데이트: 카카오/구글 소셜 로그인 버튼 연동 (Supabase Auth signInWithOAuth)
-- `app/(auth)/register/page.tsx` 업데이트: 소셜 회원가입 플로우 (Supabase Auth 자동 처리)
-- `app/(auth)/callback/route.ts` 생성: OAuth 콜백 처리 (code -> session 교환)
-- `supabase/migrations/002_users_and_tokens.sql` 적용: `profiles` 테이블 + `handle_new_user()` 트리거
-- 세션 관리: `@supabase/ssr` 미들웨어로 쿠키 기반 세션 갱신
-- 기존 세션 데이터 마이그레이션: `link_session_to_user()` 함수로 session_id -> user_id 연결
-- 로그인/비로그인 분기: 로그인 시 user_id 기반, 비로그인 시 기존 session_id 기반 유지
+- ✅ Supabase 대시보드에서 Kakao, Google OAuth Provider 활성화 (클라이언트 ID/Secret 설정)
+- ✅ `app/(auth)/login/page.tsx` 업데이트: 카카오/구글 소셜 로그인 버튼 연동 (Supabase Auth signInWithOAuth)
+- ✅ `app/(auth)/register/page.tsx` 업데이트: 소셜 회원가입 플로우 (Supabase Auth 자동 처리)
+- ✅ `app/(auth)/callback/route.ts` 생성: OAuth 콜백 처리 (code -> session 교환)
+- ✅ `supabase/migrations/002_users_and_tokens.sql` 적용: `profiles` 테이블 + `handle_new_user()` 트리거
+- ✅ 세션 관리: `@supabase/ssr` 미들웨어로 쿠키 기반 세션 갱신
+- ✅ 기존 세션 데이터 마이그레이션: `link_session_to_user()` 함수로 session_id -> user_id 연결
+- ✅ 로그인/비로그인 분기: 로그인 시 user_id 기반, 비로그인 시 기존 session_id 기반 유지
 
 **의존성**: Task 011 (Supabase 클라이언트), Task 015 (기능 동작 완료)
 **산출물**: 소셜 로그인 완성, `profiles` 테이블 연동
@@ -398,16 +398,16 @@
 
 ---
 
-#### Task 018: 연동하다 -- 토스 페이먼츠 결제 -- 토큰 충전 결제 플로우
+#### ✅ Task 018: 연동하다 -- 토스 페이먼츠 결제 -- 토큰 충전 결제 플로우
 
-- `lib/toss.ts` 생성: 토스 페이먼츠 API 클라이언트 (결제 요청, 결제 승인, 결제 취소)
-- `app/(dashboard)/dashboard/tokens/page.tsx` 생성: 토큰 충전 페이지 UI (패키지 선택 + 토스 결제 위젯)
-- `app/api/payments/confirm/route.ts` 생성: 결제 승인 API (토스 서버 -> 우리 서버 -> 토큰 충전)
-- `app/api/payments/webhook/route.ts` 생성: 토스 웹훅 처리 (결제 상태 변경 알림)
-- `app/api/tokens/route.ts` 생성: GET (잔액 조회), POST (토큰 차감)
-- 토큰 차감 로직: 이미지 생성 시 모드/해상도에 따른 토큰 소모 (`config/pricing.ts` 참조)
-- 토큰 부족 시 충전 유도: 잔액 부족 -> 모달로 충전 페이지 안내
-- Fallback 토큰 환불: 고품질 -> Flash Fallback 시 차액 자동 환불 로직
+- ✅ `lib/toss.ts` 생성: 토스 페이먼츠 API 클라이언트 (결제 요청, 결제 승인, 결제 취소)
+- ✅ `app/(dashboard)/dashboard/tokens/page.tsx` 생성: 토큰 충전 페이지 UI (패키지 선택 + 토스 결제 위젯)
+- ✅ `app/api/payments/confirm/route.ts` 생성: 결제 승인 API (토스 서버 -> 우리 서버 -> 토큰 충전)
+- ✅ `app/api/payments/webhook/route.ts` 생성: 토스 웹훅 처리 (결제 상태 변경 알림)
+- ✅ `app/api/tokens/route.ts` 생성: GET (잔액 조회), POST (토큰 차감)
+- ✅ 토큰 차감 로직: 이미지 생성 시 모드/해상도에 따른 토큰 소모 (`config/pricing.ts` 참조)
+- ✅ 토큰 부족 시 충전 유도: 잔액 부족 -> 모달로 충전 페이지 안내
+- ✅ Fallback 토큰 환불: 고품질 -> Flash Fallback 시 차액 자동 환불 로직
 
 **의존성**: Task 017 (인증 완료 -- 결제는 로그인 사용자만)
 **산출물**: 토큰 충전 결제 플로우 완성
@@ -424,14 +424,14 @@
 
 ---
 
-#### Task 019: 구현하다 -- 토큰 관리 UI -- 잔액/충전/사용 내역 대시보드
+#### ✅ Task 019: 구현하다 -- 토큰 관리 UI -- 잔액/충전/사용 내역 대시보드
 
-- 헤더 토큰 잔액 표시: `DashboardHeader`에 토큰 잔액 Badge 추가
-- `app/(dashboard)/dashboard/tokens/page.tsx` 확장: 사용 내역 목록 (테이블), 필터링 (유형별: 충전/소모/보너스), 날짜 범위 선택
-- 토큰 사용 통계: 이번 달 사용량, 기능별 사용 비율 차트 (간단한 Bar 차트)
-- 충전 버튼: 패키지 선택 모달 -> 토스 결제 연동
-- 무료 체험 안내: 신규 가입 사용자에게 30토큰 무료 체험 배너
-- 프로필 페이지: `app/(dashboard)/dashboard/settings/page.tsx` 업데이트 -- 프로필 정보 표시, 로그아웃
+- ✅ 헤더 토큰 잔액 표시: `DashboardHeader`에 토큰 잔액 Badge 추가
+- ✅ `app/(dashboard)/dashboard/tokens/page.tsx` 확장: 사용 내역 목록 (테이블), 필터링 (유형별: 충전/소모/보너스), 날짜 범위 선택
+- ✅ 토큰 사용 통계: 이번 달 사용량, 기능별 사용 비율 차트 (간단한 Bar 차트)
+- ✅ 충전 버튼: 패키지 선택 모달 -> 토스 결제 연동
+- ✅ 무료 체험 안내: 신규 가입 사용자에게 30토큰 무료 체험 배너
+- ✅ 프로필 페이지: `app/(dashboard)/dashboard/settings/page.tsx` 업데이트 -- 프로필 정보 표시, 로그아웃
 
 **의존성**: Task 017 (인증), Task 018 (결제)
 **산출물**: 토큰 관리 대시보드 완성
@@ -439,14 +439,20 @@
 
 ---
 
-#### Task 020: 구현하다 -- 배치 처리 -- 다중 이미지 동시 처리 큐
+#### ✅ Task 020: 구현하다 -- 배치 처리 -- 다중 이미지 동시 처리 큐
 
-- 다중 이미지 업로드: 최대 10장 동시 선택/업로드 UI
-- 처리 큐: 서버 측 순차 처리 (Gemini API Rate Limit 고려)
-- 진행 상태: 전체 진행률 + 개별 이미지 상태 표시 (대기/처리중/완료/실패)
-- 결과 일괄 다운로드: ZIP 파일로 결과 이미지 일괄 다운로드
-- 부분 실패 처리: 실패한 이미지만 재시도 가능
-- 배치 히스토리: 배치 단위로 히스토리 그룹핑
+- ✅ `supabase/migrations/005_batch_jobs.sql` 생성: `batch_jobs` 테이블 + `studio_history.batch_id` 컬럼
+- ✅ `types/batch.ts` 생성: BatchJob, BatchItemState, BatchSSEEvent 타입 정의
+- ✅ `lib/studio-processor.ts` 생성: `processSingleStudioRequest()` 공통 처리 로직 추출 (3개 Studio API 중복 ~80줄 제거)
+- ✅ 3개 Studio API 리팩토링: `try-on`, `color-swap`, `pose-transfer` → `processSingleStudioRequest()` 사용
+- ✅ `app/api/studio/batch/route.ts` 생성: SSE POST 배치 API (순차 처리, 아이템별 상태 이벤트, maxDuration=300, 2s+jitter 딜레이)
+- ✅ `app/api/studio/batch/[batchId]/route.ts` 생성: GET 상태 조회 + PATCH 실패 재시도
+- ✅ `hooks/use-batch-generate.ts` 생성: SSE 소비 + 아이템별 상태 + jszip ZIP 다운로드
+- ✅ `components/studio/batch-upload-zone.tsx` 생성: 다중 파일 드롭존 (최대 10장, 프리뷰, 개별 삭제)
+- ✅ `components/studio/batch-progress-panel.tsx` 생성: 아이템별 진행 상태 (대기/처리중/완료/실패/건너뜀)
+- ✅ `components/studio/batch-result-grid.tsx` 생성: 결과 그리드 + 개별/일괄 ZIP 다운로드
+- ✅ `app/(dashboard)/dashboard/studio/batch/page.tsx` 생성: 배치 처리 페이지 (작업 유형 선택, 옵션 설정, 배치 실행)
+- ✅ `config/dashboard.ts` 업데이트: "배치 처리" 사이드바 메뉴 추가
 
 **의존성**: Task 014 (API Routes), Task 015 (UI-API 연결)
 **산출물**: 배치 처리 기능 완성
@@ -454,16 +460,22 @@
 
 ---
 
-#### Task 021: 최적화하다 -- 성능 및 모니터링 -- 프로덕션 안정성 확보
+#### ✅ Task 021: 최적화하다 -- 성능 및 모니터링 -- 프로덕션 안정성 확보
 
-- 이미지 최적화: 클라이언트 측 사전 리사이즈 (최대 2048px), WebP 변환, lazy loading
-- API 응답 캐싱: 동일 파라미터 요청 캐싱 (LRU, 선택적)
-- Supabase 쿼리 최적화: 인덱스 효율성 검증, 쿼리 플랜 분석
-- Google Cloud Billing 알림: 일일/월간 예산 알림 설정
-- 에러 모니터링: Sentry 또는 Supabase Logs 기반 에러 추적
-- 성능 메트릭: 생성 성공률, 평균 응답 시간, 다운로드율 추적
-- CI/CD: GitHub Actions 파이프라인 (lint -> build -> deploy)
-- SEO 최적화: 마케팅 페이지 메타 태그, Open Graph, 구조화된 데이터
+- ✅ `lib/image-resize.ts` 생성: Canvas API 리사이즈 (max 2048px) + WebP 변환
+- ✅ `components/studio/image-upload-zone.tsx` 업데이트: 업로드 전 `resizeToWebP()` 자동 호출
+- ✅ `lib/cache.ts` 생성: LRU 캐시 (`lru-cache` 패키지, 토큰 잔액 30s TTL)
+- ✅ `app/api/tokens/route.ts` 업데이트: LRU 캐시 적용
+- ✅ `app/api/history/route.ts` 업데이트: Cache-Control 헤더 추가
+- ✅ `supabase/migrations/006_performance_indexes.sql` 생성: 부분 인덱스 (user_type, active batch, token balance)
+- ✅ `app/(marketing)/page.tsx` 업데이트: SEO 메타데이터 + JSON-LD 구조화 데이터
+- ✅ `app/sitemap.ts` 생성: sitemap.xml 자동 생성
+- ✅ `app/robots.ts` 생성: robots.txt (dashboard/api 차단)
+- ✅ `app/layout.tsx` 업데이트: OG 이미지 확장, 템플릿 타이틀, metadataBase
+- ✅ `.github/workflows/ci.yml` 생성: TypeScript 타입 검사 + ESLint + Build on PR/push
+- ✅ `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts` 생성: Sentry 에러 모니터링
+- ✅ `next.config.ts` 업데이트: `withSentryConfig` 래핑
+- ✅ `lib/gemini.ts` 업데이트: `Sentry.captureException` 추가
 
 **의존성**: Phase 3 전체 완료
 **산출물**: 프로덕션 배포 준비 완료
@@ -581,14 +593,42 @@ hooks/use-studio-generate.ts                # Task 015 ✅
 hooks/use-studio-history.ts                 # Task 015 ✅
 ```
 
-### Phase 4에서 생성되는 파일
+### Phase 4에서 생성되는 파일 (Task 017~021 ✅)
 
 ```
-app/(auth)/callback/route.ts                # Task 017
-lib/toss.ts                                 # Task 018
-app/(dashboard)/dashboard/tokens/page.tsx   # Task 018
-app/api/payments/confirm/route.ts           # Task 018
-app/api/payments/webhook/route.ts           # Task 018
-app/api/tokens/route.ts                     # Task 018
-app/api/history/route.ts                    # Task 014 (Phase 3) ✅
+app/(auth)/callback/route.ts                # Task 017 ✅
+lib/auth.ts                                 # Task 017 ✅
+hooks/use-auth.ts                           # Task 017 ✅
+supabase/migrations/004_token_functions.sql  # Task 017 ✅
+lib/toss.ts                                 # Task 018 ✅
+lib/tokens.ts                               # Task 018 ✅
+app/(dashboard)/dashboard/tokens/page.tsx   # Task 018 ✅
+app/api/payments/confirm/route.ts           # Task 018 ✅
+app/api/payments/webhook/route.ts           # Task 018 ✅
+app/api/tokens/route.ts                     # Task 018 ✅
+app/api/tokens/transactions/route.ts        # Task 019 ✅
+hooks/use-token-balance.ts                  # Task 019 ✅
+components/dashboard/token-balance-badge.tsx # Task 019 ✅
+components/dashboard/token-transaction-list.tsx # Task 019 ✅
+components/dashboard/free-trial-banner.tsx   # Task 019 ✅
+components/studio/token-insufficient-dialog.tsx # Task 019 ✅
+supabase/migrations/005_batch_jobs.sql       # Task 020 ✅
+types/batch.ts                               # Task 020 ✅
+lib/studio-processor.ts                      # Task 020 ✅
+app/api/studio/batch/route.ts               # Task 020 ✅
+app/api/studio/batch/[batchId]/route.ts     # Task 020 ✅
+hooks/use-batch-generate.ts                  # Task 020 ✅
+components/studio/batch-upload-zone.tsx      # Task 020 ✅
+components/studio/batch-progress-panel.tsx   # Task 020 ✅
+components/studio/batch-result-grid.tsx      # Task 020 ✅
+app/(dashboard)/dashboard/studio/batch/page.tsx # Task 020 ✅
+lib/image-resize.ts                          # Task 021 ✅
+lib/cache.ts                                 # Task 021 ✅
+supabase/migrations/006_performance_indexes.sql # Task 021 ✅
+app/sitemap.ts                               # Task 021 ✅
+app/robots.ts                                # Task 021 ✅
+.github/workflows/ci.yml                     # Task 021 ✅
+sentry.client.config.ts                      # Task 021 ✅
+sentry.server.config.ts                      # Task 021 ✅
+sentry.edge.config.ts                        # Task 021 ✅
 ```
