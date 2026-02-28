@@ -8,6 +8,50 @@ import {
   type GeminiModel,
 } from "@/types/studio";
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const { userId, sessionId } = await getUserOrSessionId();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "히스토리 ID가 필요합니다." },
+        { status: 400 },
+      );
+    }
+
+    const supabase = createServiceClient();
+
+    // 소유자 검증 쿼리 빌드
+    let query = supabase.from("studio_history").delete().eq("id", id);
+
+    if (userId) {
+      query = query.eq("user_id", userId);
+    } else {
+      query = query.eq("session_id", sessionId);
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      console.error("History delete error:", error);
+      return NextResponse.json(
+        { error: "히스토리 삭제에 실패했습니다." },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("History delete error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다." },
+      { status: 500 },
+    );
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { userId, sessionId } = await getUserOrSessionId();

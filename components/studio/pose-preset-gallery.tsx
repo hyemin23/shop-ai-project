@@ -16,6 +16,7 @@ interface PosePresetGalleryProps {
 export function PosePresetGallery({
   selectedPresetId,
   onPresetSelect,
+  onCustomUpload,
 }: PosePresetGalleryProps) {
   return (
     <Tabs defaultValue="preset">
@@ -47,6 +48,7 @@ export function PosePresetGallery({
         <ImageUploadZone
           label="참조 포즈 이미지"
           description="원하는 포즈의 참조 이미지를 업로드하세요"
+          onFileSelect={onCustomUpload}
         />
       </TabsContent>
     </Tabs>

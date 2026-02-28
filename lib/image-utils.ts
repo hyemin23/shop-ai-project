@@ -1,3 +1,4 @@
+import sharp from "sharp";
 import { IMAGE_CONSTRAINTS } from "@/config/studio";
 import { StudioError } from "@/lib/errors";
 
@@ -40,6 +41,16 @@ export async function processImageFile(file: File): Promise<ProcessedImage> {
 
 export function base64ToBuffer(base64: string): Buffer {
   return Buffer.from(base64, "base64");
+}
+
+export async function generateThumbnail(
+  buffer: Buffer,
+  maxWidth = 200,
+): Promise<Buffer> {
+  return sharp(buffer)
+    .resize({ width: maxWidth, withoutEnlargement: true })
+    .jpeg({ quality: 80 })
+    .toBuffer();
 }
 
 export function getStoragePath(

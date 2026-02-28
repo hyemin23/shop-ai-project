@@ -4,6 +4,7 @@ import {
   processImageFile,
   getStoragePath,
   base64ToBuffer,
+  generateThumbnail,
 } from "@/lib/image-utils";
 import { PROMPTS } from "@/config/prompts";
 import { POSE_PRESETS } from "@/config/studio";
@@ -199,6 +200,16 @@ export async function processSingleStudioRequest(
       .from(BUCKET)
       .getPublicUrl(resultPath);
 
+    // 썸네일 생성 및 업로드
+    const thumbBuffer = await generateThumbnail(resultBuffer);
+    const thumbPath = getStoragePath("thumb", options.sessionId, "jpg");
+    await supabase.storage.from(BUCKET).upload(thumbPath, thumbBuffer, {
+      contentType: "image/jpeg",
+    });
+    const { data: thumbUrlData } = supabase.storage
+      .from(BUCKET)
+      .getPublicUrl(thumbPath);
+
     const processingTime = Date.now() - startTime;
 
     // 히스토리 저장
@@ -211,6 +222,7 @@ export async function processSingleStudioRequest(
         mode: options.mode,
         source_image_url: sourceUrlData.publicUrl,
         result_image_url: resultUrlData.publicUrl,
+        result_thumb_url: thumbUrlData.publicUrl,
         params: historyParams,
         model_used: geminiResult.modelUsed,
         fallback_used: geminiResult.fallbackUsed,

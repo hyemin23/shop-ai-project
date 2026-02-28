@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { toast } from "sonner";
 import {
   type StudioStatus,
   type StudioType,
@@ -8,6 +9,7 @@ import {
   type GenerationMode,
 } from "@/types/studio";
 import { COOLDOWN_MS } from "@/config/studio";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 interface UseStudioGenerateOptions {
   type: StudioType;
@@ -22,6 +24,7 @@ interface UseStudioGenerateReturn {
   result: StudioBaseResponse | null;
   error: string | null;
   isRetryable: boolean;
+  isOnline: boolean;
   generate: (formData: FormData) => Promise<void>;
   reset: () => void;
 }
@@ -37,10 +40,19 @@ export function useStudioGenerate({
   const [result, setResult] = useState<StudioBaseResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isRetryable, setIsRetryable] = useState(false);
+  const isOnline = useOnlineStatus();
   const cooldownRef = useRef(false);
 
   const generate = useCallback(
     async (formData: FormData) => {
+      if (!navigator.onLine) {
+        toast.warning("오프라인 상태입니다", {
+          description:
+            "인터넷 연결을 확인한 후 다시 시도해주세요.",
+        });
+        return;
+      }
+
       if (cooldownRef.current) return;
 
       cooldownRef.current = true;
@@ -88,6 +100,14 @@ export function useStudioGenerate({
 
         setStatus("success");
         setResult(data);
+
+        if (data.fallbackUsed) {
+          toast.info("기본 모델로 생성되었습니다", {
+            description:
+              "고품질 모델이 일시적으로 사용 불가하여 기본 모델로 처리되었습니다.",
+          });
+        }
+
         onSuccess?.(data);
       } catch {
         setStatus("error");
@@ -106,5 +126,5 @@ export function useStudioGenerate({
     setIsRetryable(false);
   }, []);
 
-  return { status, result, error, isRetryable, generate, reset };
+  return { status, result, error, isRetryable, isOnline, generate, reset };
 }
