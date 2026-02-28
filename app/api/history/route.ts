@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
-import { getSessionId } from "@/lib/session";
+import { getUserOrSessionId } from "@/lib/auth";
 import {
   type StudioHistoryItem,
   type StudioType,
@@ -10,7 +10,7 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
-    const sessionId = await getSessionId();
+    const { userId, sessionId } = await getUserOrSessionId();
     const { searchParams } = new URL(request.url);
 
     const type = searchParams.get("type") as StudioType | null;
@@ -22,9 +22,15 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("studio_history")
       .select("*")
-      .eq("session_id", sessionId)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
+
+    // 로그인 사용자는 user_id로, 비로그인은 session_id로 조회
+    if (userId) {
+      query = query.eq("user_id", userId);
+    } else {
+      query = query.eq("session_id", sessionId);
+    }
 
     if (type) {
       query = query.eq("type", type);
@@ -58,7 +64,12 @@ export async function GET(request: NextRequest) {
       processingTime: row.processing_time,
     }));
 
-    return NextResponse.json({ items, total: items.length });
+    const response = NextResponse.json({ items, total: items.length });
+    response.headers.set(
+      "Cache-Control",
+      "private, max-age=30, stale-while-revalidate=60",
+    );
+    return response;
   } catch (error) {
     console.error("History error:", error);
     return NextResponse.json(

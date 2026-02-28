@@ -1,141 +1,43 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createServiceClient } from "@/lib/supabase/server";
-import { callGeminiWithImages } from "@/lib/gemini";
-import { getSessionId } from "@/lib/session";
-import {
-  processImageFile,
-  getStoragePath,
-  base64ToBuffer,
-} from "@/lib/image-utils";
-import { PROMPTS } from "@/config/prompts";
-import { StudioError } from "@/lib/errors";
-import { type GenerationMode, type StudioBaseResponse } from "@/types/studio";
-
-const BUCKET = "studio-images";
+import { getUserOrSessionId } from "@/lib/auth";
+import { processSingleStudioRequest } from "@/lib/studio-processor";
+import { type GenerationMode } from "@/types/studio";
 
 export async function POST(request: NextRequest) {
-  const startTime = Date.now();
+  const { userId, sessionId } = await getUserOrSessionId();
+  const formData = await request.formData();
 
-  try {
-    const sessionId = await getSessionId();
-    const formData = await request.formData();
+  const sourceFile = formData.get("sourceImage") as File | null;
+  const targetColor = formData.get("targetColor") as string | null;
+  const garmentRegion = (formData.get("garmentRegion") as string) || "auto";
+  const mode = (formData.get("mode") as GenerationMode) || "standard";
 
-    const sourceFile = formData.get("sourceImage") as File | null;
-    const targetColor = formData.get("targetColor") as string | null;
-    const garmentRegion = (formData.get("garmentRegion") as string) || "auto";
-    const mode = (formData.get("mode") as GenerationMode) || "standard";
-
-    if (!sourceFile || !targetColor) {
-      return NextResponse.json(
-        { success: false, error: "원본 이미지와 목표 색상이 필요합니다." },
-        { status: 400 },
-      );
-    }
-
-    const sourceProcessed = await processImageFile(sourceFile);
-    const supabase = createServiceClient();
-
-    // 원본 이미지 Storage 저장
-    const sourcePath = getStoragePath(
-      "source",
-      sessionId,
-      sourceProcessed.extension,
-    );
-    await supabase.storage
-      .from(BUCKET)
-      .upload(sourcePath, sourceProcessed.buffer, {
-        contentType: sourceProcessed.mimeType,
-      });
-    const { data: sourceUrlData } = supabase.storage
-      .from(BUCKET)
-      .getPublicUrl(sourcePath);
-
-    // Gemini API 호출
-    const garmentTypeMap: Record<string, string> = {
-      auto: "clothing",
-      top: "upper body clothing (top/shirt/jacket)",
-      bottom: "lower body clothing (pants/skirt)",
-      dress: "dress/one-piece",
-    };
-    const prompt = PROMPTS.colorSwap(
-      targetColor,
-      garmentTypeMap[garmentRegion] || "clothing",
-    );
-    const geminiResult = await callGeminiWithImages(
-      prompt,
-      [{ base64: sourceProcessed.base64, mimeType: sourceProcessed.mimeType }],
-      mode,
-    );
-
-    // 결과 이미지 Storage 저장
-    const resultBuffer = base64ToBuffer(geminiResult.imageBase64);
-    const resultExt =
-      geminiResult.mimeType.split("/")[1] === "jpeg"
-        ? "jpg"
-        : geminiResult.mimeType.split("/")[1];
-    const resultPath = getStoragePath("result", sessionId, resultExt);
-    await supabase.storage.from(BUCKET).upload(resultPath, resultBuffer, {
-      contentType: geminiResult.mimeType,
-    });
-    const { data: resultUrlData } = supabase.storage
-      .from(BUCKET)
-      .getPublicUrl(resultPath);
-
-    const processingTime = Date.now() - startTime;
-
-    // 히스토리 저장
-    const { data: historyData } = await supabase
-      .from("studio_history")
-      .insert({
-        session_id: sessionId,
-        type: "color-swap",
-        mode,
-        source_image_url: sourceUrlData.publicUrl,
-        result_image_url: resultUrlData.publicUrl,
-        params: {
-          sourceImage: sourceUrlData.publicUrl,
-          targetColor,
-          garmentRegion,
-        },
-        model_used: geminiResult.modelUsed,
-        fallback_used: geminiResult.fallbackUsed,
-        processing_time: processingTime,
-      })
-      .select("id")
-      .single();
-
-    const response: StudioBaseResponse = {
-      success: true,
-      resultImageUrl: resultUrlData.publicUrl,
-      historyId: historyData?.id,
-      modelUsed: geminiResult.modelUsed as StudioBaseResponse["modelUsed"],
-      fallbackUsed: geminiResult.fallbackUsed,
-      processingTime,
-    };
-
-    return NextResponse.json(response);
-  } catch (error) {
-    if (error instanceof StudioError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: error.message,
-          code: error.code,
-          retryable: error.retryable,
-          processingTime: Date.now() - startTime,
-        },
-        { status: 400 },
-      );
-    }
-
-    console.error("Color-swap error:", error);
+  if (!sourceFile || !targetColor) {
     return NextResponse.json(
-      {
-        success: false,
-        error: "서버 오류가 발생했습니다.",
-        processingTime: Date.now() - startTime,
-      },
-      { status: 500 },
+      { success: false, error: "원본 이미지와 목표 색상이 필요합니다." },
+      { status: 400 },
     );
   }
+
+  const result = await processSingleStudioRequest({
+    type: "color-swap",
+    mode,
+    sourceFile,
+    targetColor,
+    garmentRegion,
+    userId,
+    sessionId,
+  });
+
+  if (!result.success) {
+    const status =
+      result.code === "TOKEN_INSUFFICIENT"
+        ? 402
+        : result.code === "FREE_TRIAL_EXCEEDED"
+          ? 403
+          : 400;
+    return NextResponse.json(result, { status });
+  }
+
+  return NextResponse.json(result);
 }

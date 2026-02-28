@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
+import { TokenBalanceBadge } from "@/components/dashboard/token-balance-badge";
 
 export function DashboardHeader() {
   return (
@@ -32,6 +33,7 @@ export function DashboardHeader() {
       </Breadcrumb>
 
       <div className="ml-auto flex items-center gap-2">
+        <TokenBalanceBadge />
         <ThemeToggle />
         <UserMenu />
       </div>

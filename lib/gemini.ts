@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import * as Sentry from "@sentry/nextjs";
 import { GEMINI_MODELS } from "@/config/prompts";
 import { StudioError } from "@/lib/errors";
 import { type GenerationMode } from "@/types/studio";
@@ -41,6 +42,10 @@ export async function callGeminiWithImages(
         throw new StudioError("STUDIO_006");
       }
     }
+
+    Sentry.captureException(error, {
+      tags: { service: "gemini", mode, model: modelId },
+    });
 
     if ((error as { status?: number })?.status === 429) {
       throw new StudioError("STUDIO_005");

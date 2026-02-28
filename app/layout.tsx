@@ -16,9 +16,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "똑픽 (DDokPick)",
+  title: {
+    default: "똑픽 (DDokPick)",
+    template: "%s | 똑픽",
+  },
   description:
     "동대문 의류 셀러를 위한 AI 이미지 편집 서비스. 의류 교체, 색상 변경, 포즈 변경을 건당 1,000원 이하, 수 분 이내로.",
+  metadataBase: new URL("https://ddokpick.com"),
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    siteName: "똑픽 (DDokPick)",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "똑픽 — AI 의류 이미지 편집 서비스",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({

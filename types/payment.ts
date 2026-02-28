@@ -5,6 +5,7 @@ export interface Profile {
   email: string;
   displayName?: string;
   avatarUrl?: string;
+  tokenBalance: number;
   freeTokensUsed: number;
   createdAt: string;
 }

@@ -14,6 +14,7 @@ interface UseStudioGenerateOptions {
   mode?: GenerationMode;
   onSuccess?: (result: StudioBaseResponse) => void;
   onError?: (error: string) => void;
+  onTokenInsufficient?: () => void;
 }
 
 interface UseStudioGenerateReturn {
@@ -30,6 +31,7 @@ export function useStudioGenerate({
   mode = "standard",
   onSuccess,
   onError,
+  onTokenInsufficient,
 }: UseStudioGenerateOptions): UseStudioGenerateReturn {
   const [status, setStatus] = useState<StudioStatus>("idle");
   const [result, setResult] = useState<StudioBaseResponse | null>(null);
@@ -66,6 +68,17 @@ export function useStudioGenerate({
         } = await response.json();
 
         if (!response.ok || !data.success) {
+          // TOKEN_INSUFFICIENT 또는 FREE_TRIAL_EXCEEDED 처리
+          if (
+            data.code === "TOKEN_INSUFFICIENT" ||
+            data.code === "FREE_TRIAL_EXCEEDED"
+          ) {
+            setStatus("error");
+            setError(data.error || "토큰이 부족합니다.");
+            onTokenInsufficient?.();
+            return;
+          }
+
           setStatus("error");
           setError(data.error || "알 수 없는 오류가 발생했습니다.");
           setIsRetryable(data.retryable || false);
@@ -83,7 +96,7 @@ export function useStudioGenerate({
         onError?.("네트워크 오류가 발생했습니다.");
       }
     },
-    [type, mode, onSuccess, onError],
+    [type, mode, onSuccess, onError, onTokenInsufficient],
   );
 
   const reset = useCallback(() => {
