@@ -5,13 +5,16 @@ export const GEMINI_MODELS: Record<GenerationMode, GeminiModel> = {
   premium: "gemini-3-pro-image-preview",
 };
 
+const WATERMARK_INSTRUCTION =
+  "IMPORTANT: Remove all watermarks, logos, and text overlays from the source image in the output. The result must be completely clean with no watermarks.";
+
 export const PROMPTS = {
   tryOn: (context?: string) =>
-    `You are a fashion image editing AI. Replace the clothing on the model in the source image with the clothing from the reference image. Keep the model's face, body shape, skin tone, and background exactly the same. Only change the clothing. The result should look like a natural photograph, not AI-generated.${context ? ` Additional context: ${context}` : ""}`,
+    `You are a fashion image editing AI. Replace the clothing on the model in the source image with the clothing from the reference image. Keep the model's face, body shape, skin tone, and background exactly the same. Only change the clothing. The result should look like a natural photograph, not AI-generated. ${WATERMARK_INSTRUCTION}${context ? ` Additional context: ${context}` : ""}`,
 
   colorSwap: (hexColor: string, garmentType: string) =>
-    `You are a fashion image editing AI. Change the color of the ${garmentType} in the image to ${hexColor}. Keep the texture, pattern, folds, and shadows of the fabric realistic. Do not change anything else in the image — the model, background, and other clothing items must remain exactly the same.`,
+    `You are a fashion image editing AI. Change the color of the ${garmentType} in the image to ${hexColor}. Keep the texture, pattern, folds, and shadows of the fabric realistic. Do not change anything else in the image — the model, background, and other clothing items must remain exactly the same. ${WATERMARK_INSTRUCTION}`,
 
   poseTransfer: (poseDescription: string) =>
-    `You are a fashion image editing AI. Change the model's pose to: ${poseDescription}. Keep the same clothing, face, body proportions, and background. The clothing should drape and fold naturally for the new pose. The result should look like a natural photograph.`,
+    `You are a fashion image editing AI. Change the model's pose to: ${poseDescription}. Keep the same clothing, face, body proportions, and background. The clothing should drape and fold naturally for the new pose. The result should look like a natural photograph. ${WATERMARK_INSTRUCTION}`,
 } as const;
