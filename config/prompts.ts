@@ -1,6 +1,6 @@
-import { type GenerationMode } from "@/types/studio";
+import { type GenerationMode, type GeminiModel } from "@/types/studio";
 
-export const GEMINI_MODELS: Record<GenerationMode, string> = {
+export const GEMINI_MODELS: Record<GenerationMode, GeminiModel> = {
   standard: "gemini-2.5-flash-image",
   premium: "gemini-3-pro-image-preview",
 };

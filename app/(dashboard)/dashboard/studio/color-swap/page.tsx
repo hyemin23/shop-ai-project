@@ -16,9 +16,12 @@ import { StudioLayout } from "@/components/studio/studio-layout";
 import { ImageUploadZone } from "@/components/studio/image-upload-zone";
 import { ResultViewer } from "@/components/studio/result-viewer";
 import { ModeSelector } from "@/components/studio/mode-selector";
+import { ImageOptionsSelector } from "@/components/studio/image-options-selector";
 import { ColorPicker } from "@/components/studio/color-picker";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
+import { useStudioDownload } from "@/hooks/use-studio-download";
+import { DEFAULT_IMAGE_OPTIONS, appendImageOptions } from "@/config/studio";
 import { type GenerationMode } from "@/types/studio";
 
 export default function StudioColorSwapPage() {
@@ -26,6 +29,7 @@ export default function StudioColorSwapPage() {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [garmentRegion, setGarmentRegion] = useState("auto");
   const [mode, setMode] = useState<GenerationMode>("standard");
+  const [imageOptions, setImageOptions] = useState(DEFAULT_IMAGE_OPTIONS);
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const { status, result, generate, reset } = useStudioGenerate({
@@ -42,33 +46,18 @@ export default function StudioColorSwapPage() {
     formData.set("targetColor", selectedColor);
     formData.set("garmentRegion", garmentRegion);
     formData.set("mode", mode);
+    appendImageOptions(formData, imageOptions);
     await generate(formData);
-  }, [sourceFile, selectedColor, garmentRegion, mode, generate]);
+  }, [sourceFile, selectedColor, garmentRegion, mode, imageOptions, generate]);
 
-  const handleDownload = useCallback(async () => {
-    const imageUrl = result?.resultImageUrl;
-    if (!imageUrl) return;
-    try {
-      const res = await fetch(imageUrl);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `color-swap-${Date.now()}.webp`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      toast.error("다운로드에 실패했습니다");
-    }
-  }, [result]);
+  const download = useStudioDownload("color-swap");
 
   const handleRegenerate = useCallback(() => {
     reset();
     handleGenerate();
   }, [reset, handleGenerate]);
 
-  const isDisabled =
-    !sourceFile || !selectedColor || status === "processing";
+  const isDisabled = !sourceFile || !selectedColor || status === "processing";
 
   return (
     <>
@@ -101,6 +90,10 @@ export default function StudioColorSwapPage() {
               </Select>
             </div>
             <ModeSelector mode={mode} onModeChange={setMode} />
+            <ImageOptionsSelector
+              options={imageOptions}
+              onOptionsChange={setImageOptions}
+            />
             <Button
               className="w-full"
               onClick={handleGenerate}
@@ -115,7 +108,7 @@ export default function StudioColorSwapPage() {
           <ResultViewer
             imageUrl={result?.resultImageUrl}
             isProcessing={status === "processing"}
-            onDownload={handleDownload}
+            onDownload={() => download(result?.resultImageUrl)}
             onRegenerate={handleRegenerate}
           />
         }

@@ -2,7 +2,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as Sentry from "@sentry/nextjs";
 import { GEMINI_MODELS } from "@/config/prompts";
 import { StudioError } from "@/lib/errors";
-import { type GenerationMode } from "@/types/studio";
+import {
+  type GenerationMode,
+  type ImageGenerationOptions,
+} from "@/types/studio";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -22,12 +25,13 @@ export async function callGeminiWithImages(
   prompt: string,
   images: { base64: string; mimeType: string }[],
   mode: GenerationMode = "standard",
+  imageOptions?: ImageGenerationOptions,
 ): Promise<GeminiImageResult> {
   const modelId = GEMINI_MODELS[mode];
   let fallbackUsed = false;
 
   try {
-    return await callModel(modelId, prompt, images, fallbackUsed);
+    return await callModel(modelId, prompt, images, fallbackUsed, imageOptions);
   } catch (error) {
     if (mode === "premium" && isOverloadOrRateLimit(error)) {
       fallbackUsed = true;
@@ -37,6 +41,7 @@ export async function callGeminiWithImages(
           prompt,
           images,
           fallbackUsed,
+          imageOptions,
         );
       } catch {
         throw new StudioError("STUDIO_006");
@@ -60,12 +65,24 @@ async function callModel(
   prompt: string,
   images: { base64: string; mimeType: string }[],
   fallbackUsed: boolean,
+  imageOptions?: ImageGenerationOptions,
 ): Promise<GeminiImageResult> {
+  const imageConfig: Record<string, unknown> = {};
+  if (imageOptions?.aspectRatio) {
+    imageConfig.aspectRatio = imageOptions.aspectRatio;
+  }
+  if (imageOptions?.imageSize) {
+    imageConfig.imageSize = imageOptions.imageSize;
+  }
+
+  const generationConfig: Record<string, unknown> = {
+    responseModalities: ["image", "text"],
+    ...(Object.keys(imageConfig).length > 0 && { imageConfig }),
+  };
+
   const model = genAI.getGenerativeModel({
     model: modelId,
-    generationConfig: {
-      responseModalities: ["image", "text"],
-    } as Record<string, unknown>,
+    generationConfig,
   });
 
   const imageParts = images.map((img) => ({

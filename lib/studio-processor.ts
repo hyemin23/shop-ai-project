@@ -14,7 +14,12 @@ import {
   TokenInsufficientError,
 } from "@/lib/tokens";
 import { StudioError } from "@/lib/errors";
-import { type GenerationMode, type StudioType } from "@/types/studio";
+import {
+  type GenerationMode,
+  type StudioType,
+  type AspectRatio,
+  type ImageSize,
+} from "@/types/studio";
 
 const BUCKET = "studio-images";
 
@@ -44,6 +49,8 @@ interface ProcessOptions {
   sessionId: string;
   batchId?: string;
   skipTrialCheck?: boolean;
+  aspectRatio?: AspectRatio;
+  imageSize?: ImageSize;
 }
 
 export async function processSingleStudioRequest(
@@ -184,6 +191,10 @@ export async function processSingleStudioRequest(
       prompt,
       images,
       options.mode,
+      {
+        aspectRatio: options.aspectRatio,
+        imageSize: options.imageSize,
+      },
     );
 
     // 결과 이미지 Storage 저장

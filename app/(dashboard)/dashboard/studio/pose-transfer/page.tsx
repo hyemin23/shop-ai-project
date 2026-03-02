@@ -9,9 +9,12 @@ import { StudioLayout } from "@/components/studio/studio-layout";
 import { ImageUploadZone } from "@/components/studio/image-upload-zone";
 import { ResultViewer } from "@/components/studio/result-viewer";
 import { ModeSelector } from "@/components/studio/mode-selector";
+import { ImageOptionsSelector } from "@/components/studio/image-options-selector";
 import { PosePresetGallery } from "@/components/studio/pose-preset-gallery";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
+import { useStudioDownload } from "@/hooks/use-studio-download";
+import { DEFAULT_IMAGE_OPTIONS, appendImageOptions } from "@/config/studio";
 import { type GenerationMode } from "@/types/studio";
 
 export default function StudioPoseTransferPage() {
@@ -20,6 +23,7 @@ export default function StudioPoseTransferPage() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>("");
   const [poseReferenceFile, setPoseReferenceFile] = useState<File | null>(null);
   const [mode, setMode] = useState<GenerationMode>("standard");
+  const [imageOptions, setImageOptions] = useState(DEFAULT_IMAGE_OPTIONS);
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const { status, result, generate, reset } = useStudioGenerate({
@@ -43,25 +47,19 @@ export default function StudioPoseTransferPage() {
       formData.set("poseReferenceImage", poseReferenceFile!);
     }
     formData.set("mode", mode);
+    appendImageOptions(formData, imageOptions);
     await generate(formData);
-  }, [sourceFile, poseType, selectedPresetId, poseReferenceFile, mode, generate]);
+  }, [
+    sourceFile,
+    poseType,
+    selectedPresetId,
+    poseReferenceFile,
+    mode,
+    imageOptions,
+    generate,
+  ]);
 
-  const handleDownload = useCallback(async () => {
-    const imageUrl = result?.resultImageUrl;
-    if (!imageUrl) return;
-    try {
-      const res = await fetch(imageUrl);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `pose-transfer-${Date.now()}.webp`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      toast.error("다운로드에 실패했습니다");
-    }
-  }, [result]);
+  const download = useStudioDownload("pose-transfer");
 
   const handleRegenerate = useCallback(() => {
     reset();
@@ -73,9 +71,11 @@ export default function StudioPoseTransferPage() {
     setSelectedPresetId(id);
   }, []);
 
-  const handleCustomUpload = useCallback((file: File) => {
-    setPoseType("custom");
-    setPoseReferenceFile(file);
+  const handleCustomUpload = useCallback((file: File | null) => {
+    if (file) {
+      setPoseType("custom");
+      setPoseReferenceFile(file);
+    }
   }, []);
 
   const isDisabled =
@@ -102,6 +102,10 @@ export default function StudioPoseTransferPage() {
               onCustomUpload={handleCustomUpload}
             />
             <ModeSelector mode={mode} onModeChange={setMode} />
+            <ImageOptionsSelector
+              options={imageOptions}
+              onOptionsChange={setImageOptions}
+            />
             <Button
               className="w-full"
               onClick={handleGenerate}
@@ -116,7 +120,7 @@ export default function StudioPoseTransferPage() {
           <ResultViewer
             imageUrl={result?.resultImageUrl}
             isProcessing={status === "processing"}
-            onDownload={handleDownload}
+            onDownload={() => download(result?.resultImageUrl)}
             onRegenerate={handleRegenerate}
           />
         }

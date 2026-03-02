@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 interface PosePresetGalleryProps {
   selectedPresetId?: string;
   onPresetSelect?: (id: string) => void;
-  onCustomUpload?: (file: File) => void;
+  onCustomUpload?: (file: File | null) => void;
 }
 
 export function PosePresetGallery({

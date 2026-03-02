@@ -1,4 +1,23 @@
-import { type PosePreset, type ColorPreset } from "@/types/studio";
+import {
+  type PosePreset,
+  type ColorPreset,
+  type AspectRatio,
+  type ImageSize,
+  type ImageGenerationOptions,
+} from "@/types/studio";
+
+export const ASPECT_RATIO_PRESETS: { value: AspectRatio; label: string }[] = [
+  { value: "1:1", label: "1:1 (정사각형)" },
+  { value: "3:4", label: "3:4 (세로)" },
+  { value: "4:3", label: "4:3 (가로)" },
+  { value: "9:16", label: "9:16 (세로 긴)" },
+  { value: "16:9", label: "16:9 (가로 긴)" },
+];
+
+export const IMAGE_SIZE_PRESETS: { value: ImageSize; label: string }[] = [
+  { value: "1k", label: "1K (1024px)" },
+  { value: "2k", label: "2K (2048px)" },
+];
 
 export const POSE_PRESETS: PosePreset[] = [
   {
@@ -77,6 +96,19 @@ export const COLOR_PRESETS: ColorPreset[] = [
   { name: "ivory", hex: "#FFFFF0", nameKo: "아이보리" },
   { name: "charcoal", hex: "#36454F", nameKo: "차콜" },
 ];
+
+export const DEFAULT_IMAGE_OPTIONS: ImageGenerationOptions = {
+  aspectRatio: "1:1",
+  imageSize: "1k",
+};
+
+export function appendImageOptions(
+  formData: FormData,
+  options: ImageGenerationOptions,
+): void {
+  if (options.aspectRatio) formData.set("aspectRatio", options.aspectRatio);
+  if (options.imageSize) formData.set("imageSize", options.imageSize);
+}
 
 export const IMAGE_CONSTRAINTS = {
   maxSizeBytes: 10 * 1024 * 1024,

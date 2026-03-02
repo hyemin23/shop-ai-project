@@ -1,5 +1,13 @@
 // Studio core types - PRD 5.4절 기반
 
+export type AspectRatio = "1:1" | "3:4" | "4:3" | "9:16" | "16:9";
+export type ImageSize = "1k" | "2k";
+
+export interface ImageGenerationOptions {
+  aspectRatio?: AspectRatio;
+  imageSize?: ImageSize;
+}
+
 export type GeminiModel =
   | "gemini-2.5-flash-image"
   | "gemini-3-pro-image-preview";

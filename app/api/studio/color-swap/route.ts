@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getUserOrSessionId } from "@/lib/auth";
 import { processSingleStudioRequest } from "@/lib/studio-processor";
+import {
+  studioErrorResponse,
+  parseAspectRatio,
+  parseImageSize,
+} from "@/lib/api-utils";
 import { type GenerationMode } from "@/types/studio";
 
 export async function POST(request: NextRequest) {
@@ -11,6 +16,8 @@ export async function POST(request: NextRequest) {
   const targetColor = formData.get("targetColor") as string | null;
   const garmentRegion = (formData.get("garmentRegion") as string) || "auto";
   const mode = (formData.get("mode") as GenerationMode) || "standard";
+  const aspectRatio = parseAspectRatio(formData.get("aspectRatio"));
+  const imageSize = parseImageSize(formData.get("imageSize"));
 
   if (!sourceFile || !targetColor) {
     return NextResponse.json(
@@ -27,16 +34,12 @@ export async function POST(request: NextRequest) {
     garmentRegion,
     userId,
     sessionId,
+    aspectRatio,
+    imageSize,
   });
 
   if (!result.success) {
-    const status =
-      result.code === "TOKEN_INSUFFICIENT"
-        ? 402
-        : result.code === "FREE_TRIAL_EXCEEDED"
-          ? 403
-          : 400;
-    return NextResponse.json(result, { status });
+    return studioErrorResponse(result);
   }
 
   return NextResponse.json(result);
