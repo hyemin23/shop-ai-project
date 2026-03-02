@@ -1,10 +1,13 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const supabaseHostname = supabaseUrl
-  ? new URL(supabaseUrl).hostname
-  : "*.supabase.co";
+const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
+let supabaseHostname = "*.supabase.co";
+try {
+  if (supabaseUrl) supabaseHostname = new URL(supabaseUrl).hostname;
+} catch {
+  // 유효하지 않은 URL이면 기본값 사용
+}
 
 const nextConfig: NextConfig = {
   images: {
