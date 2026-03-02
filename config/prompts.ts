@@ -6,7 +6,7 @@ export const GEMINI_MODELS: Record<GenerationMode, GeminiModel> = {
 };
 
 const WATERMARK_INSTRUCTION =
-  "IMPORTANT: Remove all watermarks, logos, and text overlays from the source image in the output. The result must be completely clean with no watermarks.";
+  "If the source image contains any watermarks, logos, or text overlays, remove them completely in the output so the result is clean.";
 
 export const PROMPTS = {
   tryOn: (context?: string) =>
