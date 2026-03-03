@@ -23,13 +23,13 @@ export function HeroSection() {
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button size="lg" asChild>
-          <Link href="/dashboard">
+          <Link href="/login">
             스튜디오 시작하기
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
         <Button variant="outline" size="lg" asChild>
-          <Link href="#features">기능 살펴보기</Link>
+          <a href="#features">기능 살펴보기</a>
         </Button>
       </div>
     </section>
