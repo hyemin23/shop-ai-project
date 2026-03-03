@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,11 +15,22 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Logo } from "@/components/logo";
 import { UserMenu } from "@/components/user-menu";
 import { dashboardConfig } from "@/config/dashboard";
+import { type SidebarNavGroup } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// 그룹 내 항목 중 하나라도 현재 경로와 일치하는지 확인
+function isGroupActive(group: SidebarNavGroup, pathname: string): boolean {
+  return group.items.some((item) => pathname === item.href);
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -35,25 +47,48 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>메뉴</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {dashboardConfig.sidebarNav.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.href}>
-                    <Link href={item.href}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* 카테고리 그룹별 렌더링 — config 배열을 순회하여 자동 생성 */}
+        {dashboardConfig.sidebarNavGroups.map((group) => (
+          <Collapsible
+            key={group.title}
+            defaultOpen={true}
+            className="group/collapsible"
+          >
+            <SidebarGroup>
+              {/* 대분류 라벨 — 클릭 시 그룹 전체를 접고 펼침 */}
+              <SidebarGroupLabel asChild>
+                <CollapsibleTrigger className="flex w-full items-center">
+                  {group.title}
+                  <ChevronDown className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+
+              {/* 하위 항목 목록 — Collapsible 열릴 때만 표시 */}
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {group.items.map((item) => (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname === item.href}
+                        >
+                          <Link href={item.href}>
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        ))}
       </SidebarContent>
 
+      {/* 하단 사용자 정보 영역 — 기존 구조 유지 */}
       <SidebarFooter className="p-4">
         {isLoading ? (
           <div className="flex items-center gap-3">

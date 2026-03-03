@@ -14,6 +14,12 @@ export interface SidebarNavItem {
   disabled?: boolean;
 }
 
+// 카테고리 그룹 단위 — 대분류 제목과 하위 항목 목록으로 구성
+export interface SidebarNavGroup {
+  title: string;
+  items: SidebarNavItem[];
+}
+
 export interface SiteConfig {
   name: string;
   description: string;
@@ -29,5 +35,6 @@ export interface SiteConfig {
 }
 
 export interface DashboardConfig {
-  sidebarNav: SidebarNavItem[];
+  // 카테고리별로 그룹화된 사이드바 네비게이션
+  sidebarNavGroups: SidebarNavGroup[];
 }
