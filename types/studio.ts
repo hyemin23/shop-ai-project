@@ -1,7 +1,7 @@
 // Studio core types - PRD 5.4절 기반
 
 export type AspectRatio = "1:1" | "3:4" | "4:3" | "9:16" | "16:9";
-export type ImageSize = "1k" | "2k" | "4k";
+export type ImageSize = "1K" | "2K" | "4K";
 
 export interface ImageGenerationOptions {
   aspectRatio?: AspectRatio;
@@ -11,6 +11,7 @@ export interface ImageGenerationOptions {
 
 export type GeminiModel =
   | "gemini-2.5-flash-image"
+  | "gemini-3.1-flash-image-preview"
   | "gemini-3-pro-image-preview";
 
 export type GenerationMode = "standard" | "premium";
@@ -22,7 +23,7 @@ export type StudioStatus =
   | "success"
   | "error";
 
-export type StudioType = "try-on" | "color-swap" | "pose-transfer";
+export type StudioType = "try-on" | "color-swap" | "pose-transfer" | "background-swap";
 
 export interface StudioBaseRequest {
   sourceImage: string;
@@ -54,6 +55,10 @@ export interface PoseTransferRequest extends StudioBaseRequest {
   poseReferenceImage?: string;
 }
 
+export interface BackgroundSwapRequest extends StudioBaseRequest {
+  backgroundReferenceImage?: string;
+}
+
 export interface PosePreset {
   id: string;
   name: string;
@@ -78,7 +83,7 @@ export interface StudioHistoryItem {
   resultImageUrl: string;
   sourceThumbUrl?: string;
   resultThumbUrl?: string;
-  params: TryOnRequest | ColorSwapRequest | PoseTransferRequest;
+  params: TryOnRequest | ColorSwapRequest | PoseTransferRequest | BackgroundSwapRequest;
   modelUsed: GeminiModel;
   fallbackUsed: boolean;
   processingTime: number;

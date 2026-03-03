@@ -13,7 +13,7 @@ export function ImageOptionsSelector({
   options,
   onOptionsChange,
 }: ImageOptionsSelectorProps) {
-  const selectedSize = options.imageSize ?? "1k";
+  const selectedSize = options.imageSize ?? "1K";
 
   return (
     <div className="space-y-3">

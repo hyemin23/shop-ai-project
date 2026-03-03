@@ -15,9 +15,9 @@ export const ASPECT_RATIO_PRESETS: { value: AspectRatio; label: string }[] = [
 ];
 
 export const IMAGE_SIZE_PRESETS: { value: ImageSize; label: string }[] = [
-  { value: "1k", label: "1K" },
-  { value: "2k", label: "2K" },
-  { value: "4k", label: "4K" },
+  { value: "1K", label: "1K" },
+  { value: "2K", label: "2K" },
+  { value: "4K", label: "4K" },
 ];
 
 export const POSE_PRESETS: PosePreset[] = [
@@ -100,7 +100,7 @@ export const COLOR_PRESETS: ColorPreset[] = [
 
 export const DEFAULT_IMAGE_OPTIONS: ImageGenerationOptions = {
   aspectRatio: "1:1",
-  imageSize: "1k",
+  imageSize: "1K",
 };
 
 export const PROMPT_CONSTRAINTS = {
@@ -111,6 +111,7 @@ export const PROMPT_PLACEHOLDERS: Record<string, string> = {
   "try-on": "예: 소매를 살짝 걷어올려주세요, 셔츠 단추를 하나 풀어주세요",
   "color-swap": "예: 채도를 약간 낮춰주세요, 빈티지한 느낌으로 해주세요",
   "pose-transfer": "예: 자연스러운 미소를 지어주세요, 팔을 좀 더 내려주세요",
+  "background-swap": "예: 배경과 모델 사이의 조명을 자연스럽게 맞춰주세요",
   batch: "예: 전체적으로 밝은 톤으로 처리해주세요",
 };
 
