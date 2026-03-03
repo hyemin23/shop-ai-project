@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import * as Sentry from "@sentry/nextjs";
 import { GEMINI_MODELS } from "@/config/prompts";
 import { StudioError } from "@/lib/errors";
@@ -7,7 +7,7 @@ import {
   type ImageGenerationOptions,
 } from "@/types/studio";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 interface GeminiImageResult {
   imageBase64: string;
@@ -67,6 +67,10 @@ async function callModel(
   fallbackUsed: boolean,
   imageOptions?: ImageGenerationOptions,
 ): Promise<GeminiImageResult> {
+  const config: Record<string, unknown> = {
+    responseModalities: ["IMAGE", "TEXT"],
+  };
+
   const imageConfig: Record<string, unknown> = {};
   if (imageOptions?.aspectRatio) {
     imageConfig.aspectRatio = imageOptions.aspectRatio;
@@ -74,26 +78,23 @@ async function callModel(
   if (imageOptions?.imageSize) {
     imageConfig.imageSize = imageOptions.imageSize;
   }
+  if (Object.keys(imageConfig).length > 0) {
+    config.imageConfig = imageConfig;
+  }
 
-  const generationConfig: Record<string, unknown> = {
-    responseModalities: ["image", "text"],
-    ...(Object.keys(imageConfig).length > 0 && { imageConfig }),
-  };
+  const contents = [
+    ...images.map((img) => ({
+      inlineData: { mimeType: img.mimeType, data: img.base64 },
+    })),
+    { text: prompt },
+  ];
 
-  const model = genAI.getGenerativeModel({
+  const response = await ai.models.generateContent({
     model: modelId,
-    generationConfig,
+    contents,
+    config,
   });
 
-  const imageParts = images.map((img) => ({
-    inlineData: {
-      mimeType: img.mimeType,
-      data: img.base64,
-    },
-  }));
-
-  const result = await model.generateContent([prompt, ...imageParts]);
-  const response = result.response;
   const parts = response.candidates?.[0]?.content?.parts;
 
   if (!parts) {
