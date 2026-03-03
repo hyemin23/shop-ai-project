@@ -15,8 +15,9 @@ export const ASPECT_RATIO_PRESETS: { value: AspectRatio; label: string }[] = [
 ];
 
 export const IMAGE_SIZE_PRESETS: { value: ImageSize; label: string }[] = [
-  { value: "1k", label: "1K (1024px)" },
-  { value: "2k", label: "2K (2048px)" },
+  { value: "1k", label: "1K" },
+  { value: "2k", label: "2K" },
+  { value: "4k", label: "4K" },
 ];
 
 export const POSE_PRESETS: PosePreset[] = [

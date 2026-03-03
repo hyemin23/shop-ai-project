@@ -1,7 +1,7 @@
 // Studio core types - PRD 5.4절 기반
 
 export type AspectRatio = "1:1" | "3:4" | "4:3" | "9:16" | "16:9";
-export type ImageSize = "1k" | "2k";
+export type ImageSize = "1k" | "2k" | "4k";
 
 export interface ImageGenerationOptions {
   aspectRatio?: AspectRatio;
