@@ -2,6 +2,7 @@ import {
   Shirt,
   Palette,
   PersonStanding,
+  Wallpaper,
   Layers,
   History,
   Coins,
@@ -25,6 +26,11 @@ export const dashboardConfig: DashboardConfig = {
           title: "포즈 변경",
           href: "/dashboard/studio/pose-transfer",
           icon: PersonStanding,
+        },
+        {
+          title: "배경 변경",
+          href: "/dashboard/studio/background-swap",
+          icon: Wallpaper,
         },
         {
           title: "배치 처리",

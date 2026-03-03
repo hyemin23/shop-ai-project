@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   const type = formData.get("type") as StudioType;
   const mode = (formData.get("mode") as GenerationMode) || "standard";
 
-  if (!type || !["try-on", "color-swap", "pose-transfer"].includes(type)) {
+  if (!type || !["try-on", "color-swap", "pose-transfer", "background-swap"].includes(type)) {
     return new Response(JSON.stringify({ error: "유효하지 않은 작업 유형입니다." }), {
       status: 400,
       headers: { "Content-Type": "application/json" },

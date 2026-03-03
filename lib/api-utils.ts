@@ -6,6 +6,9 @@ import type { AspectRatio, ImageSize } from "@/types/studio";
 const ERROR_STATUS_MAP: Record<string, number> = {
   TOKEN_INSUFFICIENT: 402,
   FREE_TRIAL_EXCEEDED: 403,
+  STUDIO_004: 504,
+  STUDIO_005: 429,
+  STUDIO_006: 502,
 };
 
 export function studioErrorResponse(result: ProcessResult): NextResponse {

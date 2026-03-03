@@ -8,6 +8,7 @@ const FILENAME_PREFIX: Record<StudioType, string> = {
   "try-on": "tryon",
   "color-swap": "color-swap",
   "pose-transfer": "pose-transfer",
+  "background-swap": "background-swap",
 };
 
 export function useStudioDownload(type: StudioType) {

@@ -190,6 +190,23 @@ export async function processSingleStudioRequest(
           historyParams.poseReferenceImage = "uploaded";
         break;
       }
+      case "background-swap": {
+        if (!options.referenceFile) {
+          return {
+            success: false,
+            processingTime: Date.now() - startTime,
+            error: "배경 이미지가 필요합니다.",
+          };
+        }
+        const bgRefProcessed = await processImageFile(options.referenceFile);
+        images.push({
+          base64: bgRefProcessed.base64,
+          mimeType: bgRefProcessed.mimeType,
+        });
+        prompt = PROMPTS.backgroundSwap(options.userPrompt);
+        historyParams.backgroundReferenceImage = "uploaded";
+        break;
+      }
     }
 
     // Gemini API 호출
