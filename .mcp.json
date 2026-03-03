@@ -3,7 +3,9 @@
     "playwright": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@playwright/mcp@latest"],
+      "args": [
+        "@playwright/mcp@latest"
+      ],
       "env": {}
     },
     "context7": {
@@ -13,12 +15,18 @@
     "sequential-thinking": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
       "env": {}
     },
     "shadcn": {
       "command": "npx",
-      "args": ["shadcn@latest", "mcp"]
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ]
     },
     "supabase": {
       "command": "npx",
@@ -26,12 +34,14 @@
         "-y",
         "@supabase/mcp-server-supabase@latest",
         "--access-token",
-        "<SUPABASE_PERSONAL_ACCESS_TOKEN>"
+        "sbp_203c2e4cb3be8497cb4b64dc253d1e5b8c3c00eb"
       ]
     },
     "shrimp-task-manager": {
       "command": "node",
-      "args": ["/Users/xion/dev/mcp-shrimp-task-manager/dist/index.js"],
+      "args": [
+        "/Users/xion/dev/mcp-shrimp-task-manager/dist/index.js"
+      ],
       "env": {
         "DATA_DIR": "/Users/xion/dev/shop-ai-project/shrimp_data",
         "TEMPLATES_USE": "en",
@@ -40,7 +50,10 @@
     },
     "vercel": {
       "command": "npx",
-      "args": ["-y", "vercel-mcp-server"],
+      "args": [
+        "-y",
+        "vercel-mcp-server"
+      ],
       "env": {
         "VERCEL_TOKEN": "<VERCEL_TOKEN>"
       }

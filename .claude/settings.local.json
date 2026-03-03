@@ -72,5 +72,8 @@
       }
     ]
   },
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true"
+  }
 }
