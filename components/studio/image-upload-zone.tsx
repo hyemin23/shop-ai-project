@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { Upload, X, RefreshCw } from "lucide-react";
+import { Upload, X, RefreshCw, ImagePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { resizeToWebP } from "@/lib/image-resize";
 import { IMAGE_CONSTRAINTS } from "@/config/studio";
@@ -25,6 +25,7 @@ export function ImageUploadZone({
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // cleanup object URL on unmount or preview change
   useEffect(() => {
@@ -61,6 +62,7 @@ export function ImageUploadZone({
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
+      setIsDragOver(false);
       const file = e.dataTransfer.files[0];
       if (file) handleFile(file);
     },
@@ -89,25 +91,25 @@ export function ImageUploadZone({
   // 미리보기 상태
   if (preview) {
     return (
-      <div className={cn("relative rounded-lg border overflow-hidden", className)}>
+      <div className={cn("relative overflow-hidden rounded-xl border bg-muted/30", className)}>
         <div className="relative h-64">
           <Image
             src={preview}
             alt={`${label} 미리보기`}
             fill
-            className="object-contain bg-muted"
+            className="object-contain"
             unoptimized
           />
         </div>
-        <div className="flex items-center justify-between gap-2 border-t px-3 py-2 bg-background">
+        <div className="flex items-center justify-between gap-2 border-t bg-background px-4 py-2.5">
           <p className="truncate text-sm text-muted-foreground">{fileName}</p>
           <div className="flex gap-1 shrink-0">
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="h-7 w-7"
+              size="icon-sm"
               onClick={handleReplace}
+              className="hover:bg-muted"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span className="sr-only">이미지 교체</span>
@@ -115,8 +117,8 @@ export function ImageUploadZone({
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-destructive hover:text-destructive"
+              size="icon-sm"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={handleRemove}
             >
               <X className="h-3.5 w-3.5" />
@@ -148,18 +150,33 @@ export function ImageUploadZone({
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
       }}
-      onDragOver={(e) => e.preventDefault()}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragOver(true);
+      }}
+      onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
       className={cn(
-        "flex h-64 cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed transition-colors hover:border-primary",
+        "group flex h-64 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed bg-muted/20 transition-all duration-200",
+        isDragOver
+          ? "border-primary bg-primary/5 scale-[1.01]"
+          : "hover:border-primary/50 hover:bg-muted/40",
         className,
       )}
     >
-      <Upload className="h-10 w-10 text-muted-foreground" />
-      <p className="font-medium">{label}</p>
-      {description && (
-        <p className="text-sm text-muted-foreground">{description}</p>
-      )}
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted transition-colors group-hover:bg-primary/10">
+        {isDragOver ? (
+          <ImagePlus className="h-6 w-6 text-primary" />
+        ) : (
+          <Upload className="h-6 w-6 text-muted-foreground transition-colors group-hover:text-primary" />
+        )}
+      </div>
+      <div className="text-center">
+        <p className="font-medium">{label}</p>
+        {description && (
+          <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
       <p className="text-xs text-muted-foreground">
         JPG, PNG, WebP (최대 10MB)
       </p>

@@ -35,9 +35,11 @@ export function ResultViewer({
 
   if (!imageUrl) {
     return (
-      <div className="flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed">
-        <ImageIcon className="h-10 w-10 text-muted-foreground" />
-        <p className="mt-3 text-sm text-muted-foreground">
+      <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed bg-muted/20">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+          <ImageIcon className="h-6 w-6 text-muted-foreground" />
+        </div>
+        <p className="text-sm text-muted-foreground">
           결과가 여기에 표시됩니다
         </p>
       </div>
@@ -49,25 +51,27 @@ export function ResultViewer({
       <div>
         <button
           type="button"
-          className="group relative aspect-[4/3] w-full overflow-hidden rounded-lg cursor-pointer"
+          className="group relative aspect-[4/3] w-full overflow-hidden rounded-xl cursor-pointer bg-muted/30"
           onClick={() => setPreviewOpen(true)}
         >
           <Image
             src={imageUrl}
             alt="생성 결과 이미지"
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30">
-            <ZoomIn className="h-8 w-8 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+              <ZoomIn className="h-5 w-5 text-white" />
+            </div>
           </div>
         </button>
         <div className="mt-3 flex gap-2">
-          <Button variant="outline" size="sm" onClick={onDownload}>
+          <Button variant="outline" size="sm" onClick={onDownload} className="flex-1">
             <Download className="mr-1.5 h-4 w-4" />
             다운로드
           </Button>
-          <Button variant="outline" size="sm" onClick={onRegenerate}>
+          <Button variant="outline" size="sm" onClick={onRegenerate} className="flex-1">
             <RefreshCw className="mr-1.5 h-4 w-4" />
             재생성
           </Button>
@@ -81,15 +85,15 @@ export function ResultViewer({
           </VisuallyHidden>
           <div className="relative">
             <Button
-              variant="secondary"
-              size="icon"
-              className="absolute -top-10 right-0 z-10 h-8 w-8 rounded-full"
+              variant="ghost"
+              size="icon-sm"
+              className="absolute -top-10 right-0 z-10 rounded-full text-white hover:bg-white/20 hover:text-white"
               onClick={() => setPreviewOpen(false)}
             >
               <X className="h-4 w-4" />
               <span className="sr-only">닫기</span>
             </Button>
-            <div className="relative aspect-auto max-h-[85vh] overflow-hidden rounded-lg">
+            <div className="relative aspect-auto max-h-[85vh] overflow-hidden rounded-2xl">
               <Image
                 src={imageUrl}
                 alt="생성 결과 이미지 확대"

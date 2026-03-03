@@ -21,9 +21,11 @@ export function StudioLayout({
   return (
     <div className="space-y-6">
       {/* 모바일 데스크톱 권장 배너 */}
-      <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200 lg:hidden">
-        <Monitor className="h-4 w-4 shrink-0" />
-        <p>
+      <div className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/5 p-4 text-sm text-foreground lg:hidden">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <Monitor className="h-4 w-4 text-primary" />
+        </div>
+        <p className="text-muted-foreground">
           데스크톱에서 더 편리하게 사용하세요. 넓은 화면에서 이미지를 비교하고
           편집할 수 있습니다.
         </p>
@@ -47,18 +49,18 @@ export function StudioLayout({
 
       {/* 본문: 2단 그리드 */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>입력</CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b bg-muted/30">
+            <CardTitle className="text-base">입력</CardTitle>
           </CardHeader>
-          <CardContent>{inputSection}</CardContent>
+          <CardContent className="pt-6">{inputSection}</CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>결과</CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b bg-muted/30">
+            <CardTitle className="text-base">결과</CardTitle>
           </CardHeader>
-          <CardContent>{resultSection}</CardContent>
+          <CardContent className="pt-6">{resultSection}</CardContent>
         </Card>
       </div>
     </div>
