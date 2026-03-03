@@ -17,6 +17,7 @@ import { BatchResultGrid } from "@/components/studio/batch-result-grid";
 import { ColorPicker } from "@/components/studio/color-picker";
 import { PosePresetGallery } from "@/components/studio/pose-preset-gallery";
 import { ImageUploadZone } from "@/components/studio/image-upload-zone";
+import { PromptInput } from "@/components/studio/prompt-input";
 import { useBatchGenerate } from "@/hooks/use-batch-generate";
 import { type StudioType } from "@/types/studio";
 
@@ -30,6 +31,7 @@ export default function BatchPage() {
   const [garmentRegion, setGarmentRegion] = useState("auto");
   const [poseType, setPoseType] = useState<"preset" | "custom">("preset");
   const [presetId, setPresetId] = useState("front-standing");
+  const [userPrompt, setUserPrompt] = useState("");
 
   const { items, isProcessing, progress, generate, reset, downloadZip } =
     useBatchGenerate({
@@ -61,6 +63,10 @@ export default function BatchPage() {
       }
     }
 
+    if (userPrompt.trim()) {
+      formData.set("userPrompt", userPrompt.trim());
+    }
+
     await generate(formData);
   }, [
     files,
@@ -70,12 +76,14 @@ export default function BatchPage() {
     garmentRegion,
     poseType,
     presetId,
+    userPrompt,
     generate,
   ]);
 
   const handleReset = useCallback(() => {
     setFiles([]);
     setReferenceFile(null);
+    setUserPrompt("");
     reset();
   }, [reset]);
 
@@ -185,6 +193,14 @@ export default function BatchPage() {
                 )}
               </div>
             )}
+
+            {/* 추가 지시사항 */}
+            <PromptInput
+              mode="batch"
+              value={userPrompt}
+              onChange={setUserPrompt}
+              disabled={isProcessing}
+            />
 
             {/* 소스 이미지 업로드 */}
             <div className="space-y-2">

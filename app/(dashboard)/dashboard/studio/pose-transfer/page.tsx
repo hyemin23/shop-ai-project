@@ -10,6 +10,7 @@ import { ImageUploadZone } from "@/components/studio/image-upload-zone";
 import { ResultViewer } from "@/components/studio/result-viewer";
 import { ImageOptionsSelector } from "@/components/studio/image-options-selector";
 import { PosePresetGallery } from "@/components/studio/pose-preset-gallery";
+import { PromptInput } from "@/components/studio/prompt-input";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
 import { useStudioDownload } from "@/hooks/use-studio-download";
@@ -96,6 +97,14 @@ export default function StudioPoseTransferPage() {
               selectedPresetId={selectedPresetId}
               onPresetSelect={handlePresetSelect}
               onCustomUpload={handleCustomUpload}
+            />
+            <PromptInput
+              mode="pose-transfer"
+              value={imageOptions.userPrompt ?? ""}
+              onChange={(v) =>
+                setImageOptions({ ...imageOptions, userPrompt: v })
+              }
+              disabled={status === "processing"}
             />
             <ImageOptionsSelector
               options={imageOptions}

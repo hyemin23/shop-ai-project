@@ -9,6 +9,7 @@ import { StudioLayout } from "@/components/studio/studio-layout";
 import { ImageUploadZone } from "@/components/studio/image-upload-zone";
 import { ResultViewer } from "@/components/studio/result-viewer";
 import { ImageOptionsSelector } from "@/components/studio/image-options-selector";
+import { PromptInput } from "@/components/studio/prompt-input";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
 import { useStudioDownload } from "@/hooks/use-studio-download";
@@ -62,6 +63,14 @@ export default function StudioTryOnPage() {
               label="교체할 의류"
               description="합성할 의류 단독 사진"
               onFileSelect={setReferenceFile}
+            />
+            <PromptInput
+              mode="try-on"
+              value={imageOptions.userPrompt ?? ""}
+              onChange={(v) =>
+                setImageOptions({ ...imageOptions, userPrompt: v })
+              }
+              disabled={status === "processing"}
             />
             <ImageOptionsSelector
               options={imageOptions}

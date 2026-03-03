@@ -103,12 +103,25 @@ export const DEFAULT_IMAGE_OPTIONS: ImageGenerationOptions = {
   imageSize: "1k",
 };
 
+export const PROMPT_CONSTRAINTS = {
+  maxLength: 500,
+} as const;
+
+export const PROMPT_PLACEHOLDERS: Record<string, string> = {
+  "try-on": "예: 소매를 살짝 걷어올려주세요, 셔츠 단추를 하나 풀어주세요",
+  "color-swap": "예: 채도를 약간 낮춰주세요, 빈티지한 느낌으로 해주세요",
+  "pose-transfer": "예: 자연스러운 미소를 지어주세요, 팔을 좀 더 내려주세요",
+  batch: "예: 전체적으로 밝은 톤으로 처리해주세요",
+};
+
 export function appendImageOptions(
   formData: FormData,
   options: ImageGenerationOptions,
 ): void {
   if (options.aspectRatio) formData.set("aspectRatio", options.aspectRatio);
   if (options.imageSize) formData.set("imageSize", options.imageSize);
+  if (options.userPrompt?.trim())
+    formData.set("userPrompt", options.userPrompt.trim());
 }
 
 export const IMAGE_CONSTRAINTS = {

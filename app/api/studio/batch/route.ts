@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
   const poseType = formData.get("poseType") as "preset" | "custom" | null;
   const presetId = formData.get("presetId") as string | null;
   const poseReferenceFile = formData.get("poseReferenceImage") as File | null;
+  const userPrompt = formData.get("userPrompt") as string | null;
 
   // batch_jobs 레코드 생성
   const supabase = createServiceClient();
@@ -120,6 +121,7 @@ export async function POST(request: NextRequest) {
           sessionId,
           batchId,
           skipTrialCheck: i > 0, // 첫 아이템만 체크
+          userPrompt: userPrompt || undefined,
         });
 
         if (result.success) {

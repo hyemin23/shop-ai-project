@@ -6,6 +6,7 @@ export type ImageSize = "1k" | "2k" | "4k";
 export interface ImageGenerationOptions {
   aspectRatio?: AspectRatio;
   imageSize?: ImageSize;
+  userPrompt?: string;
 }
 
 export type GeminiModel =

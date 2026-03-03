@@ -51,6 +51,7 @@ interface ProcessOptions {
   skipTrialCheck?: boolean;
   aspectRatio?: AspectRatio;
   imageSize?: ImageSize;
+  userPrompt?: string;
 }
 
 export async function processSingleStudioRequest(
@@ -106,6 +107,10 @@ export async function processSingleStudioRequest(
       sourceImage: sourceUrlData.publicUrl,
     };
 
+    if (options.userPrompt?.trim()) {
+      historyParams.userPrompt = options.userPrompt.trim();
+    }
+
     switch (options.type) {
       case "try-on": {
         if (!options.referenceFile) {
@@ -120,7 +125,7 @@ export async function processSingleStudioRequest(
           base64: refProcessed.base64,
           mimeType: refProcessed.mimeType,
         });
-        prompt = PROMPTS.tryOn();
+        prompt = PROMPTS.tryOn(undefined, options.userPrompt);
         historyParams.referenceImage = "uploaded";
         break;
       }
@@ -142,6 +147,7 @@ export async function processSingleStudioRequest(
         prompt = PROMPTS.colorSwap(
           options.targetColor,
           garmentTypeMap[region] || "clothing",
+          options.userPrompt,
         );
         historyParams.targetColor = options.targetColor;
         historyParams.garmentRegion = region;
@@ -177,7 +183,7 @@ export async function processSingleStudioRequest(
           poseDescription =
             "Match the pose shown in the reference pose image exactly.";
         }
-        prompt = PROMPTS.poseTransfer(poseDescription);
+        prompt = PROMPTS.poseTransfer(poseDescription, options.userPrompt);
         historyParams.poseType = options.poseType;
         if (options.presetId) historyParams.presetId = options.presetId;
         if (options.poseType === "custom")

@@ -17,6 +17,7 @@ import { ImageUploadZone } from "@/components/studio/image-upload-zone";
 import { ResultViewer } from "@/components/studio/result-viewer";
 import { ImageOptionsSelector } from "@/components/studio/image-options-selector";
 import { ColorPicker } from "@/components/studio/color-picker";
+import { PromptInput } from "@/components/studio/prompt-input";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
 import { useStudioDownload } from "@/hooks/use-studio-download";
@@ -86,6 +87,14 @@ export default function StudioColorSwapPage() {
                 </SelectContent>
               </Select>
             </div>
+            <PromptInput
+              mode="color-swap"
+              value={imageOptions.userPrompt ?? ""}
+              onChange={(v) =>
+                setImageOptions({ ...imageOptions, userPrompt: v })
+              }
+              disabled={status === "processing"}
+            />
             <ImageOptionsSelector
               options={imageOptions}
               onOptionsChange={setImageOptions}

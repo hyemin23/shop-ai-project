@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
   const mode = (formData.get("mode") as GenerationMode) || "standard";
   const aspectRatio = parseAspectRatio(formData.get("aspectRatio"));
   const imageSize = parseImageSize(formData.get("imageSize"));
+  const userPrompt = formData.get("userPrompt") as string | null;
 
   if (!sourceFile || !targetColor) {
     return NextResponse.json(
@@ -36,6 +37,7 @@ export async function POST(request: NextRequest) {
     sessionId,
     aspectRatio,
     imageSize,
+    userPrompt: userPrompt || undefined,
   });
 
   if (!result.success) {
