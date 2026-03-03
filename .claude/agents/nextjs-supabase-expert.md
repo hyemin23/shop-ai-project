@@ -187,6 +187,8 @@ export default function ClientPage() {
 }
 ```
 
+
+
 ### Supabase MCP 사용 규칙
 
 #### 1. 데이터베이스 작업 전 필수 확인

@@ -6,12 +6,15 @@
 ## 핵심 파일 위치
 - 타입: `types/studio.ts` (StudioType, GenerationMode, ImageGenerationOptions 등)
 - 설정: `config/studio.ts` (프리셋 데이터), `config/prompts.ts` (Gemini 모델 ID, 프롬프트)
+- 가격: `config/pricing.ts` — TOKEN_COST (StudioType별 해상도별 비용), TOKEN_PACKAGES, FREE_TRIAL_TOKENS
 - Gemini 래퍼: `lib/gemini.ts` — `callGeminiWithImages()` + `callModel()` 내부 함수
-- 공통 처리기: `lib/studio-processor.ts` — `processSingleStudioRequest()` (switch-case로 3개 타입 처리)
+- 공통 처리기: `lib/studio-processor.ts` — `processSingleStudioRequest()` (switch-case로 4개 타입 처리: try-on/color-swap/pose-transfer/background-swap)
+- API 유틸: `lib/api-utils.ts` — `studioErrorResponse()`, `parseAspectRatio()`, `parseImageSize()`
 - 오류 시스템: `lib/errors.ts` — `StudioError`, `STUDIO_ERROR_CODES`
-- API Routes: `app/api/studio/{try-on,color-swap,pose-transfer}/route.ts`
-- 페이지: `app/(dashboard)/dashboard/studio/{page,color-swap/page,pose-transfer/page}.tsx`
+- API Routes: `app/api/studio/{try-on,color-swap,pose-transfer,background-swap}/route.ts`
+- 페이지: `app/(dashboard)/dashboard/studio/{page,color-swap/page,pose-transfer/page,background-swap/page}.tsx`
 - 공용 훅: `hooks/use-studio-generate.ts` — API 호출, 상태 관리, cooldown, 오프라인 처리
+- 다운로드 훅: `hooks/use-studio-download.ts` — StudioType별 파일명 프리픽스 + blob 다운로드
 - 스튜디오 컴포넌트: `components/studio/` (ImageUploadZone, ResultViewer, ImageOptionsSelector, ModeSelector 등)
 
 ## 아키텍처 패턴
@@ -21,12 +24,19 @@
 - imageOptions 상태(`{aspectRatio: "1:1", imageSize: "1k"}` 초기값)가 3개 페이지에 중복
 
 ## 발견된 반복적 이슈 (2026-03-03 첫 리뷰)
-1. **API Route 중복**: `aspectRatio/imageSize` formData 파싱 + HTTP 상태 코드 분기 로직 3곳 동일
-2. **페이지 중복**: `handleDownload` 함수 3곳 완전 동일 → 커스텀 훅으로 추출 권장
-3. **imageOptions 초기값 중복**: 3개 페이지에 `{aspectRatio: "1:1", imageSize: "1k"}` 하드코딩
-4. **타입 캐스팅**: `formData.get("aspectRatio") as AspectRatio` — 유효성 검증 없는 단순 캐스팅
-5. **`use client` 지시어 위치**: `result-viewer.tsx` 파일 최상단에 주석이 앞에 위치 (컨벤션 위반)
-6. **ImageUploadZone handleRemove**: `onFileSelect?.(undefined as unknown as File)` — 타입 안전하지 않은 패턴, `onFileSelect` 시그니처를 `File | null`로 변경 권장
+1. **API Route 중복**: `aspectRatio/imageSize` formData 파싱 + HTTP 상태 코드 분기 로직 — `lib/api-utils.ts`의 `parseAspectRatio/parseImageSize/studioErrorResponse`로 이미 해결됨
+2. **페이지 중복**: `handleDownload` 함수 → `hooks/use-studio-download.ts`로 이미 추출됨 (2026-03-04 background-swap 추가 시 확인)
+3. **imageOptions 초기값**: `config/studio.ts`의 `DEFAULT_IMAGE_OPTIONS` 상수로 이미 중앙화됨 (2026-03-04 확인)
+4. **타입 캐스팅**: `formData.get("aspectRatio") as AspectRatio` — `parseAspectRatio()`가 Set 기반 유효성 검증으로 해결됨
+5. **`use client` 지시어 위치**: `result-viewer.tsx` 파일 최상단에 공백 줄 있음 (컨벤션 위반 잔존)
+6. **ImageUploadZone handleRemove**: `onFileSelect?.(undefined as unknown as File)` — 미해결 (확인 필요)
+
+## background-swap 추가 시 발견된 이슈 (2026-03-04)
+1. **[HIGH] BackgroundSwapRequest.backgroundDescription 데드 필드**: `types/studio.ts:59`에 정의만 있고 API route, processor, 페이지 어디에서도 사용하지 않음. 제거하거나 텍스트 기반 배경 생성 기능으로 구현해야 함.
+2. **[HIGH] batch/route.ts에 background-swap 미지원**: `app/api/studio/batch/route.ts:27`의 허용 타입 배열 `["try-on", "color-swap", "pose-transfer"]`에 "background-swap" 누락. 배치 처리 진입 시 400 에러.
+3. **[MEDIUM] 프롬프트에 배경 설명 파라미터 없음**: `PROMPTS.backgroundSwap(userPrompt?)`가 배경 이미지 참조만 의존. `backgroundDescription` 텍스트 기반 배경 지정 경로 미구현.
+4. **[LOW] dashboard.ts 아이콘 의미 불명확**: `배경 변경` 메뉴에 `ImageIcon` 사용 — `Wallpaper` 또는 `Image` 아이콘이 더 적합.
+5. **[INFO] use-studio-download.ts `"use client"` 불필요**: 훅 파일에 `"use client"` 지시어가 있으나 Next.js에서 커스텀 훅은 클라이언트 컴포넌트에서 import되므로 지시어가 없어도 동작함. 명시적으로 두는 것 자체는 문제 없음.
 
 ## gemini.ts 패턴
 - `imageConfig` 객체 조건부 스프레드로 generationConfig에 중첩: `...(Object.keys(imageConfig).length > 0 && { imageConfig })`
