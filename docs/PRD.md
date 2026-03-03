@@ -85,6 +85,9 @@
 - 이미지 저장 (Supabase Storage)
 - 대시보드 UI (기존 `(dashboard)` 라우트 그룹 통합)
 - Supabase 인프라 세팅 (DB + Storage + RLS)
+- 소셜 로그인 (카카오/구글): Supabase Auth 기반 OAuth
+- 메인 페이지 헤더: 인증 상태에 따른 UI 분기 (비로그인: 로그인/시작하기, 로그인: 대시보드/UserMenu)
+- 보호 라우트: 스튜디오, 히스토리, 토큰, 설정 페이지는 비로그인 시 로그인 페이지로 리다이렉트
 
 ### Should Have
 
@@ -96,7 +99,6 @@
 
 > 아래 기능은 MVP 메인 서비스(의류 교체, 색상 변경, 포즈 변경) 완성 후 테스트/구현 예정
 
-- **소셜 로그인 (Phase 2)**: Supabase Auth 기반 카카오 + 구글 로그인
 - **토큰 결제 시스템 (Phase 2)**: 토스 페이먼츠 API 연동, 이미지 1장당 / 화질별 토큰 소모 방식
 - 배치 처리 (여러 이미지 동시 처리)
 - 배경 교체/제거
@@ -573,17 +575,12 @@ lib/
 └── supabase/
     ├── client.ts               # Supabase 브라우저 클라이언트 (createBrowserClient)
     ├── server.ts               # Supabase 서버 클라이언트 (createServerClient)
-    └── middleware.ts            # Supabase Auth 세션 갱신 미들웨어
+    └── proxy.ts                # Supabase Auth 세션 갱신 (proxy용)
 
 config/studio.ts                # 스튜디오 설정 (프리셋 색상, 포즈 목록 등)
 types/studio.ts                 # 스튜디오 관련 타입 정의
 
 # --- Phase 2에서 추가 예정 ---
-app/(auth)/
-├── login/page.tsx              # 카카오/구글 소셜 로그인 (Supabase Auth)
-├── signup/page.tsx             # 회원가입 (소셜 연동)
-└── callback/route.ts           # Supabase Auth OAuth 콜백
-
 app/(dashboard)/tokens/
 └── page.tsx                    # 토큰 충전 / 사용 내역
 
@@ -604,7 +601,7 @@ types/payment.ts                # 결제/토큰 관련 타입
 - 이미지 업로드/결과: React `useState` (컴포넌트 로컬)
 - 처리 상태: `"idle" | "uploading" | "processing" | "success" | "error"`
 - 히스토리: Supabase DB + 커스텀 훅 `useStudioHistory()` (서버 컴포넌트에서 직접 조회 또는 클라이언트에서 `@supabase/ssr` 사용)
-- 인증 상태: Supabase Auth 세션 (Phase 2)
+- 인증 상태: Supabase Auth 세션 (`useAuth()` 훅, proxy에서 세션 갱신)
 - 글로벌 상태 관리 라이브러리 불필요 (MVP 범위에서는 props drilling으로 충분)
 
 ### 6.4 데이터 모델
@@ -909,23 +906,13 @@ TOSS_SECRET_KEY=...                                      # 토스 페이먼츠 (
 | 3주  | 색상 변경 + 포즈 변경 기능 완성                                                         |
 | 4주  | UI 폴리싱, 에러 핸들링, Before/After 뷰, 히스토리 (Supabase DB 조회)                    |
 
-**산출물**: 대시보드 내 스튜디오 3개 기능 동작, Supabase 인프라 구축 완료, 무인증 사용 가능 (세션 기반)
+**산출물**: 대시보드 내 스튜디오 3개 기능 동작, Supabase 인프라 구축 완료, 소셜 로그인(카카오/구글) 기반 인증
 
 ### Phase 2 — 인증 & 토큰 결제 (4주)
 
 > MVP 메인 서비스 완성 후 진행. 먼저 로그인 → 결제 순서로 테스트.
 
-#### 2-A. 소셜 로그인 (1~2주차)
-
-- **카카오 로그인**: Supabase Auth → Kakao OAuth Provider 활성화
-- **구글 로그인**: Supabase Auth → Google OAuth Provider 활성화
-- Supabase Auth 기반 세션 관리 (`@supabase/ssr` + 미들웨어)
-- `app/(auth)/` 라우트 그룹에 로그인/회원가입 UI 연동
-- `app/(auth)/callback/route.ts`에 OAuth 콜백 처리
-- 사용자 프로필 자동 생성 (DB 트리거 → `profiles` 테이블)
-- 기존 세션 데이터(session_id)를 로그인 사용자(user_id)에 연결 (마이그레이션 함수)
-
-#### 2-B. 토큰 결제 시스템 (3~4주차)
+#### 2-A. 토큰 결제 시스템 (1~2주차)
 
 - **결제 수단**: 토스 페이먼츠 API (TossPayments)
 - **과금 모델**: 토큰 기반 선불 충전 (buildupspace 가격대 참고)
