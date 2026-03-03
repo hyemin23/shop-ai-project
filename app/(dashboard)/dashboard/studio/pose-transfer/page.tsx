@@ -8,27 +8,24 @@ import { Button } from "@/components/ui/button";
 import { StudioLayout } from "@/components/studio/studio-layout";
 import { ImageUploadZone } from "@/components/studio/image-upload-zone";
 import { ResultViewer } from "@/components/studio/result-viewer";
-import { ModeSelector } from "@/components/studio/mode-selector";
 import { ImageOptionsSelector } from "@/components/studio/image-options-selector";
 import { PosePresetGallery } from "@/components/studio/pose-preset-gallery";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
 import { useStudioDownload } from "@/hooks/use-studio-download";
 import { DEFAULT_IMAGE_OPTIONS, appendImageOptions } from "@/config/studio";
-import { type GenerationMode } from "@/types/studio";
 
 export default function StudioPoseTransferPage() {
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [poseType, setPoseType] = useState<"preset" | "custom">("preset");
   const [selectedPresetId, setSelectedPresetId] = useState<string>("");
   const [poseReferenceFile, setPoseReferenceFile] = useState<File | null>(null);
-  const [mode, setMode] = useState<GenerationMode>("standard");
   const [imageOptions, setImageOptions] = useState(DEFAULT_IMAGE_OPTIONS);
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const { status, result, generate, reset } = useStudioGenerate({
     type: "pose-transfer",
-    mode,
+    mode: "standard",
     onTokenInsufficient: () => setTokenDialogOpen(true),
     onSuccess: () => toast.success("포즈가 변경되었습니다"),
   });
@@ -46,7 +43,7 @@ export default function StudioPoseTransferPage() {
     } else {
       formData.set("poseReferenceImage", poseReferenceFile!);
     }
-    formData.set("mode", mode);
+    formData.set("mode", "standard");
     appendImageOptions(formData, imageOptions);
     await generate(formData);
   }, [
@@ -54,7 +51,6 @@ export default function StudioPoseTransferPage() {
     poseType,
     selectedPresetId,
     poseReferenceFile,
-    mode,
     imageOptions,
     generate,
   ]);
@@ -101,7 +97,6 @@ export default function StudioPoseTransferPage() {
               onPresetSelect={handlePresetSelect}
               onCustomUpload={handleCustomUpload}
             />
-            <ModeSelector mode={mode} onModeChange={setMode} />
             <ImageOptionsSelector
               options={imageOptions}
               onOptionsChange={setImageOptions}

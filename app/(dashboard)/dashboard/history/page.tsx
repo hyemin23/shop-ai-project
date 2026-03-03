@@ -81,9 +81,6 @@ export default function HistoryPage() {
               <CardContent className="p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <Badge variant="secondary">{TYPE_LABELS[item.type]}</Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {item.mode === "premium" ? "고품질" : "기본"}
-                  </span>
                 </div>
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>{new Date(item.createdAt).toLocaleDateString("ko-KR")}</p>

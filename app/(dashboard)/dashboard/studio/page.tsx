@@ -8,24 +8,21 @@ import { Button } from "@/components/ui/button";
 import { StudioLayout } from "@/components/studio/studio-layout";
 import { ImageUploadZone } from "@/components/studio/image-upload-zone";
 import { ResultViewer } from "@/components/studio/result-viewer";
-import { ModeSelector } from "@/components/studio/mode-selector";
 import { ImageOptionsSelector } from "@/components/studio/image-options-selector";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
 import { useStudioDownload } from "@/hooks/use-studio-download";
 import { DEFAULT_IMAGE_OPTIONS, appendImageOptions } from "@/config/studio";
-import { type GenerationMode } from "@/types/studio";
 
 export default function StudioTryOnPage() {
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [referenceFile, setReferenceFile] = useState<File | null>(null);
-  const [mode, setMode] = useState<GenerationMode>("standard");
   const [imageOptions, setImageOptions] = useState(DEFAULT_IMAGE_OPTIONS);
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const { status, result, generate, reset } = useStudioGenerate({
     type: "try-on",
-    mode,
+    mode: "standard",
     onTokenInsufficient: () => setTokenDialogOpen(true),
     onSuccess: () => toast.success("이미지가 생성되었습니다"),
   });
@@ -35,10 +32,10 @@ export default function StudioTryOnPage() {
     const formData = new FormData();
     formData.set("sourceImage", sourceFile);
     formData.set("referenceImage", referenceFile);
-    formData.set("mode", mode);
+    formData.set("mode", "standard");
     appendImageOptions(formData, imageOptions);
     await generate(formData);
-  }, [sourceFile, referenceFile, mode, imageOptions, generate]);
+  }, [sourceFile, referenceFile, imageOptions, generate]);
 
   const download = useStudioDownload("try-on");
 
@@ -66,7 +63,6 @@ export default function StudioTryOnPage() {
               description="합성할 의류 단독 사진"
               onFileSelect={setReferenceFile}
             />
-            <ModeSelector mode={mode} onModeChange={setMode} />
             <ImageOptionsSelector
               options={imageOptions}
               onOptionsChange={setImageOptions}

@@ -14,16 +14,14 @@ import { Monitor, Layers } from "lucide-react";
 import { BatchUploadZone } from "@/components/studio/batch-upload-zone";
 import { BatchProgressPanel } from "@/components/studio/batch-progress-panel";
 import { BatchResultGrid } from "@/components/studio/batch-result-grid";
-import { ModeSelector } from "@/components/studio/mode-selector";
 import { ColorPicker } from "@/components/studio/color-picker";
 import { PosePresetGallery } from "@/components/studio/pose-preset-gallery";
 import { ImageUploadZone } from "@/components/studio/image-upload-zone";
 import { useBatchGenerate } from "@/hooks/use-batch-generate";
-import { type StudioType, type GenerationMode } from "@/types/studio";
+import { type StudioType } from "@/types/studio";
 
 export default function BatchPage() {
   const [type, setType] = useState<StudioType>("try-on");
-  const [mode, setMode] = useState<GenerationMode>("standard");
   const [files, setFiles] = useState<File[]>([]);
 
   // 공통 파라미터 (타입별)
@@ -36,7 +34,7 @@ export default function BatchPage() {
   const { items, isProcessing, progress, generate, reset, downloadZip } =
     useBatchGenerate({
       type,
-      mode,
+      mode: "standard",
       onComplete: () => {},
     });
 
@@ -97,7 +95,6 @@ export default function BatchPage() {
             최대 10장의 이미지를 한번에 처리합니다.
           </p>
         </div>
-        <ModeSelector mode={mode} onModeChange={setMode} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
