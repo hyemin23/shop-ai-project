@@ -2,14 +2,61 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  Shirt,
+  Palette,
+  PersonStanding,
+  Wallpaper,
+  Layers,
+  ChevronDown,
+} from "lucide-react";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileNav } from "@/components/mobile-nav";
 import { UserMenu } from "@/components/user-menu";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { siteConfig } from "@/config/site";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
+
+const studioNavItems = [
+  {
+    title: "의류 교체",
+    description: "모델 이미지에 새 의류를 자동 합성",
+    href: "/dashboard/studio",
+    icon: Shirt,
+  },
+  {
+    title: "색상 변경",
+    description: "원단 색상을 원하는 컬러로 변경",
+    href: "/dashboard/studio/color-swap",
+    icon: Palette,
+  },
+  {
+    title: "포즈 변경",
+    description: "모델의 포즈를 다양하게 전환",
+    href: "/dashboard/studio/pose-transfer",
+    icon: PersonStanding,
+  },
+  {
+    title: "배경 변경",
+    description: "촬영 배경 장면을 새로 교체",
+    href: "/dashboard/studio/background-swap",
+    icon: Wallpaper,
+  },
+  {
+    title: "배치 처리",
+    description: "여러 이미지를 한 번에 일괄 편집",
+    href: "/dashboard/studio/batch",
+    icon: Layers,
+  },
+];
 
 export function SiteHeader() {
   const [mounted, setMounted] = useState(false);
@@ -20,20 +67,55 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center px-4 md:px-8">
+      <div className="container mx-auto flex h-16 items-center gap-3 px-4 md:px-8">
         <MobileNav />
         <Logo />
 
-        <nav className="ml-8 hidden items-center gap-1 md:flex">
-          {siteConfig.mainNav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            >
-              {item.title}
-            </Link>
-          ))}
+        <nav className="ml-3 hidden items-center md:flex">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={cn(
+                  "group flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-sm font-medium transition-colors",
+                  "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  "data-[state=open]:bg-accent/50 data-[state=open]:text-foreground",
+                  "outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                )}
+              >
+                AI 스튜디오
+                <ChevronDown className="h-3 w-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="start" className="w-72 p-1.5">
+              <DropdownMenuLabel className="px-2 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                AI 편집 도구
+              </DropdownMenuLabel>
+
+              {studioNavItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "group flex items-center gap-3 rounded-md px-2 py-2 transition-colors",
+                    "hover:bg-accent focus:bg-accent focus:outline-none",
+                  )}
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/8 ring-1 ring-primary/10 transition-colors group-hover:bg-primary/15">
+                    <item.icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium leading-tight text-foreground">
+                      {item.title}
+                    </span>
+                    <span className="text-xs leading-tight text-muted-foreground">
+                      {item.description}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
         <div className="ml-auto flex items-center gap-2">

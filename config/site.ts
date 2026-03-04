@@ -8,11 +8,7 @@ export const siteConfig: SiteConfig = {
   links: {
     github: "https://github.com",
   },
-  mainNav: [
-    { title: "기능", href: "/#features" },
-    { title: "가격", href: "/#pricing" },
-    { title: "스튜디오", href: "/dashboard" },
-  ],
+  mainNav: [],
   footerNav: [
     {
       title: "서비스",
