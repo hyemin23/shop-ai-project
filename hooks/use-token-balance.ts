@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 interface UseTokenBalanceReturn {
   balance: number;
+  isMaster: boolean;
   isLoading: boolean;
   refresh: () => Promise<void>;
 }
@@ -12,11 +13,15 @@ interface UseTokenBalanceReturn {
 export function useTokenBalance(): UseTokenBalanceReturn {
   const { user } = useAuth();
   const [balance, setBalance] = useState(0);
+  const [isMaster, setIsMaster] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const userId = user?.id;
+
   const refresh = useCallback(async () => {
-    if (!user) {
+    if (!userId) {
       setBalance(0);
+      setIsMaster(false);
       setIsLoading(false);
       return;
     }
@@ -26,17 +31,18 @@ export function useTokenBalance(): UseTokenBalanceReturn {
       if (res.ok) {
         const data = await res.json();
         setBalance(data.balance ?? 0);
+        setIsMaster(data.isMaster ?? false);
       }
     } catch {
       // 조용히 실패
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [userId]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  return { balance, isLoading, refresh };
+  return { balance, isMaster, isLoading, refresh };
 }
