@@ -16,9 +16,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coins, Check, Loader2, CreditCard, History } from "lucide-react";
+import { Coins, Check, Loader2, CreditCard, History, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { TokenTransactionList } from "@/components/dashboard/token-transaction-list";
 
@@ -36,11 +37,42 @@ export default function TokensPage() {
 
 function TokensContent() {
   const { user } = useAuth();
-  const { balance, isLoading: balanceLoading, refresh } = useTokenBalance();
+  const { balance, isMaster, isLoading: balanceLoading, refresh } = useTokenBalance();
   const [selectedPackage, setSelectedPackage] = useState<TokenPackage | null>(
     null,
   );
   const [isPaying, setIsPaying] = useState(false);
+  const [masterAmount, setMasterAmount] = useState("");
+  const [isMasterCharging, setIsMasterCharging] = useState(false);
+
+  async function handleMasterCharge() {
+    const amount = Number(masterAmount);
+    if (!amount || amount < 1) {
+      toast.error("충전할 토큰 수를 입력해주세요.");
+      return;
+    }
+
+    setIsMasterCharging(true);
+    try {
+      const res = await fetch("/api/tokens/master-charge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`${data.charged} 토큰이 충전되었습니다! (잔액: ${data.balance})`);
+        setMasterAmount("");
+        refresh();
+      } else {
+        toast.error(data.error || "충전에 실패했습니다.");
+      }
+    } catch {
+      toast.error("서버 오류가 발생했습니다.");
+    } finally {
+      setIsMasterCharging(false);
+    }
+  }
 
   async function handlePurchase(pkg: TokenPackage) {
     if (!user) {
@@ -164,6 +196,45 @@ function TokensContent() {
           )}
         </CardContent>
       </Card>
+
+      {/* 마스터 계정 직접 충전 */}
+      {isMaster && (
+        <Card className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardHeader className="flex flex-row items-center gap-2 pb-2">
+            <ShieldCheck className="h-5 w-5 text-amber-600" />
+            <CardTitle className="text-base font-medium text-amber-700 dark:text-amber-400">
+              마스터 계정 — 직접 충전
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                min={1}
+                max={100000}
+                placeholder="충전할 토큰 수"
+                value={masterAmount}
+                onChange={(e) => setMasterAmount(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleMasterCharge()}
+                className="max-w-[200px]"
+              />
+              <Button
+                onClick={handleMasterCharge}
+                disabled={isMasterCharging || !masterAmount}
+                variant="outline"
+                className="border-amber-500 text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-950"
+              >
+                {isMasterCharging ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Coins className="mr-2 h-4 w-4" />
+                )}
+                충전
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="packages">
         <TabsList>

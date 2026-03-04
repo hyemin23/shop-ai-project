@@ -1,6 +1,9 @@
 import { LRUCache } from "lru-cache";
 
-const tokenBalanceCache = new LRUCache<string, { balance: number; freeTokensUsed: number }>({
+const tokenBalanceCache = new LRUCache<
+  string,
+  { balance: number; freeTokensUsed: number; isMaster: boolean }
+>({
   max: 500,
   ttl: 30 * 1000, // 30초 TTL
 });
@@ -11,7 +14,7 @@ export function getCachedTokenBalance(userId: string) {
 
 export function setCachedTokenBalance(
   userId: string,
-  data: { balance: number; freeTokensUsed: number },
+  data: { balance: number; freeTokensUsed: number; isMaster: boolean },
 ) {
   tokenBalanceCache.set(userId, data);
 }
