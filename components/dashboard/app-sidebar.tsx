@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Zap } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,13 +14,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from "@/components/ui/sidebar";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Logo } from "@/components/logo";
+import { siteConfig } from "@/config/site";
 import { UserMenu } from "@/components/user-menu";
 import { dashboardConfig } from "@/config/dashboard";
 import { type SidebarNavGroup } from "@/types";
@@ -41,9 +42,16 @@ export function AppSidebar() {
   const email = user?.email || "게스트";
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
-        <Logo />
+        <Link href="/" className="group/logo flex items-center gap-2.5 font-bold text-lg tracking-tight">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary shadow-sm shadow-primary/25 transition-transform duration-200 group-hover/logo:scale-105">
+            <Zap className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <span className="group-data-[collapsible=icon]:hidden">
+            {siteConfig.name}
+          </span>
+        </Link>
       </SidebarHeader>
 
       <SidebarContent>
@@ -72,6 +80,7 @@ export function AppSidebar() {
                         <SidebarMenuButton
                           asChild
                           isActive={pathname === item.href}
+                          tooltip={item.title}
                         >
                           <Link href={item.href}>
                             <item.icon className="h-4 w-4" />
@@ -88,12 +97,12 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      {/* 하단 사용자 정보 영역 — 기존 구조 유지 */}
+      {/* 하단 사용자 정보 영역 */}
       <SidebarFooter className="p-4">
         {isLoading ? (
           <div className="flex items-center gap-3">
-            <Skeleton className="h-8 w-8 rounded-full" />
-            <div className="flex flex-col gap-1">
+            <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+            <div className="flex flex-col gap-1 group-data-[collapsible=icon]:hidden">
               <Skeleton className="h-4 w-20" />
               <Skeleton className="h-3 w-28" />
             </div>
@@ -101,13 +110,15 @@ export function AppSidebar() {
         ) : (
           <div className="flex items-center gap-3">
             <UserMenu />
-            <div className="flex flex-col text-sm">
+            <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
               <span className="font-medium">{displayName}</span>
               <span className="text-xs text-muted-foreground">{email}</span>
             </div>
           </div>
         )}
       </SidebarFooter>
+
+      <SidebarRail />
     </Sidebar>
   );
 }
