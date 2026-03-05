@@ -145,6 +145,25 @@ ${WATERMARK_INSTRUCTION}`,
       stylePrompt,
     ),
 
+  nukkiCut: (userPrompt?: string) =>
+    appendUserPrompt(
+      `You are a professional e-commerce product photographer. Your task is to extract the clothing item from the provided image and present it as a clean product cut-out on a pure white background.
+
+Step 1: Identify the clothing item precisely — separate it completely from the model, mannequin, hanger, background, and any props.
+Step 2: Remove the background entirely and replace it with pure white (#FFFFFF).
+Step 3: Position the clothing item front-facing, centered, filling 80–90% of the frame with equal margins on all sides.
+Step 4: Maintain all original colors, textures, patterns, and construction details of the garment exactly.
+Step 5: The final image must look like a professional product listing photo on white background.
+
+Critical constraints:
+- Background must be pure white (#FFFFFF) — no shadows, gradients, or reflections.
+- Do NOT include any model body, face, skin, hands, or mannequin parts in the output.
+- Do NOT add, remove, or alter any part of the garment itself.
+- The result must be suitable for uploading to an e-commerce product detail section.
+${WATERMARK_INSTRUCTION}`,
+      userPrompt,
+    ),
+
   fourSplitCut: (details: string[], userPrompt?: string) =>
     appendUserPrompt(
       `You are a professional fashion product photographer. Create a "4-split detail" composition — a single image divided into 4 equal quadrants arranged in a 2×2 grid, each showing a high-resolution close-up of a specific garment detail from the provided image.

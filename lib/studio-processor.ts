@@ -46,7 +46,7 @@ interface ProcessOptions {
   poseType?: "preset" | "custom";
   presetId?: string;
   poseReferenceFile?: File | null;
-  extractionMode?: "rose-cut" | "4-split";
+  extractionMode?: "rose-cut" | "4-split" | "nukki";
   detailPresets?: string[];
   autoFittingStylePrompt?: string;
   userId: string | null;
@@ -264,6 +264,8 @@ export async function processSingleStudioRequest(
         const extractionMode = options.extractionMode || "rose-cut";
         if (extractionMode === "rose-cut") {
           prompt = PROMPTS.roseCut(options.userPrompt);
+        } else if (extractionMode === "nukki") {
+          prompt = PROMPTS.nukkiCut(options.userPrompt);
         } else {
           const details = options.detailPresets ||
             DEFAULT_4SPLIT_PRESETS.map(

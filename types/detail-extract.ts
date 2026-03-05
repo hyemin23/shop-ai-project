@@ -1,4 +1,4 @@
-export type DetailExtractMode = "rose-cut" | "4-split";
+export type DetailExtractMode = "rose-cut" | "4-split" | "nukki";
 
 export interface DetailPreset {
   id: string;

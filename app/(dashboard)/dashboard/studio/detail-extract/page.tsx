@@ -45,7 +45,9 @@ export default function StudioDetailExtractPage() {
       toast.success(
         extractionMode === "rose-cut"
           ? "장미컷이 생성되었습니다"
-          : "4분할컷이 생성되었습니다",
+          : extractionMode === "nukki"
+            ? "누끼컷이 생성되었습니다"
+            : "4분할컷이 생성되었습니다",
       ),
   });
 
@@ -84,6 +86,7 @@ export default function StudioDetailExtractPage() {
     (extractionMode === "4-split" && selectedPresetIds.length !== 4) ||
     status === "processing";
 
+
   return (
     <>
       <StudioLayout
@@ -111,6 +114,9 @@ export default function StudioDetailExtractPage() {
                   </SelectItem>
                   <SelectItem value="4-split">
                     4분할컷 (디테일 2x2 그리드)
+                  </SelectItem>
+                  <SelectItem value="nukki">
+                    누끼컷 (흰 배경 상품 단독 컷)
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -140,7 +146,11 @@ export default function StudioDetailExtractPage() {
               disabled={isDisabled}
             >
               <ScanSearch className="mr-1.5 h-4 w-4" />
-              {extractionMode === "rose-cut" ? "장미컷 생성" : "4분할컷 생성"}
+              {extractionMode === "rose-cut"
+                ? "장미컷 생성"
+                : extractionMode === "nukki"
+                  ? "누끼컷 생성"
+                  : "4분할컷 생성"}
             </Button>
           </div>
         }
