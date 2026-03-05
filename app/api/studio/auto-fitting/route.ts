@@ -4,7 +4,8 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { processSingleStudioRequest } from "@/lib/studio-processor";
 import { type AutoFittingSSEEvent } from "@/types/auto-fitting";
 import { AUTO_FITTING_PRESETS } from "@/config/auto-fitting";
-import { getTokenCost } from "@/lib/tokens";
+import { getCreditCost } from "@/lib/tokens";
+import { type ImageSize } from "@/types/studio";
 
 export const maxDuration = 300;
 
@@ -45,8 +46,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (profile && !profile.is_master) {
-      const costPerItem = getTokenCost("auto-fitting", "standard");
-      const totalCost = totalItems * costPerItem;
+      const totalCost = getCreditCost(imageSize as ImageSize, totalItems);
 
       if ((profile.token_balance ?? 0) < totalCost) {
         return new Response(

@@ -119,6 +119,8 @@ export default function MultiPosePage() {
             <ImageOptionsSelector
               options={imageOptions}
               onOptionsChange={setImageOptions}
+              creditCount={filledCount}
+              creditLabel="포즈"
             />
 
             {/* 버튼 */}

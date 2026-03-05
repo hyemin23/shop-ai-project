@@ -12,7 +12,7 @@ import { DETAIL_PRESETS, DEFAULT_4SPLIT_PRESETS } from "@/types/detail-extract";
 import {
   spendTokensForGeneration,
   checkFreeTrialLimit,
-  getTokenCost,
+  getCreditCost,
   TokenInsufficientError,
 } from "@/lib/tokens";
 import { StudioError } from "@/lib/errors";
@@ -289,7 +289,7 @@ export async function processSingleStudioRequest(
         .single();
 
       if (profile && !profile.is_master) {
-        const cost = getTokenCost(options.type, options.mode);
+        const cost = getCreditCost(options.imageSize);
         if ((profile.token_balance ?? 0) < cost) {
           throw new TokenInsufficientError();
         }
@@ -361,14 +361,13 @@ export async function processSingleStudioRequest(
       .single();
 
     // 토큰 차감
-    const actualMode = geminiResult.fallbackUsed ? "standard" : options.mode;
     if (historyData?.id) {
       await spendTokensForGeneration(
         supabase,
         options.userId,
-        options.type,
-        options.mode,
-        actualMode as GenerationMode,
+        options.imageSize ?? "1K",
+        1,
+        `${options.type} 이미지 생성`,
         historyData.id,
       );
     }

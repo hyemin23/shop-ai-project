@@ -99,6 +99,8 @@ export default function AutoFittingPage() {
             <ImageOptionsSelector
               options={imageOptions}
               onOptionsChange={setImageOptions}
+              creditCount={AUTO_FITTING_POSE_COUNT}
+              creditLabel="포즈"
             />
 
             {/* 스타일 프롬프트 (선택 사항) */}
@@ -117,15 +119,6 @@ export default function AutoFittingPage() {
                 rows={2}
                 className="max-h-20 resize-none"
               />
-            </div>
-
-            {/* 토큰 비용 안내 */}
-            <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              {AUTO_FITTING_POSE_COUNT}개 포즈 × 1토큰 = 총{" "}
-              <span className="font-semibold text-foreground">
-                {AUTO_FITTING_POSE_COUNT}토큰
-              </span>{" "}
-              차감
             </div>
 
             {/* 생성 / 초기화 버튼 */}

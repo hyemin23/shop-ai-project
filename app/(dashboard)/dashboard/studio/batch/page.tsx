@@ -17,9 +17,11 @@ import { BatchResultGrid } from "@/components/studio/batch-result-grid";
 import { ColorPicker } from "@/components/studio/color-picker";
 import { PosePresetGallery } from "@/components/studio/pose-preset-gallery";
 import { ImageUploadZone } from "@/components/studio/image-upload-zone";
+import { ImageOptionsSelector } from "@/components/studio/image-options-selector";
 import { PromptInput } from "@/components/studio/prompt-input";
+import { appendImageOptions } from "@/config/studio";
 import { useBatchGenerate } from "@/hooks/use-batch-generate";
-import { type StudioType } from "@/types/studio";
+import { type StudioType, type ImageGenerationOptions } from "@/types/studio";
 
 export default function BatchPage() {
   const [type, setType] = useState<StudioType>("try-on");
@@ -32,6 +34,9 @@ export default function BatchPage() {
   const [poseType, setPoseType] = useState<"preset" | "custom">("preset");
   const [presetId, setPresetId] = useState("front-standing");
   const [userPrompt, setUserPrompt] = useState("");
+  const [imageOptions, setImageOptions] = useState<ImageGenerationOptions>({
+    imageSize: "1K",
+  });
 
   const { items, isProcessing, progress, generate, reset, downloadZip } =
     useBatchGenerate({
@@ -67,6 +72,8 @@ export default function BatchPage() {
       formData.set("userPrompt", userPrompt.trim());
     }
 
+    appendImageOptions(formData, imageOptions);
+
     await generate(formData);
   }, [
     files,
@@ -77,6 +84,7 @@ export default function BatchPage() {
     poseType,
     presetId,
     userPrompt,
+    imageOptions,
     generate,
   ]);
 
@@ -200,6 +208,14 @@ export default function BatchPage() {
               value={userPrompt}
               onChange={setUserPrompt}
               disabled={isProcessing}
+            />
+
+            {/* 이미지 옵션 */}
+            <ImageOptionsSelector
+              options={imageOptions}
+              onOptionsChange={setImageOptions}
+              creditCount={files.length}
+              creditLabel="이미지"
             />
 
             {/* 소스 이미지 업로드 */}

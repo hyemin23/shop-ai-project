@@ -2,9 +2,10 @@ import { type NextRequest } from "next/server";
 import { getUserOrSessionId } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase/server";
 import { processSingleStudioRequest } from "@/lib/studio-processor";
-import { type GenerationMode } from "@/types/studio";
+import { type GenerationMode, type ImageSize } from "@/types/studio";
 import { type MultiPoseSSEEvent } from "@/types/multi-pose";
-import { getTokenCost } from "@/lib/tokens";
+import { getCreditCost } from "@/lib/tokens";
+import { parseImageSize } from "@/lib/api-utils";
 
 export const maxDuration = 300;
 
@@ -23,6 +24,7 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
 
   const mode = (formData.get("mode") as GenerationMode) || "standard";
+  const imageSize = parseImageSize(formData.get("imageSize") as string | null);
   const sourceImage = formData.get("sourceImage") as File | null;
 
   if (!sourceImage) {
@@ -58,8 +60,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (profile && !profile.is_master) {
-      const costPerItem = getTokenCost("multi-pose", mode);
-      const totalCost = variations.length * costPerItem;
+      const totalCost = getCreditCost(imageSize, variations.length);
 
       if ((profile.token_balance ?? 0) < totalCost) {
         return new Response(
@@ -138,6 +139,7 @@ export async function POST(request: NextRequest) {
               sessionId,
               batchId,
               skipTrialCheck: false,
+              imageSize,
               userPrompt: v.prompt,
             }),
           ),
@@ -198,6 +200,7 @@ export async function POST(request: NextRequest) {
             sessionId,
             batchId,
             skipTrialCheck: i > 0,
+            imageSize,
             userPrompt: v.prompt,
           });
 

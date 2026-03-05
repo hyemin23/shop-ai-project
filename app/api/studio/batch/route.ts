@@ -4,6 +4,8 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { processSingleStudioRequest } from "@/lib/studio-processor";
 import { type GenerationMode, type StudioType } from "@/types/studio";
 import { type BatchSSEEvent } from "@/types/batch";
+import { getCreditCost } from "@/lib/tokens";
+import { parseImageSize } from "@/lib/api-utils";
 
 export const maxDuration = 300;
 
@@ -23,6 +25,7 @@ export async function POST(request: NextRequest) {
 
   const type = formData.get("type") as StudioType;
   const mode = (formData.get("mode") as GenerationMode) || "standard";
+  const imageSize = parseImageSize(formData.get("imageSize") as string | null);
 
   if (!type || !["try-on", "color-swap", "pose-transfer", "background-swap"].includes(type)) {
     return new Response(JSON.stringify({ error: "유효하지 않은 작업 유형입니다." }), {
@@ -61,8 +64,33 @@ export async function POST(request: NextRequest) {
   const poseReferenceFile = formData.get("poseReferenceImage") as File | null;
   const userPrompt = formData.get("userPrompt") as string | null;
 
-  // batch_jobs 레코드 생성
+  // 토큰 사전 확인
   const supabase = createServiceClient();
+  if (userId) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("token_balance, is_master")
+      .eq("id", userId)
+      .single();
+
+    if (profile && !profile.is_master) {
+      const totalCost = getCreditCost(imageSize, sourceFiles.length);
+
+      if ((profile.token_balance ?? 0) < totalCost) {
+        return new Response(
+          JSON.stringify({
+            error: "토큰이 부족합니다.",
+            code: "TOKEN_INSUFFICIENT",
+            required: totalCost,
+            balance: profile.token_balance ?? 0,
+          }),
+          { status: 402, headers: { "Content-Type": "application/json" } },
+        );
+      }
+    }
+  }
+
+  // batch_jobs 레코드 생성
   const { data: batchJob, error: batchError } = await supabase
     .from("batch_jobs")
     .insert({
@@ -120,7 +148,8 @@ export async function POST(request: NextRequest) {
           userId,
           sessionId,
           batchId,
-          skipTrialCheck: i > 0, // 첫 아이템만 체크
+          skipTrialCheck: i > 0,
+          imageSize,
           userPrompt: userPrompt || undefined,
         });
 
