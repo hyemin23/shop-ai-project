@@ -2,7 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getUserOrSessionId } from "@/lib/auth";
 import {
-  type StudioHistoryItem,
   type StudioType,
   type GenerationMode,
   type GeminiModel,
@@ -10,9 +9,16 @@ import {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { userId, sessionId } = await getUserOrSessionId();
+    const { userId } = await getUserOrSessionId();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "로그인이 필요합니다." },
+        { status: 401 },
+      );
+    }
 
     if (!id) {
       return NextResponse.json(
@@ -24,13 +30,7 @@ export async function DELETE(request: NextRequest) {
     const supabase = createServiceClient();
 
     // 소유자 검증 쿼리 빌드
-    let query = supabase.from("studio_history").delete().eq("id", id);
-
-    if (userId) {
-      query = query.eq("user_id", userId);
-    } else {
-      query = query.eq("session_id", sessionId);
-    }
+    const query = supabase.from("studio_history").delete().eq("id", id).eq("user_id", userId);
 
     const { error } = await query;
 
@@ -54,10 +54,18 @@ export async function DELETE(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId, sessionId } = await getUserOrSessionId();
+    const { userId } = await getUserOrSessionId();
     const { searchParams } = new URL(request.url);
 
+    if (!userId) {
+      return NextResponse.json(
+        { error: "로그인이 필요합니다." },
+        { status: 401 },
+      );
+    }
+
     const type = searchParams.get("type") as StudioType | null;
+    const sort = searchParams.get("sort") || "newest";
     const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
     const offset = parseInt(searchParams.get("offset") || "0");
 
@@ -65,22 +73,16 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("studio_history")
-      .select("*")
-      .order("created_at", { ascending: false })
+      .select("*", { count: "exact" })
+      .eq("user_id", userId)
+      .order("created_at", { ascending: sort === "oldest" })
       .range(offset, offset + limit - 1);
-
-    // 로그인 사용자는 user_id로, 비로그인은 session_id로 조회
-    if (userId) {
-      query = query.eq("user_id", userId);
-    } else {
-      query = query.eq("session_id", sessionId);
-    }
 
     if (type) {
       query = query.eq("type", type);
     }
 
-    const { data, error } = await query;
+    const { data, count, error } = await query;
 
     if (error) {
       console.error("History query error:", error);
@@ -91,7 +93,7 @@ export async function GET(request: NextRequest) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const items: StudioHistoryItem[] = (data || []).map((row: any) => ({
+    const items = (data || []).map((row: any) => ({
       id: row.id,
       sessionId: row.session_id,
       userId: row.user_id || undefined,
@@ -108,7 +110,7 @@ export async function GET(request: NextRequest) {
       processingTime: row.processing_time,
     }));
 
-    const response = NextResponse.json({ items, total: items.length });
+    const response = NextResponse.json({ items, total: count ?? 0 });
     response.headers.set(
       "Cache-Control",
       "private, max-age=30, stale-while-revalidate=60",

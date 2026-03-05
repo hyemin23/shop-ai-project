@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { type AutoFittingItemState } from "@/types/auto-fitting";
+import { downloadImage } from "@/lib/download";
 
 interface AutoFittingResultGridProps {
   items: AutoFittingItemState[];
@@ -72,15 +73,17 @@ export function AutoFittingResultGrid({
                   </Badge>
                 </div>
                 <div className="absolute right-1 bottom-1 opacity-0 transition-opacity group-hover:opacity-100">
-                  <a
-                    href={item.resultImageUrl}
-                    download={`fitting_${item.index + 1}.webp`}
-                    onClick={(e) => e.stopPropagation()}
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadImage(item.resultImageUrl!, `fitting_${item.index + 1}.webp`);
+                    }}
                   >
-                    <Button variant="secondary" size="icon" className="h-7 w-7">
-                      <Download className="h-3.5 w-3.5" />
-                    </Button>
-                  </a>
+                    <Download className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </>
             ) : item.status === "processing" ? (

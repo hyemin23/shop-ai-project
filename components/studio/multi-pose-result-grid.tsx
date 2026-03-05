@@ -9,6 +9,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import { type MultiPoseItemState } from "@/types/multi-pose";
+import { downloadImage } from "@/lib/download";
 
 interface MultiPoseResultGridProps {
   items: MultiPoseItemState[];
@@ -76,14 +77,15 @@ export function MultiPoseResultGrid({
               <span className="truncate text-[10px] text-white">
                 {item.prompt}
               </span>
-              <a
-                href={item.resultImageUrl!}
-                download={`pose_${item.index + 1}_result.webp`}
+              <button
                 className="shrink-0"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadImage(item.resultImageUrl!, `pose_${item.index + 1}_result.webp`);
+                }}
               >
                 <Download className="h-3.5 w-3.5 text-white hover:text-primary" />
-              </a>
+              </button>
             </div>
           </div>
         ))}

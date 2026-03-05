@@ -3,6 +3,7 @@
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type BatchItemState } from "@/types/batch";
+import { downloadImage } from "@/lib/download";
 
 interface BatchResultGridProps {
   items: BatchItemState[];
@@ -60,14 +61,15 @@ export function BatchResultGrid({
               <span className="truncate text-[10px] text-white">
                 {item.fileName}
               </span>
-              <a
-                href={item.resultImageUrl!}
-                download={`result_${item.fileName}`}
+              <button
                 className="shrink-0"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadImage(item.resultImageUrl!, `result_${item.fileName}`);
+                }}
               >
                 <Download className="h-3.5 w-3.5 text-white hover:text-primary" />
-              </a>
+              </button>
             </div>
           </div>
         ))}
