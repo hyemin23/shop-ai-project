@@ -23,7 +23,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Download, ImageIcon, Loader2, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Download,
+  ImageIcon,
+  Loader2,
+  Trash2,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  List,
+} from "lucide-react";
 import { toast } from "sonner";
 import { downloadImage } from "@/lib/download";
 import { HistoryBatchCard } from "./history-batch-card";
@@ -36,6 +46,16 @@ const TYPE_LABELS: Record<string, string> = {
   "multi-pose": "멀티포즈",
   "detail-extract": "상세 추출",
   "auto-fitting": "자동피팅",
+};
+
+const TYPE_COLORS: Record<string, string> = {
+  "try-on": "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-500",
+  "color-swap": "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border-purple-500",
+  "pose-transfer": "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border-amber-500",
+  "background-swap": "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border-green-500",
+  "multi-pose": "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 border-rose-500",
+  "detail-extract": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300 border-cyan-500",
+  "auto-fitting": "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 border-orange-500",
 };
 
 // --- 날짜 그룹핑 유틸 ---
@@ -61,7 +81,6 @@ function getDateLabel(dateStr: string): string {
   if (isSameDay(date, yesterday)) return "어제";
   if (date >= weekAgo) return "이번 주";
 
-  // 이번 달 체크
   if (
     date.getFullYear() === now.getFullYear() &&
     date.getMonth() === now.getMonth()
@@ -117,7 +136,6 @@ function groupItems(
   items: StudioHistoryItem[],
   sort: string,
 ): DateGroup[] {
-  // 1. 날짜별 분류
   const dateMap = new Map<string, StudioHistoryItem[]>();
   for (const item of items) {
     const label = getDateLabel(item.createdAt);
@@ -129,7 +147,6 @@ function groupItems(
     }
   }
 
-  // 2. 각 날짜 내에서 배치 그룹핑
   const groups: DateGroup[] = [];
   for (const [dateLabel, dateItems] of dateMap) {
     const batchMap = new Map<string, StudioHistoryItem[]>();
@@ -148,7 +165,6 @@ function groupItems(
       }
     }
 
-    // 엔트리 구성: 배치 + 단일을 시간순 정렬
     const entries: (SingleEntry | BatchEntry)[] = [];
 
     for (const [batchId, batchItems] of batchMap) {
@@ -165,7 +181,6 @@ function groupItems(
       entries.push({ type: "single", item });
     }
 
-    // 엔트리를 첫 번째 항목의 시간순으로 정렬
     entries.sort((a, b) => {
       const timeA =
         a.type === "batch"
@@ -182,7 +197,6 @@ function groupItems(
     groups.push({ dateLabel, dateSublabel: sublabel, entries });
   }
 
-  // 날짜 그룹 정렬 순서 정의
   const ORDER = ["오늘", "어제", "이번 주", "이번 달"];
   groups.sort((a, b) => {
     const idxA = ORDER.indexOf(a.dateLabel);
@@ -190,7 +204,6 @@ function groupItems(
     const orderA = idxA >= 0 ? idxA : 100;
     const orderB = idxB >= 0 ? idxB : 100;
     if (orderA !== orderB) return sort === "oldest" ? orderB - orderA : orderA - orderB;
-    // 둘 다 커스텀 레이블인 경우 문자열 비교
     return sort === "oldest"
       ? a.dateLabel.localeCompare(b.dateLabel)
       : b.dateLabel.localeCompare(a.dateLabel);
@@ -199,7 +212,23 @@ function groupItems(
   return groups;
 }
 
+// --- 타입 Badge 컴포넌트 ---
+
+function TypeBadge({ type }: { type: string }) {
+  const colorClass = TYPE_COLORS[type] || "";
+  return (
+    <Badge
+      variant="secondary"
+      className={colorClass}
+    >
+      {TYPE_LABELS[type] ?? type}
+    </Badge>
+  );
+}
+
 // --- 컴포넌트 ---
+
+type ViewMode = "grid" | "list";
 
 export function HistoryList() {
   const { user, isLoading: authLoading } = useAuth();
@@ -216,11 +245,14 @@ export function HistoryList() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [previewItem, setPreviewItem] = useState<StudioHistoryItem | null>(null);
   const [previewList, setPreviewList] = useState<StudioHistoryItem[]>([]);
+  const [previewTab, setPreviewTab] = useState<"after" | "before">("after");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const limit = 20;
 
   const openPreview = useCallback((item: StudioHistoryItem, list?: StudioHistoryItem[]) => {
     setPreviewItem(item);
     setPreviewList(list || []);
+    setPreviewTab("after");
   }, []);
 
   const navigatePreview = useCallback((dir: -1 | 1) => {
@@ -229,10 +261,27 @@ export function HistoryList() {
     const next = idx + dir;
     if (next >= 0 && next < previewList.length) {
       setPreviewItem(previewList[next]);
+      setPreviewTab("after");
     }
   }, [previewItem, previewList]);
 
   const previewIndex = previewItem ? previewList.findIndex((i) => i.id === previewItem.id) : -1;
+
+  // 키보드 네비게이션
+  useEffect(() => {
+    if (!previewItem || previewList.length <= 1) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        navigatePreview(-1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        navigatePreview(1);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [previewItem, previewList, navigatePreview]);
 
   const fetchHistory = useCallback(
     async (reset = false) => {
@@ -353,6 +402,26 @@ export function HistoryList() {
           </SelectContent>
         </Select>
 
+        {/* 뷰 모드 전환 */}
+        <div className="flex items-center border rounded-md">
+          <Button
+            variant={viewMode === "grid" ? "secondary" : "ghost"}
+            size="icon"
+            className="h-8 w-8 rounded-r-none"
+            onClick={() => setViewMode("grid")}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === "list" ? "secondary" : "ghost"}
+            size="icon"
+            className="h-8 w-8 rounded-l-none"
+            onClick={() => setViewMode("list")}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
+
         {total > 0 && (
           <span className="text-sm text-muted-foreground ml-auto">
             총 {total}건
@@ -388,86 +457,190 @@ export function HistoryList() {
               </div>
 
               {/* 엔트리 목록 */}
-              <div className="space-y-3">
-                {group.entries.map((entry) => {
-                  if (entry.type === "batch") {
-                    return (
-                      <HistoryBatchCard
-                        key={entry.batchId}
-                        batchId={entry.batchId}
-                        batchType={entry.batchType}
-                        items={entry.items}
-                        totalTime={entry.totalTime}
-                        onDeleteItem={setDeleteTarget}
-                        onPreviewItem={(item) => openPreview(item, entry.items)}
-                      />
-                    );
-                  }
-
-                  const item = entry.item;
-                  return (
-                    <Card
-                      key={item.id}
-                      className="overflow-hidden hover:shadow-md transition-shadow group"
-                    >
-                      <div
-                        className="grid grid-cols-2 cursor-pointer"
-                        onClick={() => openPreview(item)}
-                      >
-                        <div className="relative aspect-[3/4] bg-muted">
-                          {item.sourceThumbUrl || item.sourceImageUrl ? (
-                            <Image
-                              src={item.sourceThumbUrl || item.sourceImageUrl}
-                              alt="원본 이미지"
-                              fill
-                              className="object-contain"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
-                              Before
-                            </div>
-                          )}
-                          <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
-                            Before
-                          </span>
+              {viewMode === "grid" ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {group.entries.map((entry) => {
+                    if (entry.type === "batch") {
+                      return (
+                        <div key={entry.batchId} className="col-span-full">
+                          <HistoryBatchCard
+                            batchId={entry.batchId}
+                            batchType={entry.batchType}
+                            items={entry.items}
+                            totalTime={entry.totalTime}
+                            onDeleteItem={setDeleteTarget}
+                            onPreviewItem={(item) => openPreview(item, entry.items)}
+                          />
                         </div>
-                        <div className="relative aspect-[3/4] bg-muted border-l">
-                          {item.resultThumbUrl || item.resultImageUrl ? (
+                      );
+                    }
+
+                    const item = entry.item;
+                    return (
+                      <Card
+                        key={item.id}
+                        className="overflow-hidden hover:shadow-md transition-shadow group relative"
+                      >
+                        {/* 타입 컬러 바 */}
+                        <div className={`h-0.5 ${TYPE_COLORS[item.type]?.split(" ").find(c => c.startsWith("border-")) ? TYPE_COLORS[item.type].split(" ").find(c => c.startsWith("border-"))!.replace("border-", "bg-") : "bg-muted"}`} />
+
+                        {/* After 이미지 (hover 시 Before로 전환) */}
+                        <div
+                          className="relative aspect-[3/4] bg-muted cursor-pointer overflow-hidden"
+                          onClick={() => openPreview(item)}
+                        >
+                          {/* After 이미지 */}
+                          {(item.resultThumbUrl || item.resultImageUrl) ? (
                             <Image
                               src={item.resultThumbUrl || item.resultImageUrl}
                               alt="결과 이미지"
                               fill
-                              className="object-contain"
+                              className="object-cover transition-opacity duration-200 group-hover:opacity-0"
                               unoptimized
                             />
                           ) : (
                             <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
-                              After
+                              결과 없음
                             </div>
                           )}
-                          <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+
+                          {/* Before 이미지 (hover 시 표시) */}
+                          {(item.sourceThumbUrl || item.sourceImageUrl) && (
+                            <Image
+                              src={item.sourceThumbUrl || item.sourceImageUrl}
+                              alt="원본 이미지"
+                              fill
+                              className="object-cover opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                              unoptimized
+                            />
+                          )}
+
+                          {/* hover 표시 라벨 */}
+                          <span className="absolute bottom-1.5 left-1.5 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded transition-opacity group-hover:opacity-0">
                             After
                           </span>
+                          <span className="absolute bottom-1.5 left-1.5 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 transition-opacity group-hover:opacity-100">
+                            Before
+                          </span>
+
+                          {/* hover 액션 버튼 */}
+                          <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {item.resultImageUrl && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 bg-black/40 text-white hover:text-white hover:bg-black/60"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  downloadImage(
+                                    item.resultImageUrl,
+                                    `${item.type}_${item.id.slice(0, 8)}.webp`,
+                                  );
+                                }}
+                              >
+                                <Download className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 bg-black/40 text-white hover:text-white hover:bg-black/60"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteTarget(item);
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <CardContent className="p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Badge variant="secondary">
-                            {TYPE_LABELS[item.type] ?? item.type}
-                          </Badge>
-                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+
+                        <CardContent className="p-2">
+                          <div className="flex items-center justify-between gap-1">
+                            <TypeBadge type={item.type} />
+                            <span className="text-[11px] text-muted-foreground truncate">
+                              {new Date(item.createdAt).toLocaleTimeString(
+                                "ko-KR",
+                                { hour: "2-digit", minute: "2-digit" },
+                              )}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* List 모드 */
+                <div className="space-y-2">
+                  {group.entries.map((entry) => {
+                    if (entry.type === "batch") {
+                      return (
+                        <HistoryBatchCard
+                          key={entry.batchId}
+                          batchId={entry.batchId}
+                          batchType={entry.batchType}
+                          items={entry.items}
+                          totalTime={entry.totalTime}
+                          onDeleteItem={setDeleteTarget}
+                          onPreviewItem={(item) => openPreview(item, entry.items)}
+                        />
+                      );
+                    }
+
+                    const item = entry.item;
+                    return (
+                      <Card
+                        key={item.id}
+                        className="overflow-hidden hover:shadow-md transition-shadow group"
+                      >
+                        <div
+                          className="flex items-center gap-3 p-2 cursor-pointer"
+                          onClick={() => openPreview(item)}
+                        >
+                          {/* 썸네일 */}
+                          <div className="relative w-12 h-16 rounded overflow-hidden bg-muted shrink-0">
+                            {(item.resultThumbUrl || item.resultImageUrl) && (
+                              <Image
+                                src={item.resultThumbUrl || item.resultImageUrl}
+                                alt="결과"
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            )}
+                          </div>
+
+                          {/* 메타 정보 */}
+                          <div className="flex-1 min-w-0">
+                            <TypeBadge type={item.type} />
+                            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                              <span>
+                                {new Date(item.createdAt).toLocaleTimeString(
+                                  "ko-KR",
+                                  { hour: "2-digit", minute: "2-digit" },
+                                )}
+                              </span>
+                              <span>
+                                {(item.processingTime / 1000).toFixed(1)}초
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* 액션 버튼 */}
+                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                             {item.resultImageUrl && (
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 text-muted-foreground hover:text-primary"
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   downloadImage(
                                     item.resultImageUrl,
                                     `${item.type}_${item.id.slice(0, 8)}.webp`,
-                                  )
-                                }
+                                  );
+                                }}
                               >
                                 <Download className="h-4 w-4" />
                               </Button>
@@ -476,28 +649,20 @@ export function HistoryList() {
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                              onClick={() => setDeleteTarget(item)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteTarget(item);
+                              }}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>
-                            {new Date(item.createdAt).toLocaleTimeString(
-                              "ko-KR",
-                              { hour: "2-digit", minute: "2-digit" },
-                            )}
-                          </span>
-                          <span>
-                            {(item.processingTime / 1000).toFixed(1)}초
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
             </section>
           ))}
 
@@ -562,18 +727,19 @@ export function HistoryList() {
         open={!!previewItem}
         onOpenChange={(open) => !open && setPreviewItem(null)}
       >
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 gap-0 overflow-hidden">
+        <DialogContent
+          className="sm:max-w-3xl max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col"
+          showCloseButton={false}
+        >
           <DialogTitle className="sr-only">
             이미지 미리보기
           </DialogTitle>
           {previewItem && (
             <>
               {/* 헤더 */}
-              <div className="flex items-center justify-between px-4 py-3 border-b">
+              <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">
-                    {TYPE_LABELS[previewItem.type] ?? previewItem.type}
-                  </Badge>
+                  <TypeBadge type={previewItem.type} />
                   <span className="text-xs text-muted-foreground">
                     {new Date(previewItem.createdAt).toLocaleString("ko-KR", {
                       month: "short",
@@ -585,11 +751,6 @@ export function HistoryList() {
                   <span className="text-xs text-muted-foreground">
                     {(previewItem.processingTime / 1000).toFixed(1)}초
                   </span>
-                  {previewList.length > 1 && (
-                    <span className="text-xs text-muted-foreground">
-                      {previewIndex + 1} / {previewList.length}
-                    </span>
-                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   {previewItem.resultImageUrl && (
@@ -618,34 +779,12 @@ export function HistoryList() {
                 </div>
               </div>
 
-              {/* Before / After 비교 */}
-              <div className="grid grid-cols-2 gap-0 overflow-auto max-h-[calc(90vh-60px)]">
-                <div className="relative bg-muted flex flex-col items-center">
-                  <span className="absolute top-2 left-2 z-10 bg-black/60 text-white text-xs px-2 py-0.5 rounded">
-                    Before
-                  </span>
-                  <div className="relative w-full" style={{ aspectRatio: "3/4" }}>
-                    {(previewItem.sourceThumbUrl || previewItem.sourceImageUrl) ? (
-                      <Image
-                        src={previewItem.sourceImageUrl}
-                        alt="원본 이미지"
-                        fill
-                        className="object-contain"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-                        원본 없음
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="relative bg-muted border-l flex flex-col items-center">
-                  <span className="absolute top-2 left-2 z-10 bg-black/60 text-white text-xs px-2 py-0.5 rounded">
-                    After
-                  </span>
-                  <div className="relative w-full" style={{ aspectRatio: "3/4" }}>
-                    {(previewItem.resultThumbUrl || previewItem.resultImageUrl) ? (
+              {/* After / Before 탭 전환 이미지 */}
+              <div className="relative flex-1 min-h-0 bg-muted">
+                {/* 이미지 영역 */}
+                <div className="relative w-full h-full flex items-center justify-center" style={{ minHeight: "400px", maxHeight: "calc(90vh - 120px)" }}>
+                  {previewTab === "after" ? (
+                    (previewItem.resultThumbUrl || previewItem.resultImageUrl) ? (
                       <Image
                         src={previewItem.resultImageUrl}
                         alt="결과 이미지"
@@ -654,36 +793,79 @@ export function HistoryList() {
                         unoptimized
                       />
                     ) : (
-                      <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                      <div className="text-sm text-muted-foreground">
                         결과 없음
                       </div>
-                    )}
-                  </div>
+                    )
+                  ) : (
+                    (previewItem.sourceThumbUrl || previewItem.sourceImageUrl) ? (
+                      <Image
+                        src={previewItem.sourceImageUrl}
+                        alt="원본 이미지"
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="text-sm text-muted-foreground">
+                        원본 없음
+                      </div>
+                    )
+                  )}
+                </div>
+
+                {/* 오버레이 탭 전환 pill */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex bg-black/70 rounded-full p-0.5 backdrop-blur-sm">
+                  <button
+                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                      previewTab === "after"
+                        ? "bg-white text-black"
+                        : "text-white/70 hover:text-white"
+                    }`}
+                    onClick={() => setPreviewTab("after")}
+                  >
+                    After
+                  </button>
+                  <button
+                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                      previewTab === "before"
+                        ? "bg-white text-black"
+                        : "text-white/70 hover:text-white"
+                    }`}
+                    onClick={() => setPreviewTab("before")}
+                  >
+                    Before
+                  </button>
                 </div>
               </div>
 
-              {/* 배치 내 이전/다음 네비게이션 */}
+              {/* 하단 네비게이션 바 */}
               {previewList.length > 1 && (
-                <>
+                <div className="flex items-center justify-center gap-3 px-4 py-2.5 border-t shrink-0">
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/80 shadow-md hover:bg-background disabled:opacity-30"
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
                     disabled={previewIndex <= 0}
                     onClick={() => navigatePreview(-1)}
                   >
-                    <ChevronLeft className="h-5 w-5" />
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    이전
                   </Button>
+                  <span className="text-sm text-muted-foreground tabular-nums">
+                    {previewIndex + 1} / {previewList.length}
+                  </span>
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/80 shadow-md hover:bg-background disabled:opacity-30"
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
                     disabled={previewIndex >= previewList.length - 1}
                     onClick={() => navigatePreview(1)}
                   >
-                    <ChevronRight className="h-5 w-5" />
+                    다음
+                    <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
-                </>
+                </div>
               )}
             </>
           )}

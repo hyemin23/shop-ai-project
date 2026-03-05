@@ -32,6 +32,16 @@ const TYPE_LABELS: Record<string, string> = {
   "auto-fitting": "자동피팅",
 };
 
+const TYPE_COLORS: Record<string, string> = {
+  "try-on": "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  "color-swap": "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
+  "pose-transfer": "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+  "background-swap": "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
+  "multi-pose": "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
+  "detail-extract": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300",
+  "auto-fitting": "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
+};
+
 interface HistoryBatchCardProps {
   batchId: string;
   batchType: string;
@@ -84,12 +94,14 @@ export function HistoryBatchCard({
     }
   };
 
+  const colorClass = TYPE_COLORS[batchType] || "";
+
   return (
     <Card className="overflow-hidden">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <div className="flex items-center gap-3 p-3">
           <Package className="h-4 w-4 text-muted-foreground shrink-0" />
-          <Badge variant="secondary">
+          <Badge variant="secondary" className={colorClass}>
             {TYPE_LABELS[batchType] || batchType}
           </Badge>
           <span className="text-sm text-muted-foreground">
@@ -123,13 +135,13 @@ export function HistoryBatchCard({
           </div>
         </div>
 
-        {/* 접힌 상태: 썸네일 미리보기 */}
+        {/* 접힌 상태: 썸네일 미리보기 (확대) */}
         {!isOpen && (
           <div className="px-3 pb-3 flex gap-1.5 overflow-x-auto">
-            {items.slice(0, 8).map((item) => (
+            {items.slice(0, 6).map((item) => (
               <div
                 key={item.id}
-                className="relative w-14 h-[74px] rounded shrink-0 bg-muted overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/50 transition-shadow"
+                className="relative w-20 h-[106px] rounded shrink-0 bg-muted overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/50 transition-shadow"
                 onClick={() => onPreviewItem?.(item)}
               >
                 {(item.resultThumbUrl || item.resultImageUrl) && (
@@ -143,9 +155,9 @@ export function HistoryBatchCard({
                 )}
               </div>
             ))}
-            {items.length > 8 && (
-              <div className="flex items-center justify-center w-14 h-[74px] rounded bg-muted text-xs text-muted-foreground shrink-0">
-                +{items.length - 8}
+            {items.length > 6 && (
+              <div className="flex items-center justify-center w-20 h-[106px] rounded bg-muted text-xs text-muted-foreground shrink-0">
+                +{items.length - 6}
               </div>
             )}
           </div>
@@ -165,7 +177,7 @@ export function HistoryBatchCard({
                         src={item.resultThumbUrl || item.resultImageUrl}
                         alt="결과"
                         fill
-                        className="object-contain"
+                        className="object-cover"
                         unoptimized
                       />
                     )}
