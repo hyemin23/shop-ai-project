@@ -3,6 +3,7 @@ import {
   Palette,
   PersonStanding,
   Wallpaper,
+  Users,
   Layers,
   History,
   Coins,
@@ -31,6 +32,11 @@ export const dashboardConfig: DashboardConfig = {
           title: "배경 변경",
           href: "/dashboard/studio/background-swap",
           icon: Wallpaper,
+        },
+        {
+          title: "멀티포즈 변경",
+          href: "/dashboard/studio/multi-pose",
+          icon: Users,
         },
         {
           title: "배치 처리",

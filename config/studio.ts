@@ -112,6 +112,8 @@ export const PROMPT_PLACEHOLDERS: Record<string, string> = {
   "color-swap": "예: 채도를 약간 낮춰주세요, 빈티지한 느낌으로 해주세요",
   "pose-transfer": "예: 자연스러운 미소를 지어주세요, 팔을 좀 더 내려주세요",
   "background-swap": "예: 배경과 모델 사이의 조명을 자연스럽게 맞춰주세요",
+  "multi-pose":
+    "예: 왼손을 허리에 올리고 카메라를 바라보는 포즈, 자연스럽게 걷는 동작",
   batch: "예: 전체적으로 밝은 톤으로 처리해주세요",
 };
 

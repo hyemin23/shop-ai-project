@@ -190,6 +190,20 @@ export async function processSingleStudioRequest(
           historyParams.poseReferenceImage = "uploaded";
         break;
       }
+      case "multi-pose": {
+        if (!options.userPrompt?.trim()) {
+          return {
+            success: false,
+            processingTime: Date.now() - startTime,
+            error: "포즈 설명이 필요합니다.",
+          };
+        }
+        prompt = PROMPTS.poseTransfer(
+          options.userPrompt.trim(),
+        );
+        historyParams.poseDescription = options.userPrompt.trim();
+        break;
+      }
       case "background-swap": {
         if (!options.referenceFile) {
           return {
