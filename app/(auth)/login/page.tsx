@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -19,7 +19,14 @@ export default function LoginPage() {
 function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/dashboard";
+  const error = searchParams.get("error");
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (error) {
+      toast.error("로그인에 실패했습니다. 다시 시도해주세요.");
+    }
+  }, [error]);
 
   async function signInWithOAuth(provider: "kakao" | "google") {
     setSocialLoading(provider);
