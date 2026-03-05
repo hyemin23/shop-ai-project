@@ -4,6 +4,7 @@ import {
   PersonStanding,
   Wallpaper,
   Users,
+  ScanSearch,
   Layers,
   History,
   Coins,
@@ -37,6 +38,11 @@ export const dashboardConfig: DashboardConfig = {
           title: "멀티포즈 변경",
           href: "/dashboard/studio/multi-pose",
           icon: Users,
+        },
+        {
+          title: "상세 추출",
+          href: "/dashboard/studio/detail-extract",
+          icon: ScanSearch,
         },
         {
           title: "배치 처리",

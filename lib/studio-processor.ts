@@ -8,6 +8,7 @@ import {
 } from "@/lib/image-utils";
 import { PROMPTS } from "@/config/prompts";
 import { POSE_PRESETS } from "@/config/studio";
+import { DETAIL_PRESETS, DEFAULT_4SPLIT_PRESETS } from "@/types/detail-extract";
 import {
   spendTokensForGeneration,
   checkFreeTrialLimit,
@@ -45,6 +46,8 @@ interface ProcessOptions {
   poseType?: "preset" | "custom";
   presetId?: string;
   poseReferenceFile?: File | null;
+  extractionMode?: "rose-cut" | "4-split";
+  detailPresets?: string[];
   userId: string | null;
   sessionId: string;
   batchId?: string;
@@ -219,6 +222,21 @@ export async function processSingleStudioRequest(
         });
         prompt = PROMPTS.backgroundSwap(options.userPrompt);
         historyParams.backgroundReferenceImage = "uploaded";
+        break;
+      }
+      case "detail-extract": {
+        const extractionMode = options.extractionMode || "rose-cut";
+        if (extractionMode === "rose-cut") {
+          prompt = PROMPTS.roseCut(options.userPrompt);
+        } else {
+          const details = options.detailPresets ||
+            DEFAULT_4SPLIT_PRESETS.map(
+              (id) => DETAIL_PRESETS.find((p) => p.id === id)!.description,
+            );
+          prompt = PROMPTS.fourSplitCut(details, options.userPrompt);
+        }
+        historyParams.extractionMode = extractionMode;
+        if (options.detailPresets) historyParams.detailPresets = options.detailPresets;
         break;
       }
     }

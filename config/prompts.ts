@@ -84,4 +84,49 @@ Critical constraints:
 ${WATERMARK_INSTRUCTION}`,
       userPrompt,
     ),
+
+  roseCut: (userPrompt?: string) =>
+    appendUserPrompt(
+      `You are a professional fashion product photographer specializing in fabric macro photography. Create an extreme close-up shot of the fabric from the clothing in the provided image, as if photographed with a macro lens at very close range.
+
+Step 1: Identify the primary fabric — analyze its weave pattern, thread structure, color, and surface characteristics.
+Step 2: Crop into the fabric at extreme magnification, showing only the fabric surface filling the entire frame. Imagine placing a macro lens directly on the fabric.
+Step 3: Capture the natural drape and soft folds of the fabric — show gentle creases and undulations that reveal how the material falls and moves, similar to a fabric swatch laid on a surface.
+Step 4: Use soft, even studio lighting that reveals the 3D surface texture — every individual thread, weave intersection, and fiber should be clearly visible.
+Step 5: The final image should look like a professional fabric swatch photograph taken for a textile catalog — clean, detailed, and tactile.
+
+Critical constraints:
+- Generate ONE image: an extreme macro close-up filling the entire frame with fabric texture.
+- Show the fabric with natural soft folds and draping — NOT flat, NOT twisted, NOT shaped into any pattern or spiral.
+- Do NOT include any model, body, face, garment silhouette, or background — only the fabric surface.
+- Do NOT create any artistic shapes, swirls, spirals, or compositions — just a straight, clean macro shot of the fabric.
+- Preserve original colors and patterns exactly as they appear.
+- The result must look like a real photograph taken with a macro lens, not AI-generated art.
+${WATERMARK_INSTRUCTION}`,
+      userPrompt,
+    ),
+
+  fourSplitCut: (details: string[], userPrompt?: string) =>
+    appendUserPrompt(
+      `You are a professional fashion product photographer. Create a "4-split detail" composition — a single image divided into 4 equal quadrants arranged in a 2×2 grid, each showing a high-resolution close-up of a specific garment detail from the provided image.
+
+Step 1: Analyze the garment comprehensively.
+Step 2: Generate exactly 4 close-up quadrants:
+  - Top-left: ${details[0]}
+  - Top-right: ${details[1]}
+  - Bottom-left: ${details[2]}
+  - Bottom-right: ${details[3]}
+Step 3: Each quadrant must be a sharp, high-magnification close-up that clearly shows fine details like texture, stitching, and construction quality.
+Step 4: Use consistent lighting and color temperature across all 4 quadrants.
+Step 5: Arrange them in a clean 2×2 grid with thin white dividing lines between quadrants.
+
+Critical constraints:
+- Generate ONE image containing 4 quadrants in a 2×2 grid layout.
+- Do NOT include any model body, face, or background in any quadrant.
+- Each quadrant must focus on a different detail area.
+- All quadrant colors must match the original garment.
+- The result must look like professional product detail photography.
+${WATERMARK_INSTRUCTION}`,
+      userPrompt,
+    ),
 };

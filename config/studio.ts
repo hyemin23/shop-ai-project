@@ -114,6 +114,8 @@ export const PROMPT_PLACEHOLDERS: Record<string, string> = {
   "background-swap": "예: 배경과 모델 사이의 조명을 자연스럽게 맞춰주세요",
   "multi-pose":
     "예: 왼손을 허리에 올리고 카메라를 바라보는 포즈, 자연스럽게 걷는 동작",
+  "detail-extract":
+    "예: 버튼의 정교함을 강조해주세요, 원단 결을 더 선명하게 보여주세요",
   batch: "예: 전체적으로 밝은 톤으로 처리해주세요",
 };
 

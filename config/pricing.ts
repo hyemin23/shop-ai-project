@@ -7,6 +7,7 @@ export const TOKEN_COST = {
     "pose-transfer": { "1024": 10, "2048": 15 },
     "background-swap": { "1024": 10, "2048": 15 },
     "multi-pose": { "1024": 10, "2048": 15 },
+    "detail-extract": { "1024": 10, "2048": 15 },
   },
   premium: {
     "try-on": { "1024": 20, "2048": 30, "4096": 40 },
@@ -14,6 +15,7 @@ export const TOKEN_COST = {
     "pose-transfer": { "1024": 20, "2048": 30, "4096": 40 },
     "background-swap": { "1024": 20, "2048": 30, "4096": 40 },
     "multi-pose": { "1024": 20, "2048": 30, "4096": 40 },
+    "detail-extract": { "1024": 20, "2048": 30, "4096": 40 },
   },
 } as const;
 
