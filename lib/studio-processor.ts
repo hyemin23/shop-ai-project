@@ -16,6 +16,7 @@ import {
   TokenInsufficientError,
 } from "@/lib/tokens";
 import { StudioError } from "@/lib/errors";
+import { createGenerationLog, updateGenerationLog } from "@/lib/generation-log";
 import {
   type GenerationMode,
   type StudioType,
@@ -63,6 +64,7 @@ export async function processSingleStudioRequest(
   options: ProcessOptions,
 ): Promise<ProcessResult> {
   const startTime = Date.now();
+  let logId: string | null = null;
 
   try {
     const supabase = createServiceClient();
@@ -296,6 +298,17 @@ export async function processSingleStudioRequest(
       }
     }
 
+    // Generation log 생성
+    logId = await createGenerationLog({
+      userId: options.userId,
+      sessionId: options.sessionId,
+      serviceType: "studio",
+      action: options.type,
+      params: historyParams,
+    });
+
+    await updateGenerationLog(logId, { status: "processing" });
+
     // Gemini API 호출
     // 장미컷은 비용 절감을 위해 gemini-2.5-flash-image로 다운그레이드 테스트
     const roseCutModelOverride =
@@ -361,16 +374,37 @@ export async function processSingleStudioRequest(
       .single();
 
     // 토큰 차감
+    let tokensSpent = 0;
     if (historyData?.id) {
-      await spendTokensForGeneration(
-        supabase,
-        options.userId,
-        options.imageSize ?? "1K",
-        1,
-        `${options.type} 이미지 생성`,
-        historyData.id,
-      );
+      try {
+        const result = await spendTokensForGeneration(
+          supabase,
+          options.userId,
+          options.imageSize ?? "1K",
+          1,
+          `${options.type} 이미지 생성`,
+          historyData.id,
+        );
+        tokensSpent = result.spent;
+      } catch (spendError) {
+        await updateGenerationLog(logId, {
+          status: "succeed",
+          referenceId: historyData.id,
+          errorCode: "SPEND_TOKENS_FAILED",
+          errorMessage:
+            spendError instanceof Error ? spendError.message : "토큰 차감 실패",
+          completedAt: new Date().toISOString(),
+        });
+        throw spendError;
+      }
     }
+
+    await updateGenerationLog(logId, {
+      status: "succeed",
+      tokensCharged: tokensSpent,
+      referenceId: historyData?.id,
+      completedAt: new Date().toISOString(),
+    });
 
     return {
       success: true,
@@ -392,6 +426,17 @@ export async function processSingleStudioRequest(
       };
     }
 
+    const errorCode =
+      error instanceof StudioError ? error.code : "INTERNAL_ERROR";
+    const errorMessage =
+      error instanceof Error ? error.message : "서버 오류가 발생했습니다.";
+
+    await updateGenerationLog(logId, {
+      status: "failed",
+      errorCode,
+      errorMessage,
+    });
+
     if (error instanceof StudioError) {
       return {
         success: false,
@@ -406,7 +451,7 @@ export async function processSingleStudioRequest(
     return {
       success: false,
       processingTime,
-      error: "서버 오류가 발생했습니다.",
+      error: errorMessage,
       retryable: true,
     };
   }

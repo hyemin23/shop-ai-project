@@ -9,6 +9,9 @@ const ERROR_STATUS_MAP: Record<string, number> = {
   STUDIO_004: 504,
   STUDIO_005: 429,
   STUDIO_006: 502,
+  VIDEO_001: 500,
+  VIDEO_002: 504,
+  VIDEO_003: 502,
 };
 
 export function studioErrorResponse(result: ProcessResult): NextResponse {

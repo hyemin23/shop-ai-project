@@ -6,6 +6,10 @@ import { type GenerationMode, type StudioType } from "@/types/studio";
 import { type BatchSSEEvent } from "@/types/batch";
 import { getCreditCost } from "@/lib/tokens";
 import { parseImageSize } from "@/lib/api-utils";
+import {
+  createGenerationLog,
+  updateGenerationLog,
+} from "@/lib/generation-log";
 
 export const maxDuration = 300;
 
@@ -114,6 +118,22 @@ export async function POST(request: NextRequest) {
 
   const batchId = batchJob.id;
 
+  // 배치 generation log 생성
+  const batchLogId = await createGenerationLog({
+    userId,
+    sessionId,
+    serviceType: "studio",
+    action: `batch-${type}`,
+    params: {
+      batchId,
+      totalItems: sourceFiles.length,
+      targetColor,
+      garmentRegion,
+      poseType,
+      presetId,
+    },
+  });
+
   // SSE 스트림
   const stream = new ReadableStream({
     async start(controller) {
@@ -215,6 +235,17 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", batchId);
+
+      // 배치 로그 업데이트
+      await updateGenerationLog(batchLogId, {
+        status: failedCount === sourceFiles.length ? "failed" : "succeed",
+        referenceId: batchId,
+        completedAt: new Date().toISOString(),
+        errorMessage:
+          failedCount > 0
+            ? `${failedCount}/${sourceFiles.length}건 실패`
+            : undefined,
+      });
 
       sendEvent({
         type: "batch_complete",

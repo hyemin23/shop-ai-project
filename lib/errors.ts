@@ -1,5 +1,7 @@
 // Studio Error System - PRD 에러 코드 정의
 
+export type VideoErrorCode = "VIDEO_001" | "VIDEO_002" | "VIDEO_003";
+
 export type StudioErrorCode =
   | "STUDIO_001"
   | "STUDIO_002"
@@ -7,7 +9,8 @@ export type StudioErrorCode =
   | "STUDIO_004"
   | "STUDIO_005"
   | "STUDIO_006"
-  | "STUDIO_007";
+  | "STUDIO_007"
+  | VideoErrorCode;
 
 interface StudioErrorDef {
   code: StudioErrorCode;
@@ -15,7 +18,7 @@ interface StudioErrorDef {
   retryable: boolean;
 }
 
-export const STUDIO_ERROR_CODES: Record<StudioErrorCode, StudioErrorDef> = {
+export const STUDIO_ERROR_CODES: Partial<Record<StudioErrorCode, StudioErrorDef>> = {
   STUDIO_001: {
     code: "STUDIO_001",
     message: "지원하지 않는 이미지 포맷입니다.",
@@ -53,12 +56,30 @@ export const STUDIO_ERROR_CODES: Record<StudioErrorCode, StudioErrorDef> = {
   },
 };
 
+export const VIDEO_ERROR_CODES: Record<VideoErrorCode, StudioErrorDef> = {
+  VIDEO_001: {
+    code: "VIDEO_001",
+    message: "비디오 생성 요청이 실패했습니다.",
+    retryable: true,
+  },
+  VIDEO_002: {
+    code: "VIDEO_002",
+    message: "비디오 생성 시간이 초과되었습니다.",
+    retryable: true,
+  },
+  VIDEO_003: {
+    code: "VIDEO_003",
+    message: "Kling AI 서비스에 일시적인 오류가 발생했습니다.",
+    retryable: true,
+  },
+};
+
 export class StudioError extends Error {
   readonly code: StudioErrorCode;
   readonly retryable: boolean;
 
   constructor(code: StudioErrorCode) {
-    const def = STUDIO_ERROR_CODES[code];
+    const def = STUDIO_ERROR_CODES[code] ?? VIDEO_ERROR_CODES[code as VideoErrorCode];
     super(def.message);
     this.name = "StudioError";
     this.code = def.code;
