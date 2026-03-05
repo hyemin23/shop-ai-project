@@ -33,6 +33,24 @@ ${WATERMARK_INSTRUCTION}${context ? ` Additional context: ${context}` : ""}`,
       userPrompt,
     ),
 
+  colorSwapFromReference: (garmentType: string, userPrompt?: string) =>
+    appendUserPrompt(
+      `You are a professional fashion image editing AI. Your task is to change the color of the ${garmentType} in the first image to match the dominant garment/fabric color shown in the second reference image.
+
+Step 1: Analyze the second (reference) image — identify its dominant garment or fabric color precisely, including shade, saturation, and tone.
+Step 2: Identify the ${garmentType} region in the first image precisely, distinguishing it from skin, hair, background, and other clothing items.
+Step 3: Apply the extracted reference color uniformly across the entire garment area in the first image.
+Step 4: Preserve the original fabric texture, weave pattern, and any printed designs — only the base color should change.
+Step 5: Adjust shadows, highlights, and folds naturally so the new color looks realistic under the existing lighting conditions.
+
+Critical constraints:
+- Do not modify anything outside the ${garmentType} — face, skin, hair, background, and other clothing must remain identical.
+- Do not flatten or remove fabric texture, wrinkles, or fold details.
+- The final result must look like the garment was originally manufactured in the reference color.
+${WATERMARK_INSTRUCTION}`,
+      userPrompt,
+    ),
+
   colorSwap: (hexColor: string, garmentType: string, userPrompt?: string) =>
     appendUserPrompt(
       `You are a professional fashion image editing AI. Your task is to change the color of the ${garmentType} in the image to ${hexColor}.
@@ -104,6 +122,27 @@ Critical constraints:
 - The result must look like a real photograph taken with a macro lens, not AI-generated art.
 ${WATERMARK_INSTRUCTION}`,
       userPrompt,
+    ),
+
+  autoFitting: (poseDescription: string, stylePrompt?: string) =>
+    appendUserPrompt(
+      `You are a professional fashion image editing AI. Your task is to change the model's pose to create a full-body 1:1 fitting shot.
+
+Target pose: ${poseDescription}
+
+Step 1: Analyze the model — memorize the face, hairstyle, skin tone, body proportions, clothing details (color, texture, pattern, accessories), and background.
+Step 2: Repose the model's body to match the target pose exactly, ensuring a full-body 1:1 composition where the entire body from head to toe is visible.
+Step 3: Adapt the clothing to the new pose — ensure sleeves, collars, hemlines, and fabric panels drape, stretch, and fold naturally for the new body position.
+Step 4: Maintain the original background and ensure the model's placement, ground contact, and shadow remain consistent with the new pose.
+Step 5: Ensure the output is a clean, professional full-body shot suitable for e-commerce product listings.
+
+Critical constraints:
+- Face, hairstyle, skin tone, and body proportions must remain identical — only the pose changes.
+- The clothing must remain the same garment with the same color, pattern, and texture — adapt it to the new pose, do not replace it.
+- The output must be a full-body 1:1 shot showing the entire body from head to toe.
+- The final result must look like a natural photograph taken in the new pose.
+${WATERMARK_INSTRUCTION}`,
+      stylePrompt,
     ),
 
   fourSplitCut: (details: string[], userPrompt?: string) =>

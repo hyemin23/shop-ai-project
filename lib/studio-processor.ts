@@ -48,6 +48,7 @@ interface ProcessOptions {
   poseReferenceFile?: File | null;
   extractionMode?: "rose-cut" | "4-split";
   detailPresets?: string[];
+  autoFittingStylePrompt?: string;
   userId: string | null;
   sessionId: string;
   batchId?: string;
@@ -133,13 +134,6 @@ export async function processSingleStudioRequest(
         break;
       }
       case "color-swap": {
-        if (!options.targetColor) {
-          return {
-            success: false,
-            processingTime: Date.now() - startTime,
-            error: "목표 색상이 필요합니다.",
-          };
-        }
         const garmentTypeMap: Record<string, string> = {
           auto: "clothing",
           top: "upper body clothing (top/shirt/jacket)",
@@ -147,12 +141,38 @@ export async function processSingleStudioRequest(
           dress: "dress/one-piece",
         };
         const region = options.garmentRegion || "auto";
-        prompt = PROMPTS.colorSwap(
-          options.targetColor,
-          garmentTypeMap[region] || "clothing",
-          options.userPrompt,
-        );
-        historyParams.targetColor = options.targetColor;
+        const garmentLabel = garmentTypeMap[region] || "clothing";
+
+        if (options.referenceFile) {
+          // 참조 이미지 모드
+          const refProcessed = await processImageFile(options.referenceFile);
+          images.push({
+            base64: refProcessed.base64,
+            mimeType: refProcessed.mimeType,
+          });
+          prompt = PROMPTS.colorSwapFromReference(
+            garmentLabel,
+            options.userPrompt,
+          );
+          historyParams.colorMode = "reference";
+          historyParams.colorReferenceImage = "uploaded";
+        } else {
+          // 기존 HEX 색상 모드
+          if (!options.targetColor) {
+            return {
+              success: false,
+              processingTime: Date.now() - startTime,
+              error: "목표 색상이 필요합니다.",
+            };
+          }
+          prompt = PROMPTS.colorSwap(
+            options.targetColor,
+            garmentLabel,
+            options.userPrompt,
+          );
+          historyParams.targetColor = options.targetColor;
+          historyParams.colorMode = "hex";
+        }
         historyParams.garmentRegion = region;
         break;
       }
@@ -224,6 +244,22 @@ export async function processSingleStudioRequest(
         historyParams.backgroundReferenceImage = "uploaded";
         break;
       }
+      case "auto-fitting": {
+        const poseDesc = options.userPrompt?.trim();
+        if (!poseDesc) {
+          return {
+            success: false,
+            processingTime: Date.now() - startTime,
+            error: "포즈 설명이 필요합니다.",
+          };
+        }
+        prompt = PROMPTS.autoFitting(poseDesc, options.autoFittingStylePrompt);
+        historyParams.autoFittingPose = poseDesc;
+        if (options.autoFittingStylePrompt) {
+          historyParams.stylePrompt = options.autoFittingStylePrompt;
+        }
+        break;
+      }
       case "detail-extract": {
         const extractionMode = options.extractionMode || "rose-cut";
         if (extractionMode === "rose-cut") {
@@ -242,6 +278,12 @@ export async function processSingleStudioRequest(
     }
 
     // Gemini API 호출
+    // 장미컷은 비용 절감을 위해 gemini-2.5-flash-image로 다운그레이드 테스트
+    const roseCutModelOverride =
+      options.type === "detail-extract" && options.extractionMode === "rose-cut"
+        ? ("gemini-2.5-flash-image" as const)
+        : undefined;
+
     const geminiResult = await callGeminiWithImages(
       prompt,
       images,
@@ -250,6 +292,7 @@ export async function processSingleStudioRequest(
         aspectRatio: options.aspectRatio,
         imageSize: options.imageSize,
       },
+      roseCutModelOverride,
     );
 
     // 결과 이미지 Storage 저장

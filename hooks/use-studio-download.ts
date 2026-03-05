@@ -11,6 +11,7 @@ const FILENAME_PREFIX: Record<StudioType, string> = {
   "background-swap": "background-swap",
   "multi-pose": "multi-pose",
   "detail-extract": "detail-extract",
+  "auto-fitting": "auto-fitting",
 };
 
 export function useStudioDownload(type: StudioType) {

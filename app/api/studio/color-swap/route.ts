@@ -14,15 +14,19 @@ export async function POST(request: NextRequest) {
 
   const sourceFile = formData.get("sourceImage") as File | null;
   const targetColor = formData.get("targetColor") as string | null;
+  const referenceFile = formData.get("referenceImage") as File | null;
   const garmentRegion = (formData.get("garmentRegion") as string) || "auto";
   const mode = (formData.get("mode") as GenerationMode) || "standard";
   const aspectRatio = parseAspectRatio(formData.get("aspectRatio"));
   const imageSize = parseImageSize(formData.get("imageSize"));
   const userPrompt = formData.get("userPrompt") as string | null;
 
-  if (!sourceFile || !targetColor) {
+  if (!sourceFile || (!targetColor && !referenceFile)) {
     return NextResponse.json(
-      { success: false, error: "원본 이미지와 목표 색상이 필요합니다." },
+      {
+        success: false,
+        error: "원본 이미지와 목표 색상(또는 참조 이미지)이 필요합니다.",
+      },
       { status: 400 },
     );
   }
@@ -31,7 +35,8 @@ export async function POST(request: NextRequest) {
     type: "color-swap",
     mode,
     sourceFile,
-    targetColor,
+    referenceFile: referenceFile || undefined,
+    targetColor: targetColor || undefined,
     garmentRegion,
     userId,
     sessionId,

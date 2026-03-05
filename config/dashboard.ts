@@ -5,6 +5,7 @@ import {
   Wallpaper,
   Users,
   ScanSearch,
+  Sparkles,
   Layers,
   History,
   Coins,
@@ -43,6 +44,11 @@ export const dashboardConfig: DashboardConfig = {
           title: "상세 추출",
           href: "/dashboard/studio/detail-extract",
           icon: ScanSearch,
+        },
+        {
+          title: "자동피팅생성기",
+          href: "/dashboard/studio/auto-fitting",
+          icon: Sparkles,
         },
         {
           title: "배치 처리",

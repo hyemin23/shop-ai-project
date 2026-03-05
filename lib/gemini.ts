@@ -4,8 +4,11 @@ import { GEMINI_MODELS } from "@/config/prompts";
 import { StudioError } from "@/lib/errors";
 import {
   type GenerationMode,
+  type GeminiModel,
   type ImageGenerationOptions,
 } from "@/types/studio";
+
+const FLASH_2_5: GeminiModel = "gemini-2.5-flash-image";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -26,8 +29,9 @@ export async function callGeminiWithImages(
   images: { base64: string; mimeType: string }[],
   mode: GenerationMode = "standard",
   imageOptions?: ImageGenerationOptions,
+  modelOverride?: GeminiModel,
 ): Promise<GeminiImageResult> {
-  const modelId = GEMINI_MODELS[mode];
+  const modelId = modelOverride ?? GEMINI_MODELS[mode];
   let fallbackUsed = false;
 
   try {
@@ -75,7 +79,8 @@ async function callModel(
   if (imageOptions?.aspectRatio) {
     imageConfig.aspectRatio = imageOptions.aspectRatio;
   }
-  if (imageOptions?.imageSize) {
+  // gemini-2.5-flash-image는 imageSize 파라미터 미지원 (1024px 고정)
+  if (imageOptions?.imageSize && modelId !== FLASH_2_5) {
     imageConfig.imageSize = imageOptions.imageSize;
   }
   if (Object.keys(imageConfig).length > 0) {

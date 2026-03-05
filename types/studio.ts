@@ -23,7 +23,7 @@ export type StudioStatus =
   | "success"
   | "error";
 
-export type StudioType = "try-on" | "color-swap" | "pose-transfer" | "background-swap" | "multi-pose" | "detail-extract";
+export type StudioType = "try-on" | "color-swap" | "pose-transfer" | "background-swap" | "multi-pose" | "detail-extract" | "auto-fitting";
 
 export interface StudioBaseRequest {
   sourceImage: string;
