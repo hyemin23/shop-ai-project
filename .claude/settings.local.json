@@ -24,7 +24,8 @@
     "sequential-thinking",
     "shadcn",
     "supabase",
-    "vercel"
+    "vercel",
+    "kling-ai"
   ],
   "hooks": {
     "SessionStart": [
@@ -32,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -f \"$CLAUDE_PROJECT_DIR/.env.local\" ]; then grep '^SLACK_WEBHOOK_URL=' \"$CLAUDE_PROJECT_DIR/.env.local\" | sed 's/^/export /' >> \"$CLAUDE_ENV_FILE\"; fi"
+            "command": "if [ -f \"$CLAUDE_PROJECT_DIR/.env.local\" ]; then grep -E '^(SLACK_WEBHOOK_URL|KLING_ACCESS_KEY|KLING_SECRET_KEY)=' \"$CLAUDE_PROJECT_DIR/.env.local\" | sed 's/^/export /' >> \"$CLAUDE_ENV_FILE\"; fi"
           }
         ]
       }
