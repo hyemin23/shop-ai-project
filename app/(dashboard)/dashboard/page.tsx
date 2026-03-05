@@ -1,7 +1,8 @@
 "use client";
 
+import { useMemo, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { dashboardConfig } from "@/config/dashboard";
 
@@ -17,28 +18,105 @@ const featureCardStyles: Record<string, { badge: string; gradient: string; iconB
 const studioGroup = dashboardConfig.sidebarNavGroups.find((g) => g.title === "AI 스튜디오");
 const videoGroup = dashboardConfig.sidebarNavGroups.find((g) => g.title === "AI 비디오");
 
-// 카드 스타일이 정의된 항목만 표시
 const studioFeatures = studioGroup?.items.filter((item) => featureCardStyles[item.href]) ?? [];
 const videoFeatures = videoGroup?.items.filter((item) => featureCardStyles[item.href]) ?? [];
 
-function FeatureCard({ item }: { item: (typeof studioFeatures)[number] }) {
+function getGreeting(): { text: string; emoji: string } {
+  const hour = new Date().getHours();
+  if (hour < 6) return { text: "늦은 밤이에요", emoji: "🌙" };
+  if (hour < 12) return { text: "좋은 아침이에요", emoji: "☀️" };
+  if (hour < 18) return { text: "좋은 오후예요", emoji: "🌤️" };
+  return { text: "좋은 저녁이에요", emoji: "🌆" };
+}
+
+const TYPEWRITER_PHRASES = [
+  "촬영 없이 만드는 상품 이미지",
+  "AI로 색상을 자유롭게 변경",
+  "클릭 한 번으로 포즈 전환",
+  "수 분 이내에 피팅 사진 완성",
+  "배경을 원하는 장면으로 교체",
+];
+
+function TypewriterText({ phrases }: { phrases: string[] }) {
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [charIdx, setCharIdx] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const currentPhrase = phrases[phraseIdx];
+
+  const tick = useCallback(() => {
+    if (!isDeleting) {
+      if (charIdx < currentPhrase.length) {
+        setCharIdx((prev) => prev + 1);
+      } else {
+        // 타이핑 완료 후 잠시 대기
+        setTimeout(() => setIsDeleting(true), 1800);
+        return;
+      }
+    } else {
+      if (charIdx > 0) {
+        setCharIdx((prev) => prev - 1);
+      } else {
+        setIsDeleting(false);
+        setPhraseIdx((prev) => (prev + 1) % phrases.length);
+        return;
+      }
+    }
+  }, [charIdx, isDeleting, currentPhrase, phrases.length]);
+
+  useEffect(() => {
+    const speed = isDeleting ? 40 : 80;
+    const timer = setTimeout(tick, speed);
+    return () => clearTimeout(timer);
+  }, [tick, isDeleting]);
+
+  return (
+    <span className="inline-flex items-baseline">
+      <span className="text-gradient font-semibold">
+        {currentPhrase.slice(0, charIdx)}
+      </span>
+      <span className="ml-[1px] inline-block w-[2px] h-[1.1em] bg-primary animate-pulse" />
+    </span>
+  );
+}
+
+function FeatureCard({ item, index }: { item: (typeof studioFeatures)[number]; index: number }) {
   const style = featureCardStyles[item.href];
   if (!style) return null;
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <div className={`h-1 w-full bg-gradient-to-r ${style.gradient}`} />
+    <div
+      className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card opacity-0 animate-fade-in-up select-none"
+      style={{ animationDelay: `${index * 80 + 200}ms` }}
+    >
+      {/* Animated gradient bar */}
+      <div className="relative h-1 w-full overflow-hidden">
+        <div
+          className={`absolute inset-0 bg-gradient-to-r ${style.gradient}`}
+          style={{
+            backgroundSize: "200% 100%",
+            animation: "gradient-shift 4s ease-in-out infinite",
+            animationDelay: `${index * 300}ms`,
+          }}
+        />
+      </div>
+
       <div className="flex flex-1 flex-col p-6">
         <div className="flex items-start gap-4">
           <div
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${style.iconBg} transition-transform duration-300 group-hover:scale-110`}
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${style.iconBg} transition-all duration-500 group-hover:scale-110 group-hover:shadow-md`}
           >
-            <item.icon className={`h-6 w-6 ${style.iconColor}`} />
+            <item.icon className={`h-6 w-6 ${style.iconColor} transition-transform duration-500 group-hover:rotate-[-8deg]`} />
           </div>
           <div className="min-w-0">
             <h3 className="font-semibold tracking-tight">{item.title}</h3>
-            <p className="text-xs font-medium text-muted-foreground">
-              {style.badge}
+            {/* Badge with shimmer */}
+            <p className="relative inline-block text-xs font-medium text-muted-foreground overflow-hidden">
+              <span className="relative z-10">{style.badge}</span>
+              <span
+                className="absolute inset-0 shimmer-bg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{ animation: "shimmer 2s ease-in-out infinite" }}
+              />
             </p>
           </div>
         </div>
@@ -48,49 +126,118 @@ function FeatureCard({ item }: { item: (typeof studioFeatures)[number] }) {
         </p>
 
         <div className="mt-6">
-          <Button asChild className="w-full group/btn">
+          <Button asChild className="w-full group/btn overflow-hidden relative">
             <Link href={item.href}>
-              시작하기
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                시작하기
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+              </span>
             </Link>
           </Button>
         </div>
       </div>
+
+      {/* Hover glow */}
+      <div
+        className={`pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-gradient-to-r ${style.gradient}`}
+        style={{ mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", maskComposite: "exclude", padding: "1px", WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor" }}
+      />
+    </div>
+  );
+}
+
+function SectionHeader({
+  title,
+  description,
+  delay = 0,
+}: {
+  title: string;
+  description: string;
+  delay?: number;
+}) {
+  return (
+    <div
+      className="opacity-0 animate-fade-in-up select-none"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <h2 className="text-xl font-bold tracking-tight">{title}</h2>
+      <p className="mt-1 text-muted-foreground">{description}</p>
     </div>
   );
 }
 
 export default function DashboardPage() {
+  const greeting = useMemo(() => getGreeting(), []);
+
+  const videoBaseDelay = studioFeatures.length * 80 + 400;
+
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">스튜디오</h1>
-        <p className="mt-1 text-muted-foreground">
-          AI로 의류 이미지를 편집하세요. 촬영 없이 수 분 이내에 완성합니다.
-        </p>
-      </div>
+    <div className="space-y-10">
+      {/* Hero greeting */}
+      <div className="relative overflow-hidden rounded-2xl border bg-card p-6 sm:p-8 opacity-0 animate-fade-in-up grain select-none">
+        {/* Decorative gradient background */}
+        <div className="pointer-events-none absolute inset-0 gradient-mesh opacity-60" />
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {studioFeatures.map((item) => (
-          <FeatureCard key={item.href} item={item} />
-        ))}
-      </div>
-
-      {videoFeatures.length > 0 && (
-        <>
-          <div>
-            <h2 className="text-xl font-bold tracking-tight">AI 비디오</h2>
-            <p className="mt-1 text-muted-foreground">
-              정적 이미지를 생동감 있는 영상으로 변환하세요.
-            </p>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-3">
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full border bg-background/80 backdrop-blur-sm px-3 py-1 text-xs font-medium text-muted-foreground opacity-0 animate-scale-in"
+              style={{ animationDelay: "100ms" }}
+            >
+              <Sparkles className="h-3 w-3 text-primary animate-pulse" />
+              AI 이미지 편집 플랫폼
+            </span>
           </div>
+
+          <h1
+            className="text-2xl sm:text-3xl font-bold tracking-tight opacity-0 animate-fade-in-up"
+            style={{ animationDelay: "50ms" }}
+          >
+            <span className="text-gradient">{greeting.emoji} {greeting.text}</span>
+          </h1>
+          <p
+            className="mt-2 text-muted-foreground max-w-lg opacity-0 animate-fade-in-up h-7"
+            style={{ animationDelay: "150ms" }}
+          >
+            <TypewriterText phrases={TYPEWRITER_PHRASES} />
+          </p>
+        </div>
+      </div>
+
+      {/* Studio section */}
+      <div className="space-y-5">
+        <SectionHeader
+          title="AI 스튜디오"
+          description="의류 교체, 색상 변경, 포즈 전환 등 이미지 편집 기능"
+          delay={150}
+        />
+
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {studioFeatures.map((item, i) => (
+            <FeatureCard key={item.href} item={item} index={i} />
+          ))}
+        </div>
+      </div>
+
+      {/* Video section */}
+      {videoFeatures.length > 0 && (
+        <div className="space-y-5">
+          <SectionHeader
+            title="AI 비디오"
+            description="정적 이미지를 생동감 있는 영상으로 변환하세요"
+            delay={videoBaseDelay}
+          />
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {videoFeatures.map((item) => (
-              <FeatureCard key={item.href} item={item} />
+            {videoFeatures.map((item, i) => (
+              <FeatureCard
+                key={item.href}
+                item={item}
+                index={i + studioFeatures.length + 1}
+              />
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
