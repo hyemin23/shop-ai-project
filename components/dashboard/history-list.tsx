@@ -24,6 +24,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Download,
   ImageIcon,
   Loader2,
@@ -31,6 +36,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   LayoutGrid,
   List,
 } from "lucide-react";
@@ -226,9 +232,257 @@ function TypeBadge({ type }: { type: string }) {
   );
 }
 
-// --- 컴포넌트 ---
-
 type ViewMode = "grid" | "list";
+
+// --- 날짜 그룹 섹션 (접기/펼치기) ---
+
+function DateGroupSection({
+  group,
+  viewMode,
+  openPreview,
+  setDeleteTarget,
+}: {
+  group: DateGroup;
+  viewMode: ViewMode;
+  openPreview: (item: StudioHistoryItem, list?: StudioHistoryItem[]) => void;
+  setDeleteTarget: (item: StudioHistoryItem) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(true);
+
+  const entryCount = group.entries.reduce((sum, e) =>
+    e.type === "batch" ? sum + e.items.length : sum + 1, 0,
+  );
+
+  return (
+    <section>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        {/* 날짜 섹션 헤더 */}
+        <CollapsibleTrigger asChild>
+          <button className="sticky top-0 z-10 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 mb-3 border-b flex items-center gap-2 text-left group/header hover:bg-muted/50 transition-colors -mx-1 px-1 rounded-sm">
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`}
+            />
+            <h3 className="text-sm font-semibold text-foreground">
+              {group.dateLabel}
+              {group.dateSublabel && (
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  ({group.dateSublabel})
+                </span>
+              )}
+            </h3>
+            <span className="text-[11px] text-muted-foreground tabular-nums">
+              {entryCount}건
+            </span>
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          {/* 엔트리 목록 */}
+          {viewMode === "grid" ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {group.entries.map((entry) => {
+                if (entry.type === "batch") {
+                  return (
+                    <div key={entry.batchId} className="col-span-full">
+                      <HistoryBatchCard
+                        batchId={entry.batchId}
+                        batchType={entry.batchType}
+                        items={entry.items}
+                        totalTime={entry.totalTime}
+                        onDeleteItem={setDeleteTarget}
+                        onPreviewItem={(item) => openPreview(item, entry.items)}
+                      />
+                    </div>
+                  );
+                }
+
+                const item = entry.item;
+                return (
+                  <Card
+                    key={item.id}
+                    className="overflow-hidden hover:shadow-md transition-shadow group relative"
+                  >
+                    {/* 타입 컬러 바 */}
+                    <div className={`h-0.5 ${TYPE_COLORS[item.type]?.split(" ").find(c => c.startsWith("border-")) ? TYPE_COLORS[item.type].split(" ").find(c => c.startsWith("border-"))!.replace("border-", "bg-") : "bg-muted"}`} />
+
+                    {/* After 이미지 (hover 시 Before로 전환) */}
+                    <div
+                      className="relative aspect-[3/4] bg-muted cursor-pointer overflow-hidden"
+                      onClick={() => openPreview(item)}
+                    >
+                      {(item.resultThumbUrl || item.resultImageUrl) ? (
+                        <Image
+                          src={item.resultThumbUrl || item.resultImageUrl}
+                          alt="결과 이미지"
+                          fill
+                          className="object-cover transition-opacity duration-200 group-hover:opacity-0"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
+                          결과 없음
+                        </div>
+                      )}
+
+                      {(item.sourceThumbUrl || item.sourceImageUrl) && (
+                        <Image
+                          src={item.sourceThumbUrl || item.sourceImageUrl}
+                          alt="원본 이미지"
+                          fill
+                          className="object-cover opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                          unoptimized
+                        />
+                      )}
+
+                      <span className="absolute bottom-1.5 left-1.5 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded transition-opacity group-hover:opacity-0">
+                        After
+                      </span>
+                      <span className="absolute bottom-1.5 left-1.5 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 transition-opacity group-hover:opacity-100">
+                        Before
+                      </span>
+
+                      <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {item.resultImageUrl && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 bg-black/40 text-white hover:text-white hover:bg-black/60"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              downloadImage(
+                                item.resultImageUrl,
+                                `${item.type}_${item.id.slice(0, 8)}.webp`,
+                              );
+                            }}
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 bg-black/40 text-white hover:text-white hover:bg-black/60"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTarget(item);
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <CardContent className="p-2">
+                      <div className="flex items-center justify-between gap-1">
+                        <TypeBadge type={item.type} />
+                        <span className="text-[11px] text-muted-foreground truncate">
+                          {new Date(item.createdAt).toLocaleTimeString(
+                            "ko-KR",
+                            { hour: "2-digit", minute: "2-digit" },
+                          )}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {group.entries.map((entry) => {
+                if (entry.type === "batch") {
+                  return (
+                    <HistoryBatchCard
+                      key={entry.batchId}
+                      batchId={entry.batchId}
+                      batchType={entry.batchType}
+                      items={entry.items}
+                      totalTime={entry.totalTime}
+                      onDeleteItem={setDeleteTarget}
+                      onPreviewItem={(item) => openPreview(item, entry.items)}
+                    />
+                  );
+                }
+
+                const item = entry.item;
+                return (
+                  <Card
+                    key={item.id}
+                    className="overflow-hidden hover:shadow-md transition-shadow group"
+                  >
+                    <div
+                      className="flex items-center gap-3 p-2 cursor-pointer"
+                      onClick={() => openPreview(item)}
+                    >
+                      <div className="relative w-12 h-16 rounded overflow-hidden bg-muted shrink-0">
+                        {(item.resultThumbUrl || item.resultImageUrl) && (
+                          <Image
+                            src={item.resultThumbUrl || item.resultImageUrl}
+                            alt="결과"
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <TypeBadge type={item.type} />
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                          <span>
+                            {new Date(item.createdAt).toLocaleTimeString(
+                              "ko-KR",
+                              { hour: "2-digit", minute: "2-digit" },
+                            )}
+                          </span>
+                          <span>
+                            {(item.processingTime / 1000).toFixed(1)}초
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        {item.resultImageUrl && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              downloadImage(
+                                item.resultImageUrl,
+                                `${item.type}_${item.id.slice(0, 8)}.webp`,
+                              );
+                            }}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTarget(item);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </CollapsibleContent>
+      </Collapsible>
+    </section>
+  );
+}
+
+// --- 컴포넌트 ---
 
 export function HistoryList() {
   const { user, isLoading: authLoading } = useAuth();
@@ -443,227 +697,13 @@ export function HistoryList() {
       ) : (
         <div className="space-y-6">
           {dateGroups.map((group) => (
-            <section key={group.dateLabel}>
-              {/* 날짜 섹션 헤더 */}
-              <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 mb-3 border-b">
-                <h3 className="text-sm font-semibold text-foreground">
-                  {group.dateLabel}
-                  {group.dateSublabel && (
-                    <span className="ml-2 text-xs font-normal text-muted-foreground">
-                      ({group.dateSublabel})
-                    </span>
-                  )}
-                </h3>
-              </div>
-
-              {/* 엔트리 목록 */}
-              {viewMode === "grid" ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {group.entries.map((entry) => {
-                    if (entry.type === "batch") {
-                      return (
-                        <div key={entry.batchId} className="col-span-full">
-                          <HistoryBatchCard
-                            batchId={entry.batchId}
-                            batchType={entry.batchType}
-                            items={entry.items}
-                            totalTime={entry.totalTime}
-                            onDeleteItem={setDeleteTarget}
-                            onPreviewItem={(item) => openPreview(item, entry.items)}
-                          />
-                        </div>
-                      );
-                    }
-
-                    const item = entry.item;
-                    return (
-                      <Card
-                        key={item.id}
-                        className="overflow-hidden hover:shadow-md transition-shadow group relative"
-                      >
-                        {/* 타입 컬러 바 */}
-                        <div className={`h-0.5 ${TYPE_COLORS[item.type]?.split(" ").find(c => c.startsWith("border-")) ? TYPE_COLORS[item.type].split(" ").find(c => c.startsWith("border-"))!.replace("border-", "bg-") : "bg-muted"}`} />
-
-                        {/* After 이미지 (hover 시 Before로 전환) */}
-                        <div
-                          className="relative aspect-[3/4] bg-muted cursor-pointer overflow-hidden"
-                          onClick={() => openPreview(item)}
-                        >
-                          {/* After 이미지 */}
-                          {(item.resultThumbUrl || item.resultImageUrl) ? (
-                            <Image
-                              src={item.resultThumbUrl || item.resultImageUrl}
-                              alt="결과 이미지"
-                              fill
-                              className="object-cover transition-opacity duration-200 group-hover:opacity-0"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
-                              결과 없음
-                            </div>
-                          )}
-
-                          {/* Before 이미지 (hover 시 표시) */}
-                          {(item.sourceThumbUrl || item.sourceImageUrl) && (
-                            <Image
-                              src={item.sourceThumbUrl || item.sourceImageUrl}
-                              alt="원본 이미지"
-                              fill
-                              className="object-cover opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                              unoptimized
-                            />
-                          )}
-
-                          {/* hover 표시 라벨 */}
-                          <span className="absolute bottom-1.5 left-1.5 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded transition-opacity group-hover:opacity-0">
-                            After
-                          </span>
-                          <span className="absolute bottom-1.5 left-1.5 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 transition-opacity group-hover:opacity-100">
-                            Before
-                          </span>
-
-                          {/* hover 액션 버튼 */}
-                          <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {item.resultImageUrl && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 bg-black/40 text-white hover:text-white hover:bg-black/60"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  downloadImage(
-                                    item.resultImageUrl,
-                                    `${item.type}_${item.id.slice(0, 8)}.webp`,
-                                  );
-                                }}
-                              >
-                                <Download className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 bg-black/40 text-white hover:text-white hover:bg-black/60"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDeleteTarget(item);
-                              }}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        <CardContent className="p-2">
-                          <div className="flex items-center justify-between gap-1">
-                            <TypeBadge type={item.type} />
-                            <span className="text-[11px] text-muted-foreground truncate">
-                              {new Date(item.createdAt).toLocaleTimeString(
-                                "ko-KR",
-                                { hour: "2-digit", minute: "2-digit" },
-                              )}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              ) : (
-                /* List 모드 */
-                <div className="space-y-2">
-                  {group.entries.map((entry) => {
-                    if (entry.type === "batch") {
-                      return (
-                        <HistoryBatchCard
-                          key={entry.batchId}
-                          batchId={entry.batchId}
-                          batchType={entry.batchType}
-                          items={entry.items}
-                          totalTime={entry.totalTime}
-                          onDeleteItem={setDeleteTarget}
-                          onPreviewItem={(item) => openPreview(item, entry.items)}
-                        />
-                      );
-                    }
-
-                    const item = entry.item;
-                    return (
-                      <Card
-                        key={item.id}
-                        className="overflow-hidden hover:shadow-md transition-shadow group"
-                      >
-                        <div
-                          className="flex items-center gap-3 p-2 cursor-pointer"
-                          onClick={() => openPreview(item)}
-                        >
-                          {/* 썸네일 */}
-                          <div className="relative w-12 h-16 rounded overflow-hidden bg-muted shrink-0">
-                            {(item.resultThumbUrl || item.resultImageUrl) && (
-                              <Image
-                                src={item.resultThumbUrl || item.resultImageUrl}
-                                alt="결과"
-                                fill
-                                className="object-cover"
-                                unoptimized
-                              />
-                            )}
-                          </div>
-
-                          {/* 메타 정보 */}
-                          <div className="flex-1 min-w-0">
-                            <TypeBadge type={item.type} />
-                            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                              <span>
-                                {new Date(item.createdAt).toLocaleTimeString(
-                                  "ko-KR",
-                                  { hour: "2-digit", minute: "2-digit" },
-                                )}
-                              </span>
-                              <span>
-                                {(item.processingTime / 1000).toFixed(1)}초
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* 액션 버튼 */}
-                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                            {item.resultImageUrl && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-primary"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  downloadImage(
-                                    item.resultImageUrl,
-                                    `${item.type}_${item.id.slice(0, 8)}.webp`,
-                                  );
-                                }}
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDeleteTarget(item);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
+            <DateGroupSection
+              key={group.dateLabel}
+              group={group}
+              viewMode={viewMode}
+              openPreview={openPreview}
+              setDeleteTarget={setDeleteTarget}
+            />
           ))}
 
           {hasMore && (
