@@ -25,6 +25,14 @@ export default withSentryConfig(nextConfig, {
   project: process.env.SENTRY_PROJECT,
   silent: !process.env.CI,
   widenClientFileUpload: true,
-  disableLogger: true,
   tunnelRoute: "/monitoring",
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+  },
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
+  release: {
+    create: !!process.env.SENTRY_AUTH_TOKEN,
+  },
 });
