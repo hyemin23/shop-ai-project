@@ -57,18 +57,6 @@
       "env": {
         "VERCEL_TOKEN": "${VERCEL_TOKEN}"
       }
-    },
-    "kling-ai": {
-      "type": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "@199-mcp/mcp-kling"
-      ],
-      "env": {
-        "KLING_ACCESS_KEY": "${KLING_ACCESS_KEY}",
-        "KLING_SECRET_KEY": "${KLING_SECRET_KEY}"
-      }
     }
   }
 }
