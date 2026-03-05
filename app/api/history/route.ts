@@ -108,6 +108,7 @@ export async function GET(request: NextRequest) {
       modelUsed: row.model_used as GeminiModel,
       fallbackUsed: row.fallback_used,
       processingTime: row.processing_time,
+      batchId: row.batch_id || undefined,
     }));
 
     const response = NextResponse.json({ items, total: count ?? 0 });

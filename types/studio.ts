@@ -87,4 +87,5 @@ export interface StudioHistoryItem {
   modelUsed: GeminiModel;
   fallbackUsed: boolean;
   processingTime: number;
+  batchId?: string;
 }
