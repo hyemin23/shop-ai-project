@@ -8,11 +8,11 @@ export const CREDIT_COST: Record<ImageSize, number> = {
   "4K": 5,
 };
 
-// 비디오 크레딧 (비디오 기능 구현 시 사용)
-export const VIDEO_CREDIT_COST = {
-  "5sec": { "1K": 2, "2K": 4, "4K": 10 },
-  "10sec": { "1K": 4, "2K": 8, "4K": 20 },
-} as const;
+// 비디오 크레딧 (duration 기반 단일 구조)
+export const VIDEO_CREDIT_COST: Record<string, number> = {
+  "5": 10, // 5초 = 10 토큰
+  "10": 20, // 10초 = 20 토큰
+};
 
 export const TOKEN_PACKAGES: TokenPackage[] = [
   {
