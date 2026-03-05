@@ -2,14 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Shirt,
-  Palette,
-  PersonStanding,
-  Wallpaper,
-  Layers,
-  ChevronDown,
-} from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileNav } from "@/components/mobile-nav";
@@ -20,43 +13,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { getFeatureGroups } from "@/config/dashboard";
 
-const studioNavItems = [
-  {
-    title: "의류 교체",
-    description: "모델 이미지에 새 의류를 자동 합성",
-    href: "/dashboard/studio",
-    icon: Shirt,
-  },
-  {
-    title: "색상 변경",
-    description: "원단 색상을 원하는 컬러로 변경",
-    href: "/dashboard/studio/color-swap",
-    icon: Palette,
-  },
-  {
-    title: "포즈 변경",
-    description: "모델의 포즈를 다양하게 전환",
-    href: "/dashboard/studio/pose-transfer",
-    icon: PersonStanding,
-  },
-  {
-    title: "배경 변경",
-    description: "촬영 배경 장면을 새로 교체",
-    href: "/dashboard/studio/background-swap",
-    icon: Wallpaper,
-  },
-  {
-    title: "배치 처리",
-    description: "여러 이미지를 한 번에 일괄 편집",
-    href: "/dashboard/studio/batch",
-    icon: Layers,
-  },
-];
+const featureGroups = getFeatureGroups();
 
 export function SiteHeader() {
   const [mounted, setMounted] = useState(false);
@@ -82,37 +46,44 @@ export function SiteHeader() {
                   "outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 )}
               >
-                AI 스튜디오
+                AI 도구
                 <ChevronDown className="h-3 w-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
               </button>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="start" className="w-72 p-1.5">
-              <DropdownMenuLabel className="px-2 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                AI 편집 도구
-              </DropdownMenuLabel>
+              {featureGroups.map((group, groupIdx) => (
+                <div key={group.title}>
+                  {groupIdx > 0 && <DropdownMenuSeparator />}
+                  <DropdownMenuLabel className="px-2 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                    {group.title}
+                  </DropdownMenuLabel>
 
-              {studioNavItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "group flex items-center gap-3 rounded-md px-2 py-2 transition-colors",
-                    "hover:bg-accent focus:bg-accent focus:outline-none",
-                  )}
-                >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/8 ring-1 ring-primary/10 transition-colors group-hover:bg-primary/15">
-                    <item.icon className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium leading-tight text-foreground">
-                      {item.title}
-                    </span>
-                    <span className="text-xs leading-tight text-muted-foreground">
-                      {item.description}
-                    </span>
-                  </div>
-                </Link>
+                  {group.items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "group flex items-center gap-3 rounded-md px-2 py-2 transition-colors",
+                        "hover:bg-accent focus:bg-accent focus:outline-none",
+                      )}
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/8 ring-1 ring-primary/10 transition-colors group-hover:bg-primary/15">
+                        <item.icon className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium leading-tight text-foreground">
+                          {item.title}
+                        </span>
+                        {item.description && (
+                          <span className="text-xs leading-tight text-muted-foreground">
+                            {item.description}
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>

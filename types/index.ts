@@ -12,6 +12,7 @@ export interface SidebarNavItem {
   href: string;
   icon: LucideIcon;
   disabled?: boolean;
+  description?: string;
 }
 
 // 카테고리 그룹 단위 — 대분류 제목과 하위 항목 목록으로 구성
