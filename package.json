@@ -23,6 +23,7 @@
     "@tosspayments/tosspayments-sdk": "^2.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "html-to-image": "^1.11.13",
     "jszip": "^3.10.1",
     "lru-cache": "^11.2.6",
     "lucide-react": "^0.575.0",
