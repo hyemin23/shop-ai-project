@@ -91,15 +91,8 @@ export function useAutoFittingGenerate({
         const decoder = new TextDecoder();
         let buffer = "";
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-
-          const lines = buffer.split("\n\n");
-          buffer = lines.pop() || "";
-
+        function processSSELines(text: string) {
+          const lines = text.split("\n\n").filter(Boolean);
           for (const line of lines) {
             const dataLine = line
               .split("\n")
@@ -125,6 +118,24 @@ export function useAutoFittingGenerate({
             if (event.type === "batch_complete" && event.batchId) {
               setBatchId(event.batchId);
             }
+          }
+        }
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            // 스트림 종료 시 버퍼에 남은 이벤트 처리
+            if (buffer.trim()) processSSELines(buffer);
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+
+          const lines = buffer.split("\n\n");
+          buffer = lines.pop() || "";
+
+          if (lines.length > 0) {
+            processSSELines(lines.join("\n\n"));
           }
         }
 

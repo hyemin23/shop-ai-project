@@ -97,17 +97,10 @@ export function useMultiPoseGenerate({
         const decoder = new TextDecoder();
         let buffer = "";
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-
-          const lines = buffer.split("\n\n");
-          buffer = lines.pop() || "";
-
-          for (const line of lines) {
-            const dataLine = line
+        function processSSELines(text: string) {
+          const chunks = text.split("\n\n").filter(Boolean);
+          for (const chunk of chunks) {
+            const dataLine = chunk
               .split("\n")
               .find((l) => l.startsWith("data: "));
             if (!dataLine) continue;
@@ -134,6 +127,23 @@ export function useMultiPoseGenerate({
             if (event.type === "batch_complete" && event.batchId) {
               setBatchId(event.batchId);
             }
+          }
+        }
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            if (buffer.trim()) processSSELines(buffer);
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+
+          const lines = buffer.split("\n\n");
+          buffer = lines.pop() || "";
+
+          if (lines.length > 0) {
+            processSSELines(lines.join("\n\n"));
           }
         }
 

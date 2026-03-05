@@ -23,8 +23,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ImageIcon, Loader2, Trash2 } from "lucide-react";
+import { Download, ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { downloadImage } from "@/lib/download";
 
 const TYPE_LABELS: Record<string, string> = {
   "try-on": "의류 교체",
@@ -232,14 +233,31 @@ export function HistoryList() {
                     <Badge variant="secondary">
                       {TYPE_LABELS[item.type] ?? item.type}
                     </Badge>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                      onClick={() => setDeleteTarget(item)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {item.resultImageUrl && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-primary"
+                          onClick={() =>
+                            downloadImage(
+                              item.resultImageUrl,
+                              `${item.type}_${item.id.slice(0, 8)}.webp`,
+                            )
+                          }
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => setDeleteTarget(item)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>
