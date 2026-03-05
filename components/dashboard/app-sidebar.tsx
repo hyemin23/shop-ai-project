@@ -44,7 +44,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
-        <Link href="/" className="group/logo flex items-center gap-2.5 font-bold text-lg tracking-tight">
+        <Link href="/" className="group/logo flex items-center gap-2.5 font-bold text-lg tracking-tight select-none" draggable={false}>
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary shadow-sm shadow-primary/25 transition-transform duration-200 group-hover/logo:scale-105">
             <Zap className="h-4 w-4 text-primary-foreground" />
           </div>
@@ -110,7 +110,7 @@ export function AppSidebar() {
         ) : (
           <div className="flex items-center gap-3">
             <UserMenu />
-            <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
+            <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden select-none">
               <span className="font-medium">{displayName}</span>
               <span className="text-xs text-muted-foreground">{email}</span>
             </div>

@@ -70,7 +70,7 @@ const features: Feature[] = [
 export function FeaturesSection() {
   return (
     <section id="features" className="relative container mx-auto px-4 py-24 md:px-8 md:py-32">
-      <div className="mb-16 text-center">
+      <div className="mb-16 text-center select-none">
         <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-primary">
           Features
         </p>
@@ -89,7 +89,7 @@ export function FeaturesSection() {
         {features.map((feature, i) => (
           <div
             key={feature.title}
-            className="group relative overflow-hidden rounded-2xl border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+            className="group relative overflow-hidden rounded-2xl border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg select-none"
             style={{ animationDelay: `${i * 80}ms` }}
           >
             {/* Gradient accent on hover */}

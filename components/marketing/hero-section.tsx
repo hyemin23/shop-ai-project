@@ -1,7 +1,58 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Shirt, Palette, PersonStanding } from "lucide-react";
+
+const HERO_PHRASES = [
+  "상품 이미지",
+  "피팅 사진",
+  "컬러 바리에이션",
+  "포즈 변형",
+  "상세페이지",
+];
+
+function TypewriterText({ phrases }: { phrases: string[] }) {
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [charIdx, setCharIdx] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const currentPhrase = phrases[phraseIdx];
+
+  const tick = useCallback(() => {
+    if (!isDeleting) {
+      if (charIdx < currentPhrase.length) {
+        setCharIdx((prev) => prev + 1);
+      } else {
+        setTimeout(() => setIsDeleting(true), 2000);
+        return;
+      }
+    } else {
+      if (charIdx > 0) {
+        setCharIdx((prev) => prev - 1);
+      } else {
+        setIsDeleting(false);
+        setPhraseIdx((prev) => (prev + 1) % phrases.length);
+        return;
+      }
+    }
+  }, [charIdx, isDeleting, currentPhrase, phrases.length]);
+
+  useEffect(() => {
+    const speed = isDeleting ? 50 : 100;
+    const timer = setTimeout(tick, speed);
+    return () => clearTimeout(timer);
+  }, [tick, isDeleting]);
+
+  return (
+    <span className="inline-flex items-baseline">
+      <span className="text-gradient">{currentPhrase.slice(0, charIdx)}</span>
+      <span className="ml-[1px] inline-block w-[3px] h-[0.85em] bg-primary rounded-full animate-pulse" />
+    </span>
+  );
+}
 
 export function HeroSection() {
   return (
@@ -25,7 +76,7 @@ export function HeroSection() {
         />
       </div>
 
-      <div className="container relative z-10 mx-auto flex flex-col items-center gap-8 px-4 pb-24 pt-20 text-center md:gap-10 md:pb-32 md:pt-28">
+      <div className="container relative z-10 mx-auto flex flex-col items-center gap-8 px-4 pb-24 pt-20 text-center md:gap-10 md:pb-32 md:pt-28 select-none">
         {/* Animated badge */}
         <Badge
           variant="secondary"
@@ -35,12 +86,12 @@ export function HeroSection() {
           AI 의류 이미지 편집 서비스
         </Badge>
 
-        {/* Headline */}
+        {/* Headline with typewriter */}
         <div className="animate-fade-in-up space-y-4" style={{ animationDelay: "100ms" }}>
           <h1 className="max-w-4xl text-[2.5rem] font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
             촬영 없이 만드는
             <br />
-            <span className="text-gradient">상품 이미지</span>
+            <TypewriterText phrases={HERO_PHRASES} />
           </h1>
         </div>
 

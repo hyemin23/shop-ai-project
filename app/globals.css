@@ -272,6 +272,19 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* 장식/마케팅 텍스트 드래그 방지 및 포커스 링 제거 */
+  h1, h2, h3, h4, h5, h6 {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* 이미지 드래그 방지 */
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
 }
 
 /* ─── Utility Classes ─── */
