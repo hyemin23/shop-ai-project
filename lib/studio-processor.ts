@@ -12,6 +12,7 @@ import { DETAIL_PRESETS, DEFAULT_4SPLIT_PRESETS } from "@/types/detail-extract";
 import {
   spendTokensForGeneration,
   checkFreeTrialLimit,
+  getTokenCost,
   TokenInsufficientError,
 } from "@/lib/tokens";
 import { StudioError } from "@/lib/errors";
@@ -276,6 +277,22 @@ export async function processSingleStudioRequest(
         historyParams.extractionMode = extractionMode;
         if (options.detailPresets) historyParams.detailPresets = options.detailPresets;
         break;
+      }
+    }
+
+    // 토큰 잔액 사전 확인 (로그인 사용자, 비마스터만)
+    if (options.userId) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("token_balance, is_master")
+        .eq("id", options.userId)
+        .single();
+
+      if (profile && !profile.is_master) {
+        const cost = getTokenCost(options.type, options.mode);
+        if ((profile.token_balance ?? 0) < cost) {
+          throw new TokenInsufficientError();
+        }
       }
     }
 
