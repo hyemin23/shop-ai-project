@@ -26,7 +26,9 @@ import { UserMenu } from "@/components/user-menu";
 import { dashboardConfig } from "@/config/dashboard";
 import { type SidebarNavGroup } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
+import { useTokenBalance } from "@/hooks/use-token-balance";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 // 그룹 내 항목 중 하나라도 현재 경로와 일치하는지 확인
 function isGroupActive(group: SidebarNavGroup, pathname: string): boolean {
@@ -36,6 +38,11 @@ function isGroupActive(group: SidebarNavGroup, pathname: string): boolean {
 export function AppSidebar() {
   const pathname = usePathname();
   const { user, isLoading } = useAuth();
+  const { isMaster } = useTokenBalance();
+
+  const groups = dashboardConfig.sidebarNavGroups.filter(
+    (g) => !g.isMasterOnly || isMaster,
+  );
 
   const displayName =
     user?.user_metadata?.name || user?.email?.split("@")[0] || "사용자";
@@ -56,7 +63,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         {/* 카테고리 그룹별 렌더링 — config 배열을 순회하여 자동 생성 */}
-        {dashboardConfig.sidebarNavGroups.map((group) => (
+        {groups.map((group) => (
           <Collapsible
             key={group.title}
             defaultOpen={true}
@@ -65,7 +72,10 @@ export function AppSidebar() {
             <SidebarGroup>
               {/* 대분류 라벨 — 클릭 시 그룹 전체를 접고 펼침 */}
               <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center">
+                <CollapsibleTrigger className={cn(
+                  "flex w-full items-center",
+                  group.isMasterOnly && "text-amber-600 dark:text-amber-400",
+                )}>
                   {group.title}
                   <ChevronDown className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                 </CollapsibleTrigger>
@@ -102,7 +112,7 @@ export function AppSidebar() {
         {isLoading ? (
           <div className="flex items-center gap-3">
             <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
-            <div className="flex flex-col gap-1 group-data-[collapsible=icon]:hidden">
+            <div className="flex flex-col gap-1">
               <Skeleton className="h-4 w-20" />
               <Skeleton className="h-3 w-28" />
             </div>

@@ -19,6 +19,7 @@ export interface SidebarNavItem {
 export interface SidebarNavGroup {
   title: string;
   items: SidebarNavItem[];
+  isMasterOnly?: boolean;
 }
 
 export interface SiteConfig {

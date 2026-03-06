@@ -30,13 +30,15 @@
 - Phase 2 완료: UI/UX 완성 (Task 005~010 전체 완료)
 - Phase 3 완료: 핵심 기능 구현 (Task 011~016 전체 완료)
 - Phase 4 완료: 고급 기능 구현 (Task 017~021 전체 완료)
+- Phase 5 완료: 관리자 대시보드 UI 구현 (Task 022~024 전체 완료)
 - 소셜 로그인 완료: Supabase Auth 카카오/구글 OAuth 연동, 보호 라우트, 세션→유저 연결
 - 토스 페이먼츠 결제 완료: 토큰 충전 결제 플로우, 패키지 선택, 결제 승인/웹훅
 - 토큰 관리 UI 완료: 잔액 Badge, 거래 내역, 무료 체험 배너, 토큰 부족 모달, 설정 페이지
 - 토큰 차감 시스템 완료: 이미지 생성 시 자동 차감 + Fallback 환불 + 무료 체험 한도
 - 배치 처리 완료: SSE 스트리밍 배치 API, 다중 이미지 업로드, ZIP 다운로드, 공통 처리 로직 추출
 - 성능 최적화 완료: 이미지 리사이즈/WebP, LRU 캐시, DB 인덱스, SEO 메타데이터/JSON-LD, CI/CD, Sentry
-- 프로젝트 상태: 전체 Phase 1~4 완료, 프로덕션 배포 준비 완료
+- 관리자 대시보드 완료: 생성 로그 조회/필터/환불 UI, 통계 대시보드, isMaster 조건부 사이드바, 접근 제어
+- 프로젝트 상태: 전체 Phase 1~5 완료, 프로덕션 배포 준비 완료
 
 ---
 
@@ -483,6 +485,37 @@
 
 ---
 
+### Phase 5: 관리자 대시보드 UI (1주) ✅
+
+> 관리자 백엔드 API(생성 로그 조회, 환불, 마스터 충전)에 대응하는 UI를 구현한다. 마스터 계정(`is_master`)이 서비스 현황을 모니터링하고, 실패 건 환불 처리하고, 토큰을 직접 충전할 수 있다.
+
+#### ✅ Task 022: 생성하다 -- 관리자 사이드바 메뉴 및 접근 제어 -- isMaster 조건부 라우트
+
+- ✅ `types/index.ts` 업데이트: `SidebarNavGroup`에 `isMasterOnly?: boolean` 추가
+- ✅ `config/dashboard.ts` 업데이트: "관리자" 사이드바 그룹 추가 (`ShieldCheck`, `ScrollText` 아이콘)
+- ✅ `components/dashboard/app-sidebar.tsx` 업데이트: `useTokenBalance()`로 isMaster 필터링 + amber 색상 라벨
+- ✅ `app/(dashboard)/dashboard/admin/layout.tsx` 생성: 접근 제어 레이아웃 (비마스터 → `/dashboard` 리다이렉트)
+- ✅ `app/(dashboard)/dashboard/admin/page.tsx` 생성: 통계 카드 + 마스터 충전 + 로그 바로가기
+
+**의존성**: Phase 4 전체 완료 (isMaster 플래그는 `/api/tokens` 응답에서 제공)
+**산출물**: 관리자 라우트 접근 제어, 사이드바 조건부 메뉴
+
+---
+
+#### ✅ Task 023: 구현하다 -- 생성 로그 DataTable -- 조회/필터/환불 UI
+
+- ✅ `hooks/use-admin-logs.ts` 생성: 로그 조회/필터/페이지네이션/환불 훅 (snake_case→camelCase 매핑)
+- ✅ `hooks/use-admin-stats.ts` 생성: 통계 집계 훅 (병렬 API 호출, 기간별/상태별/서비스별 카운트)
+- ✅ `components/admin/log-filter-bar.tsx` 생성: 상태/서비스/날짜 필터 컨트롤
+- ✅ `components/admin/generation-log-table.tsx` 생성: 로그 테이블 + 상태 Badge 색상 + 페이지네이션
+- ✅ `components/admin/refund-dialog.tsx` 생성: 환불 확인 모달 (사유 입력)
+- ✅ `app/(dashboard)/dashboard/admin/logs/page.tsx` 생성: 필터 + 테이블 + 환불 다이얼로그 조합
+
+**의존성**: Task 022 (관리자 라우트), 기존 `/api/admin/generation-logs`, `/api/admin/refund` API
+**산출물**: 생성 로그 관리 UI 완성
+
+---
+
 ## 주요 의존성 그래프
 
 ```
@@ -631,4 +664,20 @@ app/robots.ts                                # Task 021 ✅
 sentry.client.config.ts                      # Task 021 ✅
 sentry.server.config.ts                      # Task 021 ✅
 sentry.edge.config.ts                        # Task 021 ✅
+```
+
+### Phase 5에서 생성/수정되는 파일 ✅
+
+```
+types/index.ts (업데이트)                         # Task 022 ✅ isMasterOnly 필드 추가
+config/dashboard.ts (업데이트)                    # Task 022 ✅ 관리자 사이드바 그룹
+components/dashboard/app-sidebar.tsx (업데이트)   # Task 022 ✅ isMaster 조건부 필터링
+app/(dashboard)/dashboard/admin/layout.tsx        # Task 022 ✅
+app/(dashboard)/dashboard/admin/page.tsx          # Task 022 ✅
+hooks/use-admin-logs.ts                           # Task 023 ✅
+hooks/use-admin-stats.ts                          # Task 023 ✅
+components/admin/log-filter-bar.tsx               # Task 023 ✅
+components/admin/generation-log-table.tsx         # Task 023 ✅
+components/admin/refund-dialog.tsx                # Task 023 ✅
+app/(dashboard)/dashboard/admin/logs/page.tsx     # Task 023 ✅
 ```

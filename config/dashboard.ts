@@ -16,6 +16,8 @@ import {
   History,
   Coins,
   Settings,
+  ShieldCheck,
+  ScrollText,
 } from "lucide-react";
 import { type DashboardConfig } from "@/types";
 
@@ -54,6 +56,14 @@ export const dashboardConfig: DashboardConfig = {
         { title: "작업 히스토리", href: "/dashboard/history", icon: History },
         { title: "토큰 충전", href: "/dashboard/tokens", icon: Coins },
         { title: "설정", href: "/dashboard/settings", icon: Settings },
+      ],
+    },
+    {
+      title: "관리자",
+      isMasterOnly: true,
+      items: [
+        { title: "대시보드", href: "/dashboard/admin", icon: ShieldCheck, description: "서비스 현황 모니터링" },
+        { title: "생성 로그", href: "/dashboard/admin/logs", icon: ScrollText, description: "AI 생성 작업 로그 조회" },
       ],
     },
   ],

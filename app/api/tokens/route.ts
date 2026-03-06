@@ -6,7 +6,7 @@ import {
   setCachedTokenBalance,
 } from "@/lib/cache";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getCurrentUser();
 
@@ -17,8 +17,12 @@ export async function GET() {
       );
     }
 
+    // _ 파라미터가 있으면 캐시 우회 (admin layout 접근 제어용)
+    const { searchParams } = new URL(request.url);
+    const bypassCache = searchParams.has("_");
+
     // LRU 캐시 확인
-    const cached = getCachedTokenBalance(user.id);
+    const cached = !bypassCache && getCachedTokenBalance(user.id);
     if (cached) {
       return NextResponse.json(cached);
     }
