@@ -31,6 +31,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const amount = Number(body.amount);
+    const targetUserId: string = body.targetUserId || user.id;
 
     if (!Number.isInteger(amount) || amount < 1 || amount > 100000) {
       return NextResponse.json(
@@ -39,10 +40,33 @@ export async function POST(request: Request) {
       );
     }
 
+    // 다른 사용자에게 충전하는 경우 대상 존재 여부 확인
+    let targetEmail = "자기 자신";
+    if (targetUserId !== user.id) {
+      const { data: targetProfile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", targetUserId)
+        .single();
+
+      if (!targetProfile) {
+        return NextResponse.json(
+          { error: "대상 사용자를 찾을 수 없습니다." },
+          { status: 404 },
+        );
+      }
+      targetEmail = targetProfile.email ?? targetUserId;
+    }
+
+    const description =
+      targetUserId === user.id
+        ? `마스터 계정 직접 충전 (${amount} 토큰)`
+        : `마스터 계정 → ${targetEmail} 직접 충전 (${amount} 토큰)`;
+
     const { data: newBalance, error } = await supabase.rpc("charge_tokens", {
-      p_user_id: user.id,
+      p_user_id: targetUserId,
       p_amount: amount,
-      p_description: `마스터 계정 직접 충전 (${amount} 토큰)`,
+      p_description: description,
       p_reference_id: null,
     });
 
@@ -54,7 +78,7 @@ export async function POST(request: Request) {
       );
     }
 
-    invalidateTokenBalance(user.id);
+    invalidateTokenBalance(targetUserId);
 
     return NextResponse.json({ success: true, charged: amount, balance: newBalance });
   } catch (error) {

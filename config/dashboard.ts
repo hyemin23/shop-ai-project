@@ -64,6 +64,7 @@ export const dashboardConfig: DashboardConfig = {
       items: [
         { title: "대시보드", href: "/dashboard/admin", icon: ShieldCheck, description: "서비스 현황 모니터링" },
         { title: "생성 로그", href: "/dashboard/admin/logs", icon: ScrollText, description: "AI 생성 작업 로그 조회" },
+        { title: "사용자 관리", href: "/dashboard/admin/users", icon: Users, description: "사용자 조회 및 토큰 충전" },
       ],
     },
   ],
