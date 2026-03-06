@@ -20,6 +20,7 @@ export interface SidebarNavGroup {
   title: string;
   items: SidebarNavItem[];
   isMasterOnly?: boolean;
+  hiddenForBeta?: boolean;
 }
 
 export interface SiteConfig {

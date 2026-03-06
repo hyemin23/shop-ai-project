@@ -28,8 +28,8 @@ export const siteConfig: SiteConfig = {
     {
       title: "법적 고지",
       items: [
-        { title: "개인정보처리방침", href: "#" },
-        { title: "이용약관", href: "#" },
+        { title: "개인정보처리방침", href: "/privacy" },
+        { title: "이용약관", href: "/terms" },
       ],
     },
   ],

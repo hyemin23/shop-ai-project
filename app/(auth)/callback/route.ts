@@ -42,7 +42,7 @@ export async function GET(request: Request) {
       // 프로필 존재 확인 (트리거 실패 방어)
       const { data: profile } = await serviceClient
         .from("profiles")
-        .select("id")
+        .select("id, terms_agreed_at")
         .eq("id", user.id)
         .single();
 
@@ -82,6 +82,13 @@ export async function GET(request: Request) {
             linkError.message,
           );
         }
+      }
+
+      // 약관 미동의 신규 유저 → 온보딩으로 리다이렉트
+      if (!profile?.terms_agreed_at) {
+        const onboardingUrl = new URL(`${origin}/onboarding`);
+        onboardingUrl.searchParams.set("next", next);
+        return NextResponse.redirect(onboardingUrl);
       }
     }
 

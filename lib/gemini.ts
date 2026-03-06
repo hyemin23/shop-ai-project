@@ -10,7 +10,14 @@ import {
 
 const FLASH_2_5: GeminiModel = "gemini-2.5-flash-image";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+const defaultAi = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+
+function getAiClient(apiKey?: string): GoogleGenAI {
+  if (apiKey) {
+    return new GoogleGenAI({ apiKey });
+  }
+  return defaultAi;
+}
 
 interface GeminiImageResult {
   imageBase64: string;
@@ -30,17 +37,21 @@ export async function callGeminiWithImages(
   mode: GenerationMode = "standard",
   imageOptions?: ImageGenerationOptions,
   modelOverride?: GeminiModel,
+  betaApiKey?: string,
 ): Promise<GeminiImageResult> {
   const modelId = modelOverride ?? GEMINI_MODELS[mode];
   let fallbackUsed = false;
 
+  const aiClient = getAiClient(betaApiKey);
+
   try {
-    return await callModel(modelId, prompt, images, fallbackUsed, imageOptions);
+    return await callModel(aiClient, modelId, prompt, images, fallbackUsed, imageOptions);
   } catch (error) {
     if (mode === "premium" && isOverloadOrRateLimit(error)) {
       fallbackUsed = true;
       try {
         return await callModel(
+          aiClient,
           GEMINI_MODELS.standard,
           prompt,
           images,
@@ -65,6 +76,7 @@ export async function callGeminiWithImages(
 }
 
 async function callModel(
+  aiClient: GoogleGenAI,
   modelId: string,
   prompt: string,
   images: { base64: string; mimeType: string }[],
@@ -94,7 +106,7 @@ async function callModel(
     { text: prompt },
   ];
 
-  const response = await ai.models.generateContent({
+  const response = await aiClient.models.generateContent({
     model: modelId,
     contents,
     config,

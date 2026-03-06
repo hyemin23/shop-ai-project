@@ -49,7 +49,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 로그인 상태에서 auth 페이지 접근 시 대시보드로 리다이렉트
+  // 로그인 상태에서 auth 페이지 접근 시 대시보드로 리다이렉트 (onboarding 제외)
   if (user && (pathname === "/login" || pathname === "/register")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";

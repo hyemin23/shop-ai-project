@@ -282,15 +282,20 @@ export async function processSingleStudioRequest(
       }
     }
 
-    // 토큰 잔액 사전 확인 (로그인 사용자, 비마스터만)
+    // 프로필 조회 (토큰 잔액, 마스터/베타 여부, 베타 API 키)
+    let betaApiKey: string | undefined;
     if (options.userId) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("token_balance, is_master")
+        .select("token_balance, is_master, is_beta, gemini_api_key")
         .eq("id", options.userId)
         .single();
 
-      if (profile && !profile.is_master) {
+      if (profile?.is_beta && profile.gemini_api_key) {
+        betaApiKey = profile.gemini_api_key;
+      }
+
+      if (profile && !profile.is_master && !profile.is_beta) {
         const cost = getCreditCost(options.imageSize);
         if ((profile.token_balance ?? 0) < cost) {
           throw new TokenInsufficientError();
@@ -325,6 +330,7 @@ export async function processSingleStudioRequest(
         imageSize: options.imageSize,
       },
       roseCutModelOverride,
+      betaApiKey,
     );
 
     // 결과 이미지 Storage 저장
@@ -373,9 +379,9 @@ export async function processSingleStudioRequest(
       .select("id")
       .single();
 
-    // 토큰 차감
+    // 토큰 차감 (베타 유저는 자체 API 키 사용이므로 토큰 차감 스킵)
     let tokensSpent = 0;
-    if (historyData?.id) {
+    if (historyData?.id && !betaApiKey) {
       try {
         const result = await spendTokensForGeneration(
           supabase,

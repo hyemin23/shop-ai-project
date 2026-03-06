@@ -123,21 +123,23 @@ export default function RegisterPage() {
           </Link>
         </p>
         <p className="text-center text-xs text-muted-foreground/50">
-          계속하면{" "}
+          가입 시{" "}
           <Link
-            href="#"
+            href="/terms"
+            target="_blank"
             className="underline-offset-4 hover:underline hover:text-muted-foreground"
           >
             이용약관
           </Link>
           {" 및 "}
           <Link
-            href="#"
+            href="/privacy"
+            target="_blank"
             className="underline-offset-4 hover:underline hover:text-muted-foreground"
           >
             개인정보처리방침
           </Link>
-          에 동의하는 것으로 간주됩니다.
+          에 대한 동의가 필요합니다.
         </p>
       </div>
     </div>

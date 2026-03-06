@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     const supabase = createServiceClient();
     const { data, error } = await supabase
       .from("profiles")
-      .select("token_balance, free_tokens_used, is_master")
+      .select("token_balance, free_tokens_used, is_master, is_beta")
       .eq("id", user.id)
       .single();
 
@@ -46,6 +46,7 @@ export async function GET(request: Request) {
       balance: data?.token_balance ?? 0,
       freeTokensUsed: data?.free_tokens_used ?? 0,
       isMaster: data?.is_master ?? false,
+      isBeta: data?.is_beta ?? false,
     };
 
     setCachedTokenBalance(user.id, result);

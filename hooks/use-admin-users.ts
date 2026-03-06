@@ -11,6 +11,8 @@ export interface AdminUser {
   tokenBalance: number;
   freeTokensUsed: number;
   isMaster: boolean;
+  isBeta: boolean;
+  geminiApiKey: string | null;
   createdAt: string;
 }
 
@@ -25,7 +27,9 @@ export interface UseAdminUsersReturn {
   pageSize: number;
   totalPages: number;
   chargeTokens: (userId: string, amount: number) => Promise<boolean>;
+  updateBetaStatus: (userId: string, isBeta: boolean, geminiApiKey?: string) => Promise<boolean>;
   isCharging: boolean;
+  isUpdating: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -40,6 +44,8 @@ function mapUserRow(row: Record<string, unknown>): AdminUser {
     tokenBalance: (row.token_balance as number) ?? 0,
     freeTokensUsed: (row.free_tokens_used as number) ?? 0,
     isMaster: (row.is_master as boolean) ?? false,
+    isBeta: (row.is_beta as boolean) ?? false,
+    geminiApiKey: (row.gemini_api_key as string) ?? null,
     createdAt: row.created_at as string,
   };
 }
@@ -49,6 +55,7 @@ export function useAdminUsers(): UseAdminUsersReturn {
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isCharging, setIsCharging] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [search, setSearchState] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(0);
@@ -115,6 +122,33 @@ export function useAdminUsers(): UseAdminUsersReturn {
     [fetchUsers],
   );
 
+  const updateBetaStatus = useCallback(
+    async (userId: string, isBeta: boolean, geminiApiKey?: string): Promise<boolean> => {
+      setIsUpdating(true);
+      try {
+        const res = await fetch("/api/admin/users", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, isBeta, geminiApiKey }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast.success(isBeta ? "베타 테스터로 설정되었습니다." : "베타 권한이 해제되었습니다.");
+          await fetchUsers();
+          return true;
+        }
+        toast.error(data.error || "권한 변경에 실패했습니다.");
+        return false;
+      } catch {
+        toast.error("서버 오류가 발생했습니다.");
+        return false;
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [fetchUsers],
+  );
+
   return {
     users,
     total,
@@ -126,7 +160,9 @@ export function useAdminUsers(): UseAdminUsersReturn {
     pageSize: PAGE_SIZE,
     totalPages,
     chargeTokens,
+    updateBetaStatus,
     isCharging,
+    isUpdating,
     refresh: fetchUsers,
   };
 }

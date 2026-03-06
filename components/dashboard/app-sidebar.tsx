@@ -38,10 +38,12 @@ function isGroupActive(group: SidebarNavGroup, pathname: string): boolean {
 export function AppSidebar() {
   const pathname = usePathname();
   const { user, isLoading } = useAuth();
-  const { isMaster } = useTokenBalance();
+  const { isMaster, isBeta } = useTokenBalance();
 
   const groups = dashboardConfig.sidebarNavGroups.filter(
-    (g) => !g.isMasterOnly || isMaster,
+    (g) =>
+      (!g.isMasterOnly || isMaster) &&
+      (!g.hiddenForBeta || !isBeta),
   );
 
   const displayName =

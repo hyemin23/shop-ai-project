@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAdminUsers } from "@/hooks/use-admin-users";
 import { UserTable } from "@/components/admin/user-table";
 import { UserChargeDialog } from "@/components/admin/user-charge-dialog";
+import { UserBetaDialog } from "@/components/admin/user-beta-dialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import type { AdminUser } from "@/hooks/use-admin-users";
@@ -20,10 +21,13 @@ export default function AdminUsersPage() {
     setPage,
     totalPages,
     chargeTokens,
+    updateBetaStatus,
     isCharging,
+    isUpdating,
   } = useAdminUsers();
 
   const [chargeTarget, setChargeTarget] = useState<AdminUser | null>(null);
+  const [betaTarget, setBetaTarget] = useState<AdminUser | null>(null);
 
   return (
     <div className="space-y-6">
@@ -52,6 +56,7 @@ export default function AdminUsersPage() {
         totalPages={totalPages}
         onPageChange={setPage}
         onCharge={setChargeTarget}
+        onBetaEdit={setBetaTarget}
         isLoading={isLoading}
       />
 
@@ -60,6 +65,13 @@ export default function AdminUsersPage() {
         onClose={() => setChargeTarget(null)}
         onConfirm={chargeTokens}
         isCharging={isCharging}
+      />
+
+      <UserBetaDialog
+        user={betaTarget}
+        onClose={() => setBetaTarget(null)}
+        onConfirm={updateBetaStatus}
+        isUpdating={isUpdating}
       />
     </div>
   );

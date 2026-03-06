@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { getUserOrSessionId } from "@/lib/auth";
+import { getUserOrSessionId, checkBetaUser } from "@/lib/auth";
 import { createTextToVideoTask } from "@/lib/kling";
 import { VIDEO_CREDIT_COST } from "@/config/pricing";
 import { createClient } from "@/lib/supabase/server";
@@ -32,6 +32,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const { userId, sessionId } = await getUserOrSessionId();
+
+    if (await checkBetaUser(userId)) {
+      return NextResponse.json(
+        { success: false, error: "베타 테스터는 비디오 기능을 이용할 수 없습니다.", code: "BETA_VIDEO_BLOCKED" },
+        { status: 403 },
+      );
+    }
+
     const body = await request.json();
     const parsed = textToVideoSchema.safeParse(body);
 

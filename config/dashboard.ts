@@ -15,6 +15,7 @@ import {
   AudioLines,
   History,
   Coins,
+  CreditCard,
   Settings,
   ShieldCheck,
   ScrollText,
@@ -39,8 +40,9 @@ export const dashboardConfig: DashboardConfig = {
       ],
     },
     {
-      // AI 비디오 생성 기능 모음
+      // AI 비디오 생성 기능 모음 (베타 유저 접근 불가)
       title: "AI 비디오",
+      hiddenForBeta: true,
       items: [
         { title: "텍스트 비디오", href: "/dashboard/video/text-to-video", icon: Video, description: "텍스트 프롬프트로 AI 영상을 생성" },
         { title: "이미지 비디오", href: "/dashboard/video/image-to-video", icon: ImagePlay, description: "이미지를 기반으로 AI 영상을 생성" },
@@ -55,6 +57,7 @@ export const dashboardConfig: DashboardConfig = {
       items: [
         { title: "작업 히스토리", href: "/dashboard/history", icon: History },
         { title: "토큰 충전", href: "/dashboard/tokens", icon: Coins },
+        { title: "구독 관리", href: "/dashboard/subscription", icon: CreditCard },
         { title: "설정", href: "/dashboard/settings", icon: Settings },
       ],
     },

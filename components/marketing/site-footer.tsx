@@ -35,17 +35,38 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t pt-8 sm:flex-row">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
-          </p>
-          <div className="flex gap-6">
-            <Link href="/terms" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-              이용약관
-            </Link>
-            <Link href="/privacy" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-              개인정보처리방침
-            </Link>
+        <div className="mt-16 border-t pt-8">
+          <div className="text-xs leading-relaxed text-muted-foreground/70 space-y-1">
+            <p className="font-medium text-muted-foreground">
+              [회사명] | 대표: [대표자명]
+            </p>
+            <p>
+              사업자등록번호: [000-00-00000] | 통신판매업 신고번호:
+              [제0000-서울○○-0000호]
+            </p>
+            <p>주소: [사업장 주소]</p>
+            <p>이메일: [이메일 주소] | 전화: [전화번호]</p>
+          </div>
+
+          <div className="mt-6 flex flex-col items-center justify-between gap-4 border-t pt-6 sm:flex-row">
+            <p className="text-sm text-muted-foreground">
+              &copy; {new Date().getFullYear()} {siteConfig.name}. All rights
+              reserved.
+            </p>
+            <div className="flex gap-6">
+              <Link
+                href="/terms"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                이용약관
+              </Link>
+              <Link
+                href="/privacy"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                개인정보처리방침
+              </Link>
+            </div>
           </div>
         </div>
       </div>

@@ -11,7 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight, Coins } from "lucide-react";
+import { ChevronLeft, ChevronRight, Coins, FlaskConical } from "lucide-react";
 import type { AdminUser } from "@/hooks/use-admin-users";
 
 interface UserTableProps {
@@ -22,6 +22,7 @@ interface UserTableProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   onCharge: (user: AdminUser) => void;
+  onBetaEdit: (user: AdminUser) => void;
   isLoading: boolean;
 }
 
@@ -42,6 +43,7 @@ export function UserTable({
   totalPages,
   onPageChange,
   onCharge,
+  onBetaEdit,
   isLoading,
 }: UserTableProps) {
   if (isLoading) {
@@ -74,7 +76,7 @@ export function UserTable({
               <TableHead className="w-[90px] text-right">무료 사용</TableHead>
               <TableHead className="w-[80px]">역할</TableHead>
               <TableHead className="w-[100px]">가입일</TableHead>
-              <TableHead className="w-[70px]">충전</TableHead>
+              <TableHead className="w-[70px]">작업</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -90,12 +92,18 @@ export function UserTable({
                 <TableCell className="text-right font-mono text-sm">
                   {u.freeTokensUsed.toLocaleString()}
                 </TableCell>
-                <TableCell>
-                  {u.isMaster ? (
+                <TableCell className="space-x-1">
+                  {u.isMaster && (
                     <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
                       마스터
                     </Badge>
-                  ) : (
+                  )}
+                  {u.isBeta && (
+                    <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+                      베타
+                    </Badge>
+                  )}
+                  {!u.isMaster && !u.isBeta && (
                     <Badge
                       variant="secondary"
                       className="text-muted-foreground"
@@ -108,15 +116,26 @@ export function UserTable({
                   {formatDate(u.createdAt)}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => onCharge(u)}
-                  >
-                    <Coins className="mr-1 h-3 w-3" />
-                    충전
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => onCharge(u)}
+                    >
+                      <Coins className="mr-1 h-3 w-3" />
+                      충전
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => onBetaEdit(u)}
+                    >
+                      <FlaskConical className="mr-1 h-3 w-3" />
+                      베타
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
