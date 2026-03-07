@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
@@ -42,27 +42,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadImage } from "@/lib/download";
+import { SERVICE_TYPE_LABELS as TYPE_LABELS, SERVICE_TYPE_COLORS as TYPE_COLORS } from "@/config/studio";
 import { HistoryBatchCard } from "./history-batch-card";
-
-const TYPE_LABELS: Record<string, string> = {
-  "try-on": "의류 교체",
-  "color-swap": "색상 변경",
-  "pose-transfer": "포즈 변경",
-  "background-swap": "배경 변경",
-  "multi-pose": "멀티포즈",
-  "detail-extract": "상세 추출",
-  "auto-fitting": "자동피팅",
-};
-
-const TYPE_COLORS: Record<string, string> = {
-  "try-on": "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-500",
-  "color-swap": "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border-purple-500",
-  "pose-transfer": "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border-amber-500",
-  "background-swap": "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border-green-500",
-  "multi-pose": "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 border-rose-500",
-  "detail-extract": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300 border-cyan-500",
-  "auto-fitting": "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 border-orange-500",
-};
 
 // --- 날짜 그룹핑 유틸 ---
 
@@ -124,18 +105,19 @@ function getDateSublabel(dateStr: string): string {
 }
 
 type SingleEntry = { type: "single"; item: StudioHistoryItem };
-type BatchEntry = {
-  type: "batch";
-  batchId: string;
-  batchType: string;
+type TypeGroupEntry = {
+  type: "type-group";
+  groupType: string;
   items: StudioHistoryItem[];
   totalTime: number;
 };
 
+type Entry = SingleEntry | TypeGroupEntry;
+
 interface DateGroup {
   dateLabel: string;
   dateSublabel: string;
-  entries: (SingleEntry | BatchEntry)[];
+  entries: Entry[];
 }
 
 function groupItems(
@@ -171,31 +153,44 @@ function groupItems(
       }
     }
 
-    const entries: (SingleEntry | BatchEntry)[] = [];
+    const entries: Entry[] = [];
 
-    for (const [batchId, batchItems] of batchMap) {
-      entries.push({
-        type: "batch",
-        batchId,
-        batchType: batchItems[0].type,
-        items: batchItems,
-        totalTime: batchItems.reduce((sum, i) => sum + i.processingTime, 0),
-      });
+    // 모든 아이템(배치 + 단건)을 type별로 합산 그룹핑
+    const typeMap = new Map<string, StudioHistoryItem[]>();
+    for (const batchItems of batchMap.values()) {
+      const t = batchItems[0].type;
+      const existing = typeMap.get(t);
+      if (existing) existing.push(...batchItems);
+      else typeMap.set(t, [...batchItems]);
+    }
+    for (const item of singles) {
+      const existing = typeMap.get(item.type);
+      if (existing) existing.push(item);
+      else typeMap.set(item.type, [item]);
     }
 
-    for (const item of singles) {
-      entries.push({ type: "single", item });
+    for (const [groupType, typeItems] of typeMap) {
+      if (typeItems.length >= 2) {
+        entries.push({
+          type: "type-group",
+          groupType,
+          items: typeItems,
+          totalTime: typeItems.reduce((sum, i) => sum + i.processingTime, 0),
+        });
+      } else {
+        entries.push({ type: "single", item: typeItems[0] });
+      }
     }
 
     entries.sort((a, b) => {
       const timeA =
-        a.type === "batch"
-          ? new Date(a.items[0].createdAt).getTime()
-          : new Date(a.item.createdAt).getTime();
+        a.type === "single"
+          ? new Date(a.item.createdAt).getTime()
+          : new Date(a.items[0].createdAt).getTime();
       const timeB =
-        b.type === "batch"
-          ? new Date(b.items[0].createdAt).getTime()
-          : new Date(b.item.createdAt).getTime();
+        b.type === "single"
+          ? new Date(b.item.createdAt).getTime()
+          : new Date(b.items[0].createdAt).getTime();
       return sort === "oldest" ? timeA - timeB : timeB - timeA;
     });
 
@@ -250,7 +245,7 @@ function DateGroupSection({
   const [isOpen, setIsOpen] = useState(true);
 
   const entryCount = group.entries.reduce((sum, e) =>
-    e.type === "batch" ? sum + e.items.length : sum + 1, 0,
+    e.type === "single" ? sum + 1 : sum + e.items.length, 0,
   );
 
   return (
@@ -281,12 +276,12 @@ function DateGroupSection({
           {viewMode === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {group.entries.map((entry) => {
-                if (entry.type === "batch") {
+                if (entry.type === "type-group") {
                   return (
-                    <div key={entry.batchId} className="col-span-full">
+                    <div key={`tg-${entry.groupType}`} className="col-span-full">
                       <HistoryBatchCard
-                        batchId={entry.batchId}
-                        batchType={entry.batchType}
+                        batchId={`type-${entry.groupType}`}
+                        batchType={entry.groupType}
                         items={entry.items}
                         totalTime={entry.totalTime}
                         onDeleteItem={setDeleteTarget}
@@ -390,12 +385,12 @@ function DateGroupSection({
           ) : (
             <div className="space-y-2">
               {group.entries.map((entry) => {
-                if (entry.type === "batch") {
+                if (entry.type === "type-group") {
                   return (
                     <HistoryBatchCard
-                      key={entry.batchId}
-                      batchId={entry.batchId}
-                      batchType={entry.batchType}
+                      key={`tg-${entry.groupType}`}
+                      batchId={`type-${entry.groupType}`}
+                      batchType={entry.groupType}
                       items={entry.items}
                       totalTime={entry.totalTime}
                       onDeleteItem={setDeleteTarget}
@@ -502,6 +497,7 @@ export function HistoryList() {
   const [previewTab, setPreviewTab] = useState<"after" | "before">("after");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const limit = 20;
+  const abortRef = useRef<AbortController | null>(null);
 
   const openPreview = useCallback((item: StudioHistoryItem, list?: StudioHistoryItem[]) => {
     setPreviewItem(item);
@@ -540,6 +536,12 @@ export function HistoryList() {
   const fetchHistory = useCallback(
     async (reset = false) => {
       if (!user) return;
+
+      // Cancel previous in-flight request
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       setIsLoading(true);
       const currentOffset = reset ? 0 : offset;
 
@@ -551,8 +553,10 @@ export function HistoryList() {
         });
         if (typeFilter !== "all") params.set("type", typeFilter);
 
-        const res = await fetch(`/api/history?${params}`);
-        if (res.ok) {
+        const res = await fetch(`/api/history?${params}`, {
+          signal: controller.signal,
+        });
+        if (res.ok && !controller.signal.aborted) {
           const data = await res.json();
           if (reset) {
             setItems(data.items);
@@ -564,13 +568,15 @@ export function HistoryList() {
           setTotal(data.total);
           setHasMore(currentOffset + data.items.length < data.total);
         }
-      } catch {
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
         toast.error("히스토리를 불러오지 못했습니다.");
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [user, offset, typeFilter, sort],
   );
 
@@ -826,7 +832,7 @@ export function HistoryList() {
                   {previewTab === "after" ? (
                     (previewItem.resultThumbUrl || previewItem.resultImageUrl) ? (
                       <Image
-                        src={previewItem.resultImageUrl}
+                        src={(previewItem.resultImageUrl || previewItem.resultThumbUrl)!}
                         alt="결과 이미지"
                         fill
                         className="object-contain"
@@ -840,7 +846,7 @@ export function HistoryList() {
                   ) : (
                     (previewItem.sourceThumbUrl || previewItem.sourceImageUrl) ? (
                       <Image
-                        src={previewItem.sourceImageUrl}
+                        src={(previewItem.sourceImageUrl || previewItem.sourceThumbUrl)!}
                         alt="원본 이미지"
                         fill
                         className="object-contain"

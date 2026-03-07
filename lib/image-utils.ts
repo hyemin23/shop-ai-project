@@ -5,7 +5,6 @@ import { StudioError } from "@/lib/errors";
 export interface ProcessedImage {
   base64: string;
   mimeType: string;
-  buffer: Buffer;
   extension: string;
 }
 
@@ -28,13 +27,13 @@ export async function processImageFile(file: File): Promise<ProcessedImage> {
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const base64 = buffer.toString("base64");
+  // buffer is not retained — only base64 is kept to avoid double memory usage
   const extension =
     file.type.split("/")[1] === "jpeg" ? "jpg" : file.type.split("/")[1];
 
   return {
     base64,
     mimeType: file.type,
-    buffer,
     extension,
   };
 }

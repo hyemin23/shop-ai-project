@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
-import { processImageFile, getStoragePath } from "@/lib/image-utils";
+import { processImageFile, getStoragePath, base64ToBuffer } from "@/lib/image-utils";
 import { getSessionId } from "@/lib/session";
 import { StudioError } from "@/lib/errors";
 
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     const { error: uploadError } = await supabase.storage
       .from(BUCKET)
-      .upload(storagePath, processed.buffer, {
+      .upload(storagePath, base64ToBuffer(processed.base64), {
         contentType: processed.mimeType,
         upsert: false,
       });

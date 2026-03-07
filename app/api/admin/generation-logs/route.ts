@@ -31,18 +31,41 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const serviceType = searchParams.get("serviceType");
     const from = searchParams.get("from");
+    const userSearch = searchParams.get("userSearch");
     const limit = Math.min(Number(searchParams.get("limit") || 50), 200);
-    const offset = Number(searchParams.get("offset") || 0);
+    const cursor = searchParams.get("cursor");
+    const offset = cursor ? 0 : Number(searchParams.get("offset") || 0);
 
     let query = supabase
       .from("generation_log")
-      .select("*", { count: "exact" })
+      .select("*, profiles!user_id(email, display_name)", { count: "exact" })
       .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .limit(limit);
+
+    // Cursor-based pagination for consistent performance with large datasets
+    if (cursor) {
+      query = query.lt("created_at", cursor);
+    } else if (offset > 0) {
+      query = query.range(offset, offset + limit - 1);
+    }
 
     if (status) query = query.eq("status", status);
     if (serviceType) query = query.eq("service_type", serviceType);
     if (from) query = query.gte("created_at", from);
+
+    if (userSearch) {
+      const sanitized = userSearch.replace(/[%_\\]/g, "\\$&");
+      const { data: matchedProfiles } = await supabase
+        .from("profiles")
+        .select("id")
+        .or(`email.ilike.%${sanitized}%,display_name.ilike.%${sanitized}%`);
+
+      const matchedIds = (matchedProfiles ?? []).map((p) => p.id);
+      if (matchedIds.length === 0) {
+        return NextResponse.json({ success: true, logs: [], total: 0 });
+      }
+      query = query.in("user_id", matchedIds);
+    }
 
     const { data: logs, count, error } = await query;
 

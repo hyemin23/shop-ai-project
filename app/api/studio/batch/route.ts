@@ -10,10 +10,12 @@ import {
   createGenerationLog,
   updateGenerationLog,
 } from "@/lib/generation-log";
+import { batchRateLimiter } from "@/lib/rate-limit";
 
 export const maxDuration = 300;
 
 const MAX_BATCH_SIZE = 10;
+const CONCURRENCY_LIMIT = 3;
 const RATE_LIMIT_BASE_MS = 2000;
 
 function jitteredDelay(): Promise<void> {
@@ -25,6 +27,20 @@ function jitteredDelay(): Promise<void> {
 
 export async function POST(request: NextRequest) {
   const { userId, sessionId } = await getUserOrSessionId();
+
+  // Rate limiting
+  const rateLimitId = userId || sessionId;
+  const { allowed, retryAfterMs } = batchRateLimiter.check(rateLimitId);
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({
+        error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
+        retryAfterMs,
+      }),
+      { status: 429, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   const formData = await request.formData();
 
   const type = formData.get("type") as StudioType;
@@ -68,8 +84,11 @@ export async function POST(request: NextRequest) {
   const poseReferenceFile = formData.get("poseReferenceImage") as File | null;
   const userPrompt = formData.get("userPrompt") as string | null;
 
-  // 토큰 사전 확인
+  // 토큰 예약 (원자적으로 전체 비용 차감)
   const supabase = createServiceClient();
+  const totalCost = getCreditCost(imageSize, sourceFiles.length);
+  let tokensReserved = false;
+
   if (userId) {
     const { data: profile } = await supabase
       .from("profiles")
@@ -78,8 +97,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (profile && !profile.is_master) {
-      const totalCost = getCreditCost(imageSize, sourceFiles.length);
-
       if ((profile.token_balance ?? 0) < totalCost) {
         return new Response(
           JSON.stringify({
@@ -90,6 +107,29 @@ export async function POST(request: NextRequest) {
           }),
           { status: 402, headers: { "Content-Type": "application/json" } },
         );
+      }
+
+      // 원자적 토큰 예약 (race condition 방지)
+      const { error: reserveError } = await supabase.rpc("reserve_tokens", {
+        p_user_id: userId,
+        p_amount: totalCost,
+        p_description: `batch-${type} ${sourceFiles.length}장 예약`,
+        p_reference_id: null,
+      });
+
+      if (reserveError) {
+        if (reserveError.message?.includes("TOKEN_INSUFFICIENT")) {
+          return new Response(
+            JSON.stringify({
+              error: "토큰이 부족합니다.",
+              code: "TOKEN_INSUFFICIENT",
+            }),
+            { status: 402, headers: { "Content-Type": "application/json" } },
+          );
+        }
+        console.error("Token reserve error:", reserveError);
+      } else {
+        tokensReserved = true;
       }
     }
   }
@@ -110,6 +150,14 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (batchError || !batchJob) {
+    // 예약한 토큰 반환
+    if (tokensReserved && userId) {
+      await supabase.rpc("release_reserved_tokens", {
+        p_user_id: userId,
+        p_amount: totalCost,
+        p_description: "배치 생성 실패 - 토큰 반환",
+      });
+    }
     return new Response(
       JSON.stringify({ error: "배치 작업 생성에 실패했습니다." }),
       { status: 500, headers: { "Content-Type": "application/json" } },
@@ -146,85 +194,102 @@ export async function POST(request: NextRequest) {
       let completedCount = 0;
       let failedCount = 0;
 
-      for (let i = 0; i < sourceFiles.length; i++) {
-        // 아이템 시작 이벤트
-        sendEvent({
-          type: "item_start",
-          index: i,
-          total: sourceFiles.length,
-          status: "processing",
-        });
+      // 동시 처리 (CONCURRENCY_LIMIT개씩)
+      for (let chunkStart = 0; chunkStart < sourceFiles.length; chunkStart += CONCURRENCY_LIMIT) {
+        const chunkEnd = Math.min(chunkStart + CONCURRENCY_LIMIT, sourceFiles.length);
+        const chunk = sourceFiles.slice(chunkStart, chunkEnd);
 
-        const result = await processSingleStudioRequest({
-          type,
-          mode,
-          sourceFile: sourceFiles[i],
-          referenceFile,
-          targetColor: targetColor || undefined,
-          garmentRegion,
-          poseType: poseType || undefined,
-          presetId: presetId || undefined,
-          poseReferenceFile,
-          userId,
-          sessionId,
-          batchId,
-          skipTrialCheck: i > 0,
-          imageSize,
-          userPrompt: userPrompt || undefined,
-        });
-
-        if (result.success) {
-          completedCount++;
+        // 청크 내 아이템 시작 이벤트
+        for (let i = 0; i < chunk.length; i++) {
           sendEvent({
-            type: "item_complete",
-            index: i,
+            type: "item_start",
+            index: chunkStart + i,
             total: sourceFiles.length,
-            status: "success",
-            resultImageUrl: result.resultImageUrl,
-            processingTime: result.processingTime,
+            status: "processing",
           });
-        } else {
-          failedCount++;
-          sendEvent({
-            type: "item_error",
-            index: i,
-            total: sourceFiles.length,
-            status: "error",
-            error: result.error,
-          });
+        }
 
-          // TOKEN_INSUFFICIENT이면 나머지 스킵
-          if (result.code === "TOKEN_INSUFFICIENT") {
-            for (let j = i + 1; j < sourceFiles.length; j++) {
-              sendEvent({
-                type: "item_error",
-                index: j,
-                total: sourceFiles.length,
-                status: "skipped",
-                error: "토큰 부족으로 건너뛰었습니다.",
-              });
+        // 청크 내 병렬 처리
+        const results = await Promise.allSettled(
+          chunk.map((file, i) =>
+            processSingleStudioRequest({
+              type,
+              mode,
+              sourceFile: file,
+              referenceFile,
+              targetColor: targetColor || undefined,
+              garmentRegion,
+              poseType: poseType || undefined,
+              presetId: presetId || undefined,
+              poseReferenceFile,
+              userId,
+              sessionId,
+              batchId,
+              skipTrialCheck: chunkStart + i > 0,
+              imageSize,
+              userPrompt: userPrompt || undefined,
+              skipTokenSpend: tokensReserved,
+            }),
+          ),
+        );
+
+        let shouldBreak = false;
+
+        for (let i = 0; i < results.length; i++) {
+          const globalIndex = chunkStart + i;
+          const result = results[i];
+
+          if (result.status === "fulfilled" && result.value.success) {
+            completedCount++;
+            sendEvent({
+              type: "item_complete",
+              index: globalIndex,
+              total: sourceFiles.length,
+              status: "success",
+              resultImageUrl: result.value.resultImageUrl,
+              processingTime: result.value.processingTime,
+            });
+          } else {
+            failedCount++;
+            const error = result.status === "fulfilled"
+              ? result.value.error
+              : "처리 중 오류가 발생했습니다.";
+            const code = result.status === "fulfilled" ? result.value.code : undefined;
+
+            sendEvent({
+              type: "item_error",
+              index: globalIndex,
+              total: sourceFiles.length,
+              status: "error",
+              error,
+            });
+
+            // TOKEN_INSUFFICIENT이면 나머지 스킵
+            if (code === "TOKEN_INSUFFICIENT") {
+              for (let j = globalIndex + 1; j < sourceFiles.length; j++) {
+                sendEvent({
+                  type: "item_error",
+                  index: j,
+                  total: sourceFiles.length,
+                  status: "skipped",
+                  error: "토큰 부족으로 건너뛰었습니다.",
+                });
+              }
+              shouldBreak = true;
+              break;
             }
-            break;
           }
         }
 
-        // 업데이트 batch_jobs 진행률
-        await supabase
-          .from("batch_jobs")
-          .update({
-            completed_items: completedCount,
-            failed_items: failedCount,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", batchId);
+        if (shouldBreak) break;
 
-        // Rate limit (마지막 아이템 제외)
-        if (i < sourceFiles.length - 1) {
+        // 청크 간 Rate limit
+        if (chunkEnd < sourceFiles.length) {
           await jitteredDelay();
         }
       }
 
-      // 배치 완료 업데이트
+      // 배치 완료 업데이트 (N+1 제거: 시작/완료 시에만 DB 업데이트)
       const finalStatus = failedCount === sourceFiles.length ? "failed" : "completed";
       await supabase
         .from("batch_jobs")
@@ -235,6 +300,20 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", batchId);
+
+      // 예약 토큰 중 미사용분 반환
+      if (tokensReserved && userId && failedCount > 0) {
+        const perItemCost = getCreditCost(imageSize, 1);
+        const unusedTokens = perItemCost * failedCount;
+        if (unusedTokens > 0) {
+          await supabase.rpc("release_reserved_tokens", {
+            p_user_id: userId,
+            p_amount: unusedTokens,
+            p_description: `batch-${type} 실패분 ${failedCount}장 토큰 반환`,
+            p_reference_id: batchId,
+          });
+        }
+      }
 
       // 배치 로그 업데이트
       await updateGenerationLog(batchLogId, {

@@ -20,27 +20,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadImage } from "@/lib/download";
-import JSZip from "jszip";
-
-const TYPE_LABELS: Record<string, string> = {
-  "try-on": "의류 교체",
-  "color-swap": "색상 변경",
-  "pose-transfer": "포즈 변경",
-  "background-swap": "배경 변경",
-  "multi-pose": "멀티포즈",
-  "detail-extract": "상세 추출",
-  "auto-fitting": "자동피팅",
-};
-
-const TYPE_COLORS: Record<string, string> = {
-  "try-on": "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  "color-swap": "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
-  "pose-transfer": "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  "background-swap": "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
-  "multi-pose": "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
-  "detail-extract": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300",
-  "auto-fitting": "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
-};
+import { SERVICE_TYPE_LABELS as TYPE_LABELS, SERVICE_TYPE_COLORS as TYPE_COLORS } from "@/config/studio";
+// JSZip is dynamically imported in handleZipDownload to reduce bundle size
 
 interface HistoryBatchCardProps {
   batchId: string;
@@ -66,6 +47,7 @@ export function HistoryBatchCard({
   const handleZipDownload = async () => {
     setIsDownloading(true);
     try {
+      const JSZip = (await import("jszip")).default;
       const zip = new JSZip();
       const fetchPromises = items.map(async (item, idx) => {
         const url = item.resultImageUrl;

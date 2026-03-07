@@ -67,19 +67,30 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get("type") as StudioType | null;
     const sort = searchParams.get("sort") || "newest";
     const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const cursor = searchParams.get("cursor"); // cursor-based pagination
+    const offset = cursor ? 0 : parseInt(searchParams.get("offset") || "0");
 
     const supabase = createServiceClient();
+    const ascending = sort === "oldest";
 
     let query = supabase
       .from("studio_history")
       .select("*", { count: "exact" })
       .eq("user_id", userId)
-      .order("created_at", { ascending: sort === "oldest" })
-      .range(offset, offset + limit - 1);
+      .order("created_at", { ascending })
+      .limit(limit);
 
     if (type) {
       query = query.eq("type", type);
+    }
+
+    // cursor-based: use created_at as cursor for consistent performance
+    if (cursor) {
+      query = ascending
+        ? query.gt("created_at", cursor)
+        : query.lt("created_at", cursor);
+    } else if (offset > 0) {
+      query = query.range(offset, offset + limit - 1);
     }
 
     const { data, count, error } = await query;
@@ -111,7 +122,9 @@ export async function GET(request: NextRequest) {
       batchId: row.batch_id || undefined,
     }));
 
-    const response = NextResponse.json({ items, total: count ?? 0 });
+    // Provide cursor for next page (last item's created_at)
+    const nextCursor = items.length > 0 ? items[items.length - 1].createdAt : null;
+    const response = NextResponse.json({ items, total: count ?? 0, nextCursor });
     response.headers.set(
       "Cache-Control",
       "private, max-age=30, stale-while-revalidate=60",

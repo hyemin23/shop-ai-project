@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import * as Sentry from "@sentry/nextjs";
 import { GEMINI_MODELS } from "@/config/prompts";
 import { StudioError } from "@/lib/errors";
+import { withRetry, isTransientError } from "@/lib/retry";
 import {
   type GenerationMode,
   type GeminiModel,
@@ -45,18 +46,17 @@ export async function callGeminiWithImages(
   const aiClient = getAiClient(betaApiKey);
 
   try {
-    return await callModel(aiClient, modelId, prompt, images, fallbackUsed, imageOptions);
+    return await withRetry(
+      () => callModel(aiClient, modelId, prompt, images, fallbackUsed, imageOptions),
+      { maxRetries: 2, baseDelayMs: 2000, shouldRetry: isTransientError },
+    );
   } catch (error) {
     if (mode === "premium" && isOverloadOrRateLimit(error)) {
       fallbackUsed = true;
       try {
-        return await callModel(
-          aiClient,
-          GEMINI_MODELS.standard,
-          prompt,
-          images,
-          fallbackUsed,
-          imageOptions,
+        return await withRetry(
+          () => callModel(aiClient, GEMINI_MODELS.standard, prompt, images, fallbackUsed, imageOptions),
+          { maxRetries: 2, baseDelayMs: 2000, shouldRetry: isTransientError },
         );
       } catch {
         throw new StudioError("STUDIO_006");

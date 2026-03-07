@@ -61,6 +61,8 @@ interface ProcessOptions {
   aspectRatio?: AspectRatio;
   imageSize?: ImageSize;
   userPrompt?: string;
+  /** Skip individual token spend when tokens are pre-reserved at batch level */
+  skipTokenSpend?: boolean;
 }
 
 export async function processSingleStudioRequest(
@@ -101,7 +103,7 @@ export async function processSingleStudioRequest(
     );
     await supabase.storage
       .from(BUCKET)
-      .upload(sourcePath, sourceProcessed.buffer, {
+      .upload(sourcePath, base64ToBuffer(sourceProcessed.base64), {
         contentType: sourceProcessed.mimeType,
       });
     const { data: sourceUrlData } = supabase.storage
@@ -406,9 +408,9 @@ export async function processSingleStudioRequest(
       .select("id")
       .single();
 
-    // 토큰 차감 (베타 유저는 자체 API 키 사용이므로 토큰 차감 스킵)
+    // 토큰 차감 (베타 유저는 자체 API 키 사용이므로 토큰 차감 스킵, 배치 예약 시에도 스킵)
     let tokensSpent = 0;
-    if (historyData?.id && !betaApiKey && !isMasterUser) {
+    if (historyData?.id && !betaApiKey && !isMasterUser && !options.skipTokenSpend) {
       try {
         const result = await spendTokensForGeneration(
           supabase,

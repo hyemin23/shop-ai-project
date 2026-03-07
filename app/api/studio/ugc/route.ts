@@ -7,9 +7,11 @@ import { getUgcScenesForTarget } from "@/config/ugc";
 import { getCreditCost } from "@/lib/tokens";
 import { type UgcGender, type UgcAgeGroup } from "@/types/ugc";
 import { type ImageSize } from "@/types/studio";
+import { batchRateLimiter } from "@/lib/rate-limit";
 
 export const maxDuration = 300;
 
+const CONCURRENCY_LIMIT = 3;
 const RATE_LIMIT_BASE_MS = 2000;
 
 function jitteredDelay(): Promise<void> {
@@ -21,6 +23,17 @@ function jitteredDelay(): Promise<void> {
 
 export async function POST(request: NextRequest) {
   const { userId, sessionId } = await getUserOrSessionId();
+
+  // Rate limiting
+  const rateLimitId = userId || sessionId;
+  const { allowed, retryAfterMs } = batchRateLimiter.check(rateLimitId);
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.", retryAfterMs }),
+      { status: 429, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   const formData = await request.formData();
 
   const sourceImage = formData.get("sourceImage") as File | null;
@@ -76,9 +89,12 @@ export async function POST(request: NextRequest) {
 
   const totalItems = selectedScenes.length;
 
-  // 토큰 사전 확인
+  // 토큰 예약 (원자적)
+  const supabase = createServiceClient();
+  const totalCost = getCreditCost(imageSize as ImageSize, totalItems);
+  let tokensReserved = false;
+
   if (userId) {
-    const supabase = createServiceClient();
     const { data: profile } = await supabase
       .from("profiles")
       .select("token_balance, is_master")
@@ -86,8 +102,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (profile && !profile.is_master) {
-      const totalCost = getCreditCost(imageSize as ImageSize, totalItems);
-
       if ((profile.token_balance ?? 0) < totalCost) {
         return new Response(
           JSON.stringify({
@@ -99,11 +113,28 @@ export async function POST(request: NextRequest) {
           { status: 402, headers: { "Content-Type": "application/json" } },
         );
       }
+
+      const { error: reserveError } = await supabase.rpc("reserve_tokens", {
+        p_user_id: userId,
+        p_amount: totalCost,
+        p_description: `ugc ${totalItems}장 예약`,
+      });
+
+      if (reserveError) {
+        if (reserveError.message?.includes("TOKEN_INSUFFICIENT")) {
+          return new Response(
+            JSON.stringify({ error: "토큰이 부족합니다.", code: "TOKEN_INSUFFICIENT" }),
+            { status: 402, headers: { "Content-Type": "application/json" } },
+          );
+        }
+        console.error("Token reserve error:", reserveError);
+      } else {
+        tokensReserved = true;
+      }
     }
   }
 
   // batch_jobs 레코드 생성
-  const supabase = createServiceClient();
   const { data: batchJob, error: batchError } = await supabase
     .from("batch_jobs")
     .insert({
@@ -124,6 +155,13 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (batchError || !batchJob) {
+    if (tokensReserved && userId) {
+      await supabase.rpc("release_reserved_tokens", {
+        p_user_id: userId,
+        p_amount: totalCost,
+        p_description: "UGC 작업 생성 실패 - 토큰 반환",
+      });
+    }
     return new Response(
       JSON.stringify({ error: "작업 생성에 실패했습니다." }),
       { status: 500, headers: { "Content-Type": "application/json" } },
@@ -146,93 +184,106 @@ export async function POST(request: NextRequest) {
       let completedCount = 0;
       let failedCount = 0;
 
-      for (let i = 0; i < selectedScenes.length; i++) {
-        const scene = selectedScenes[i];
+      // 동시 처리 (CONCURRENCY_LIMIT개씩)
+      for (let chunkStart = 0; chunkStart < selectedScenes.length; chunkStart += CONCURRENCY_LIMIT) {
+        const chunkEnd = Math.min(chunkStart + CONCURRENCY_LIMIT, selectedScenes.length);
+        const chunk = selectedScenes.slice(chunkStart, chunkEnd);
 
-        sendEvent({
-          type: "item_start",
-          index: i,
-          total: totalItems,
-          status: "processing",
-          sceneName: scene.name,
-        });
-
-        const result = await processSingleStudioRequest({
-          type: "ugc",
-          mode: "standard",
-          sourceFile: sourceImage,
-          userId,
-          sessionId,
-          batchId,
-          skipTrialCheck: i > 0,
-          aspectRatio: aspectRatio as "1:1" | "3:4" | "4:3" | "9:16" | "16:9",
-          imageSize: imageSize as "1K" | "2K" | "4K",
-          ugcGender: gender,
-          ugcAgeGroup: ageGroup,
-          ugcSceneDescription: scene.scene,
-          userPrompt,
-        });
-
-        if (!result.success) {
-          console.error(`[UGC] Scene "${scene.name}" failed:`, result.error, result.code);
+        for (let i = 0; i < chunk.length; i++) {
+          sendEvent({
+            type: "item_start",
+            index: chunkStart + i,
+            total: totalItems,
+            status: "processing",
+            sceneName: chunk[i].name,
+          });
         }
 
-        if (result.success) {
-          completedCount++;
-          sendEvent({
-            type: "item_complete",
-            index: i,
-            total: totalItems,
-            status: "success",
-            sceneName: scene.name,
-            resultImageUrl: result.resultImageUrl,
-            processingTime: result.processingTime,
-          });
-        } else {
-          failedCount++;
-          sendEvent({
-            type: "item_error",
-            index: i,
-            total: totalItems,
-            status: "error",
-            sceneName: scene.name,
-            error: result.error,
-          });
+        const results = await Promise.allSettled(
+          chunk.map((scene, i) =>
+            processSingleStudioRequest({
+              type: "ugc",
+              mode: "standard",
+              sourceFile: sourceImage,
+              userId,
+              sessionId,
+              batchId,
+              skipTrialCheck: chunkStart + i > 0,
+              aspectRatio: aspectRatio as "1:1" | "3:4" | "4:3" | "9:16" | "16:9",
+              imageSize: imageSize as "1K" | "2K" | "4K",
+              ugcGender: gender,
+              ugcAgeGroup: ageGroup,
+              ugcSceneDescription: scene.scene,
+              userPrompt,
+              skipTokenSpend: tokensReserved,
+            }),
+          ),
+        );
 
-          if (result.code === "TOKEN_INSUFFICIENT") {
-            for (let j = i + 1; j < selectedScenes.length; j++) {
-              sendEvent({
-                type: "item_error",
-                index: j,
-                total: totalItems,
-                status: "skipped",
-                sceneName: selectedScenes[j].name,
-                error: "토큰 부족으로 건너뛰었습니다.",
-              });
+        let shouldBreak = false;
+
+        for (let i = 0; i < results.length; i++) {
+          const globalIndex = chunkStart + i;
+          const scene = chunk[i];
+          const result = results[i];
+
+          if (result.status === "fulfilled" && result.value.success) {
+            completedCount++;
+            sendEvent({
+              type: "item_complete",
+              index: globalIndex,
+              total: totalItems,
+              status: "success",
+              sceneName: scene.name,
+              resultImageUrl: result.value.resultImageUrl,
+              processingTime: result.value.processingTime,
+            });
+          } else {
+            failedCount++;
+            const error = result.status === "fulfilled"
+              ? result.value.error
+              : "처리 중 오류가 발생했습니다.";
+            const code = result.status === "fulfilled" ? result.value.code : undefined;
+
+            if (result.status === "fulfilled") {
+              console.error(`[UGC] Scene "${scene.name}" failed:`, error, code);
             }
-            break;
+
+            sendEvent({
+              type: "item_error",
+              index: globalIndex,
+              total: totalItems,
+              status: "error",
+              sceneName: scene.name,
+              error,
+            });
+
+            if (code === "TOKEN_INSUFFICIENT") {
+              for (let j = globalIndex + 1; j < selectedScenes.length; j++) {
+                sendEvent({
+                  type: "item_error",
+                  index: j,
+                  total: totalItems,
+                  status: "skipped",
+                  sceneName: selectedScenes[j].name,
+                  error: "토큰 부족으로 건너뛰었습니다.",
+                });
+              }
+              shouldBreak = true;
+              break;
+            }
           }
         }
 
-        // batch_jobs 진행률 업데이트
-        await supabase
-          .from("batch_jobs")
-          .update({
-            completed_items: completedCount,
-            failed_items: failedCount,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", batchId);
+        if (shouldBreak) break;
 
-        // Rate limit (마지막 아이템 제외)
-        if (i < selectedScenes.length - 1) {
+        if (chunkEnd < selectedScenes.length) {
           await jitteredDelay();
         }
       }
 
-      // 배치 완료
-      const finalStatus =
-        failedCount === totalItems ? "failed" : "completed";
+      // 배치 완료 (N+1 제거: 완료 시에만 DB 업데이트)
+      const finalStatus = failedCount === totalItems ? "failed" : "completed";
       await supabase
         .from("batch_jobs")
         .update({
@@ -242,6 +293,20 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", batchId);
+
+      // 예약 토큰 중 미사용분 반환
+      if (tokensReserved && userId && failedCount > 0) {
+        const perItemCost = getCreditCost(imageSize as ImageSize, 1);
+        const unusedTokens = perItemCost * failedCount;
+        if (unusedTokens > 0) {
+          await supabase.rpc("release_reserved_tokens", {
+            p_user_id: userId,
+            p_amount: unusedTokens,
+            p_description: `ugc 실패분 ${failedCount}장 토큰 반환`,
+            p_reference_id: batchId,
+          });
+        }
+      }
 
       sendEvent({
         type: "batch_complete",
