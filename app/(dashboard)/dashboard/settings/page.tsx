@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTokenBalance } from "@/hooks/use-token-balance";
 import {
@@ -13,7 +14,20 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, Mail, User, Coins } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { LogOut, Mail, User, Coins, Loader2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 
 export default function SettingsPage() {
@@ -159,6 +173,95 @@ export default function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* 회원 탈퇴 */}
+      <DeleteAccountCard userEmail={user.email ?? ""} />
     </div>
+  );
+}
+
+function DeleteAccountCard({ userEmail }: { userEmail: string }) {
+  const [confirmText, setConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const canDelete = confirmText === "탈퇴합니다";
+
+  async function handleDelete() {
+    setIsDeleting(true);
+    try {
+      const res = await fetch("/api/account/delete", { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "계정 삭제에 실패했습니다.");
+        return;
+      }
+      toast.success("계정이 삭제되었습니다.");
+      window.location.href = "/login";
+    } catch {
+      toast.error("계정 삭제 중 오류가 발생했습니다.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  return (
+    <Card className="border-destructive/30">
+      <CardHeader>
+        <CardTitle className="text-destructive">회원 탈퇴</CardTitle>
+        <CardDescription>
+          탈퇴 시 모든 데이터(프로필, 토큰, 구독, 동의 기록)가 영구 삭제되며 복구할 수 없습니다.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <AlertDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setConfirmText(""); }}>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10">
+              <Trash2 className="mr-2 h-4 w-4" />
+              회원 탈퇴
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>정말 탈퇴하시겠습니까?</AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-3">
+                  <p>이 작업은 되돌릴 수 없습니다. 다음 데이터가 영구 삭제됩니다:</p>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    <li>프로필 및 계정 정보</li>
+                    <li>보유 토큰 및 거래 내역</li>
+                    <li>활성 구독 (자동 해지)</li>
+                    <li>업로드한 이미지</li>
+                  </ul>
+                  <p className="pt-2">
+                    확인을 위해 <strong className="text-foreground">탈퇴합니다</strong>를 입력해주세요.
+                  </p>
+                  <Input
+                    placeholder="탈퇴합니다"
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    disabled={isDeleting}
+                  />
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                disabled={!canDelete || isDeleting}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleDelete();
+                }}
+              >
+                {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                탈퇴하기
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </CardContent>
+    </Card>
   );
 }

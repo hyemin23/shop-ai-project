@@ -14,15 +14,15 @@ export const siteConfig: SiteConfig = {
       title: "서비스",
       items: [
         { title: "기능 소개", href: "/#features" },
-        { title: "가격 안내", href: "/#pricing" },
+        { title: "가격 안내", href: "/pricing" },
         { title: "스튜디오", href: "/dashboard" },
       ],
     },
     {
       title: "고객 지원",
       items: [
-        { title: "자주 묻는 질문", href: "#" },
-        { title: "문의하기", href: "#" },
+        { title: "자주 묻는 질문", href: "/faq" },
+        { title: "문의하기", href: "mailto:support@ddokpick.com" },
       ],
     },
     {

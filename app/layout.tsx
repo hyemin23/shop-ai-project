@@ -3,6 +3,7 @@ import { Outfit, Noto_Sans_KR } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -58,6 +59,7 @@ export default function RootLayout({
         <ThemeProvider>
           <TooltipProvider>
             {children}
+            <CookieConsent />
             <Toaster />
           </TooltipProvider>
         </ThemeProvider>
