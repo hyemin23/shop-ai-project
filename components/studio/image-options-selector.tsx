@@ -10,6 +10,7 @@ interface ImageOptionsSelectorProps {
   onOptionsChange: (options: ImageGenerationOptions) => void;
   creditCount?: number;
   creditLabel?: string;
+  hideAspectRatio?: boolean;
 }
 
 export function ImageOptionsSelector({
@@ -17,6 +18,7 @@ export function ImageOptionsSelector({
   onOptionsChange,
   creditCount = 1,
   creditLabel,
+  hideAspectRatio,
 }: ImageOptionsSelectorProps) {
   const selectedSize = options.imageSize ?? "1K";
   const selectedRatio = options.aspectRatio ?? "1:1";
@@ -27,28 +29,30 @@ export function ImageOptionsSelector({
     <div className="space-y-3">
       <div className="text-sm font-medium">이미지 생성 옵션</div>
 
-      <div>
-        <div className="mb-2 text-xs text-muted-foreground">화면 비율</div>
-        <div className="inline-flex flex-wrap gap-1 rounded-lg border bg-muted/30 p-1">
-          {ASPECT_RATIO_PRESETS.map((preset) => (
-            <button
-              key={preset.value}
-              type="button"
-              className={cn(
-                "rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200",
-                selectedRatio === preset.value
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              onClick={() =>
-                onOptionsChange({ ...options, aspectRatio: preset.value })
-              }
-            >
-              {preset.label}
-            </button>
-          ))}
+      {!hideAspectRatio && (
+        <div>
+          <div className="mb-2 text-xs text-muted-foreground">화면 비율</div>
+          <div className="inline-flex flex-wrap gap-1 rounded-lg border bg-muted/30 p-1">
+            {ASPECT_RATIO_PRESETS.map((preset) => (
+              <button
+                key={preset.value}
+                type="button"
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200",
+                  selectedRatio === preset.value
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                onClick={() =>
+                  onOptionsChange({ ...options, aspectRatio: preset.value })
+                }
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div>
         <div className="mb-2 text-xs text-muted-foreground">해상도</div>

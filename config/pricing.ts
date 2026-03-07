@@ -1,4 +1,4 @@
-import { type TokenPackage } from "@/types/payment";
+import { type TokenPackage, type SubscriptionPlan } from "@/types/payment";
 import { type ImageSize } from "@/types/studio";
 
 // 해상도 기반 단일 크레딧 체계 (이미지 1건당)
@@ -39,3 +39,52 @@ export const TOKEN_PACKAGES: TokenPackage[] = [
 ];
 
 export const FREE_TRIAL_TOKENS = 30;
+
+export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
+  {
+    id: "sub_lite",
+    name: "Lite",
+    monthlyPrice: 9900,
+    monthlyTokens: 150,
+    description: "가볍게 시작하는 월간 구독",
+    features: [
+      "매월 150 크레딧 제공",
+      "4K 고해상도 피팅컷 생성",
+      "4K 고해상도 디테일 컷 생성",
+      "4K 고화질 비디오 생성",
+      "의류 특화 프롬프트 적용",
+      "표준 처리속도",
+    ],
+  },
+  {
+    id: "sub_pro",
+    name: "Pro",
+    monthlyPrice: 29900,
+    monthlyTokens: 550,
+    description: "전문가를 위한 월간 구독",
+    recommended: true,
+    features: [
+      "매월 500 + 보너스 50 크레딧",
+      "4K 고해상도 피팅컷 생성",
+      "4K 고해상도 디테일 컷 생성",
+      "4K 고화질 비디오 생성",
+      "의류 특화 프롬프트 적용",
+      "우선 처리속도",
+    ],
+  },
+  {
+    id: "sub_max",
+    name: "Max",
+    monthlyPrice: 79900,
+    monthlyTokens: 1650,
+    description: "최대 성능의 월간 구독",
+    features: [
+      "매월 1500 + 보너스 150 크레딧",
+      "4K 고해상도 피팅컷 생성",
+      "4K 고해상도 디테일 컷 생성",
+      "4K 고화질 비디오 생성",
+      "의류 특화 프롬프트 적용",
+      "최우선 처리속도",
+    ],
+  },
+];

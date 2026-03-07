@@ -31,18 +31,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     siteName: "똑픽 (DDokPick)",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "똑픽 — AI 의류 이미지 편집 서비스",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/og-image.png"],
   },
 };
 

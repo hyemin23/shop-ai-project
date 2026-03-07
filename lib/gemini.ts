@@ -63,11 +63,15 @@ export async function callGeminiWithImages(
       }
     }
 
+    const status = (error as { status?: number })?.status;
+    const errMsg = (error as Error)?.message ?? "unknown";
+    console.error(`[Gemini] API error | model=${modelId} mode=${mode} status=${status} | ${errMsg}`);
+
     Sentry.captureException(error, {
       tags: { service: "gemini", mode, model: modelId },
     });
 
-    if ((error as { status?: number })?.status === 429) {
+    if (status === 429) {
       throw new StudioError("STUDIO_005");
     }
 
@@ -106,15 +110,21 @@ async function callModel(
     { text: prompt },
   ];
 
+  console.log(`[Gemini] Request | model=${modelId} images=${images.length} config=${JSON.stringify(config.imageConfig ?? {})}`);
+
   const response = await aiClient.models.generateContent({
     model: modelId,
     contents,
     config,
   });
 
-  const parts = response.candidates?.[0]?.content?.parts;
+  const candidate = response.candidates?.[0];
+  const parts = candidate?.content?.parts;
+  const finishReason = candidate?.finishReason;
+  const blockReason = response.promptFeedback?.blockReason;
 
   if (!parts) {
+    console.error(`[Gemini] No parts | finishReason=${finishReason} blockReason=${blockReason} response=${JSON.stringify(response.candidates?.[0] ?? {}).slice(0, 500)}`);
     throw new StudioError("STUDIO_006");
   }
 
@@ -123,6 +133,8 @@ async function callModel(
   );
 
   if (!imagePart || !("inlineData" in imagePart) || !imagePart.inlineData) {
+    const textParts = parts.filter((p) => "text" in p).map((p) => ("text" in p ? p.text : "")).join(" ");
+    console.error(`[Gemini] No image in response | finishReason=${finishReason} textParts="${textParts.slice(0, 300)}"`);
     throw new StudioError("STUDIO_003");
   }
 

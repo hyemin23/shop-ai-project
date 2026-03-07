@@ -25,7 +25,8 @@
     "shadcn",
     "supabase",
     "vercel",
-    "kling-ai"
+    "kling-ai",
+    "tosspayments"
   ],
   "hooks": {
     "SessionStart": [

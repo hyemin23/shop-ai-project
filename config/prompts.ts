@@ -145,6 +145,41 @@ ${WATERMARK_INSTRUCTION}`,
       stylePrompt,
     ),
 
+  ugcGenerate: (gender: string, ageGroup: string, sceneDescription: string, userPrompt?: string) =>
+    appendUserPrompt(
+      `You are an AI creating hyper-realistic UGC style photos for social media.
+
+INPUT: A clothing product image (first image).
+
+TASK: Generate a photo of a Korean ${gender === "female" ? "woman" : "man"} in their ${ageGroup} wearing the exact clothing from the product image, in this scene:
+${sceneDescription}
+
+CRITICAL UGC AUTHENTICITY RULES:
+1. CAMERA: Smartphone camera feel — slight depth-of-field, imperfect framing, realistic color processing
+2. LIGHTING: Only natural scene lighting. No studio lights. Allow natural shadows, overexposed windows, warm indoor light
+3. COMPOSITION: Selfie or friend's candid shot angle. NEVER professional photography
+4. MODEL APPEARANCE (CRITICAL):
+   - MUST be a Korean person with Korean idol-level visuals — attractive, well-groomed, stylish
+   - Clear Korean facial features: monolid or subtle double eyelid, warm skin tone, black or dark brown hair
+   - ${gender === "female" ? "Korean beauty standard: glass skin, subtle natural makeup, trendy Korean hairstyle (layered cut, see-through bangs, etc.)" : "Korean male beauty standard: clean-cut, well-styled hair, clear skin, sharp jawline"}
+   - Natural relaxed expression (NOT stiff pose or stock-photo smile)
+   - Age-appropriate styling for Korean ${ageGroup}
+5. SETTING: All locations MUST be distinctly Korean — Korean signage, Korean interior design, Korean streetscape. No Western or ambiguous settings.
+6. CLOTHING PRESERVATION (HIGHEST PRIORITY):
+   - This is the MOST IMPORTANT rule. The clothing MUST be an exact replica of the input product image.
+   - Preserve EXACT color (hue, saturation, brightness), pattern (stripes, checks, prints, logos, graphics), and fabric texture (knit, denim, silk, cotton, leather, etc.)
+   - Maintain garment structure: neckline shape, sleeve length, button/zipper placement, pocket details, stitching lines, hem style
+   - Show realistic fabric behavior: natural draping, gravity-based wrinkles, fold patterns consistent with the fabric weight and type
+   - Do NOT alter, simplify, or reinterpret ANY design element of the clothing. Copy it pixel-perfectly.
+   - If the product has text, logos, or graphic prints, reproduce them exactly as shown in the input image
+7. SCENE: Natural interaction with environment. Consistent lighting/shadows between model and background
+8. ANTI-AI: Avoid overly symmetrical face, plastic-smooth skin, oversaturated colors, perfect studio lighting, floating model, wrong finger count
+
+The image must look indistinguishable from a real Korean Instagram/TikTok post by an attractive Korean influencer.
+${WATERMARK_INSTRUCTION}`,
+      userPrompt,
+    ),
+
   nukkiCut: (userPrompt?: string) =>
     appendUserPrompt(
       `You are a professional e-commerce product photographer. Your task is to extract the clothing item from the provided image and present it as a clean product cut-out on a pure white background.

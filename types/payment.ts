@@ -29,3 +29,29 @@ export interface TokenPackage {
   bonusTokens?: number;
   recommended?: boolean;
 }
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  monthlyPrice: number;
+  monthlyTokens: number;
+  description: string;
+  features: string[];
+  recommended?: boolean;
+}
+
+export type SubscriptionStatus = "active" | "past_due" | "canceled" | "paused";
+
+export interface Subscription {
+  id: string;
+  userId: string;
+  planId: string;
+  billingKey: string | null;
+  status: SubscriptionStatus;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  paymentFailedCount: number;
+  createdAt: string;
+  updatedAt: string;
+}

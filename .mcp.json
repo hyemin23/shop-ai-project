@@ -57,6 +57,13 @@
       "env": {
         "VERCEL_TOKEN": "${VERCEL_TOKEN}"
       }
+    },
+    "tosspayments": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@tosspayments/integration-guide-mcp@latest"
+      ]
     }
   }
 }

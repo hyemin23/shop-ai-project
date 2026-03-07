@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useTokenBalance } from "@/hooks/use-token-balance";
 import {
@@ -26,7 +27,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { LogOut, Mail, User, Coins, Loader2, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { LogOut, Mail, User, Coins, Loader2, Trash2, Bell } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -161,6 +164,9 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
+      {/* 알림 설정 */}
+      <MarketingConsentCard userId={user.id} />
+
       {/* 로그아웃 */}
       <Card>
         <CardHeader>
@@ -177,6 +183,83 @@ export default function SettingsPage() {
       {/* 회원 탈퇴 */}
       <DeleteAccountCard userEmail={user.email ?? ""} />
     </div>
+  );
+}
+
+function MarketingConsentCard({ userId }: { userId: string }) {
+  const [agreed, setAgreed] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const fetchConsent = useCallback(async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("profiles")
+      .select("marketing_agreed")
+      .eq("id", userId)
+      .single();
+    if (data) setAgreed(data.marketing_agreed ?? false);
+    setIsLoading(false);
+  }, [userId]);
+
+  useEffect(() => {
+    fetchConsent();
+  }, [fetchConsent]);
+
+  async function handleToggle(checked: boolean) {
+    setIsSaving(true);
+    setAgreed(checked);
+    try {
+      const res = await fetch("/api/consent", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ marketing_agreed: checked }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "설정 변경에 실패했습니다.");
+        setAgreed(!checked);
+        return;
+      }
+      toast.success(checked ? "마케팅 수신에 동의했습니다." : "마케팅 수신 동의를 철회했습니다.");
+    } catch {
+      toast.error("설정 변경 중 오류가 발생했습니다.");
+      setAgreed(!checked);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Bell className="h-5 w-5" />
+          알림 설정
+        </CardTitle>
+        <CardDescription>마케팅 정보 수신 설정을 관리합니다.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="marketing-consent">마케팅 수신 동의</Label>
+            <p className="text-sm text-muted-foreground">
+              이벤트, 할인, 신기능 안내 등을 받습니다.
+            </p>
+          </div>
+          {isLoading ? (
+            <Skeleton className="h-6 w-11 rounded-full" />
+          ) : (
+            <Switch
+              id="marketing-consent"
+              checked={agreed}
+              onCheckedChange={handleToggle}
+              disabled={isSaving}
+            />
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

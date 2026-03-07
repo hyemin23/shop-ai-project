@@ -51,6 +51,9 @@ interface ProcessOptions {
   extractionMode?: "rose-cut" | "4-split" | "nukki";
   detailPresets?: string[];
   autoFittingStylePrompt?: string;
+  ugcGender?: string;
+  ugcAgeGroup?: string;
+  ugcSceneDescription?: string;
   userId: string | null;
   sessionId: string;
   batchId?: string;
@@ -280,16 +283,40 @@ export async function processSingleStudioRequest(
         if (options.detailPresets) historyParams.detailPresets = options.detailPresets;
         break;
       }
+      case "ugc": {
+        if (!options.ugcSceneDescription) {
+          return {
+            success: false,
+            processingTime: Date.now() - startTime,
+            error: "장면 설명이 필요합니다.",
+          };
+        }
+        prompt = PROMPTS.ugcGenerate(
+          options.ugcGender || "female",
+          options.ugcAgeGroup || "20s",
+          options.ugcSceneDescription,
+          options.userPrompt,
+        );
+        historyParams.ugcGender = options.ugcGender;
+        historyParams.ugcAgeGroup = options.ugcAgeGroup;
+        historyParams.ugcScene = options.ugcSceneDescription;
+        break;
+      }
     }
 
     // 프로필 조회 (토큰 잔액, 마스터/베타 여부, 베타 API 키)
     let betaApiKey: string | undefined;
+    let isMasterUser = false;
     if (options.userId) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("token_balance, is_master, is_beta, gemini_api_key")
         .eq("id", options.userId)
         .single();
+
+      if (profile?.is_master) {
+        isMasterUser = true;
+      }
 
       if (profile?.is_beta && profile.gemini_api_key) {
         betaApiKey = profile.gemini_api_key;
@@ -381,7 +408,7 @@ export async function processSingleStudioRequest(
 
     // 토큰 차감 (베타 유저는 자체 API 키 사용이므로 토큰 차감 스킵)
     let tokensSpent = 0;
-    if (historyData?.id && !betaApiKey) {
+    if (historyData?.id && !betaApiKey && !isMasterUser) {
       try {
         const result = await spendTokensForGeneration(
           supabase,
@@ -453,7 +480,7 @@ export async function processSingleStudioRequest(
       };
     }
 
-    console.error(`${options.type} processing error:`, error);
+    console.error(`[StudioProcessor] ${options.type} error:`, error instanceof Error ? error.stack : error);
     return {
       success: false,
       processingTime,
