@@ -107,6 +107,11 @@ export function useMultiPoseGenerate({
 
             const event: MultiPoseSSEEvent = JSON.parse(dataLine.slice(6));
 
+            if (event.type === "batch_complete") {
+              if (event.batchId) setBatchId(event.batchId);
+              continue;
+            }
+
             setItems((prev) => {
               const updated = [...prev];
               const itemIdx = updated.findIndex(
@@ -123,10 +128,6 @@ export function useMultiPoseGenerate({
               }
               return updated;
             });
-
-            if (event.type === "batch_complete" && event.batchId) {
-              setBatchId(event.batchId);
-            }
           }
         }
 
