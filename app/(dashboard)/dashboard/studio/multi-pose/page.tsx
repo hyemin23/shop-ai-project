@@ -11,7 +11,8 @@ import { MultiPoseProgressPanel } from "@/components/studio/multi-pose-progress-
 import { MultiPoseResultGrid } from "@/components/studio/multi-pose-result-grid";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useMultiPoseGenerate } from "@/hooks/use-multi-pose-generate";
-import { type ImageGenerationOptions } from "@/types/studio";
+import { usePersistedImageOptions } from "@/hooks/use-persisted-image-options";
+import { resolveMode } from "@/config/studio";
 import { MAX_POSE_VARIATIONS } from "@/types/multi-pose";
 import { toast } from "sonner";
 
@@ -20,9 +21,7 @@ export default function MultiPosePage() {
   const [prompts, setPrompts] = useState<string[]>(
     Array(MAX_POSE_VARIATIONS).fill(""),
   );
-  const [imageOptions, setImageOptions] = useState<ImageGenerationOptions>({
-    imageSize: "1K",
-  });
+  const [imageOptions, setImageOptions] = usePersistedImageOptions();
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const {
@@ -33,7 +32,7 @@ export default function MultiPosePage() {
     reset,
     downloadZip,
   } = useMultiPoseGenerate({
-    mode: "standard",
+    mode: resolveMode(imageOptions.imageSize),
     onComplete: () => {
       toast.success("멀티포즈 처리가 완료되었습니다.");
     },

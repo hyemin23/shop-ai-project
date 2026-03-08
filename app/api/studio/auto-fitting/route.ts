@@ -5,7 +5,8 @@ import { processSingleStudioRequest } from "@/lib/studio-processor";
 import { type AutoFittingSSEEvent } from "@/types/auto-fitting";
 import { AUTO_FITTING_PRESETS } from "@/config/auto-fitting";
 import { getCreditCost } from "@/lib/tokens";
-import { type ImageSize } from "@/types/studio";
+import { type ImageSize, type GenerationMode } from "@/types/studio";
+import { resolveMode } from "@/config/studio";
 
 export const maxDuration = 300;
 
@@ -23,7 +24,8 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
 
   const sourceImage = formData.get("sourceImage") as File | null;
-  const imageSize = (formData.get("imageSize") as string) || "1K";
+  const imageSize = (formData.get("imageSize") as ImageSize) || "1K";
+  const mode: GenerationMode = resolveMode(imageSize);
   const stylePrompt = (formData.get("stylePrompt") as string)?.trim() || undefined;
 
   if (!sourceImage) {
@@ -71,7 +73,7 @@ export async function POST(request: NextRequest) {
       user_id: userId,
       status: "processing",
       type: "auto-fitting",
-      mode: "standard",
+      mode,
       total_items: totalItems,
       params: {
         presets: presets.map((p) => p.id),
@@ -118,7 +120,7 @@ export async function POST(request: NextRequest) {
 
         const result = await processSingleStudioRequest({
           type: "auto-fitting",
-          mode: "standard",
+          mode,
           sourceFile: sourceImage,
           userId,
           sessionId,

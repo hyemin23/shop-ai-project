@@ -21,7 +21,8 @@ import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-
 import { DetailPresetSelector } from "@/components/studio/detail-preset-selector";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
 import { useStudioDownload } from "@/hooks/use-studio-download";
-import { DEFAULT_IMAGE_OPTIONS, appendImageOptions } from "@/config/studio";
+import { usePersistedImageOptions } from "@/hooks/use-persisted-image-options";
+import { appendImageOptions, resolveMode } from "@/config/studio";
 import {
   type DetailExtractMode,
   DETAIL_PRESETS,
@@ -34,12 +35,12 @@ export default function StudioDetailExtractPage() {
   const [selectedPresetIds, setSelectedPresetIds] = useState<string[]>([
     ...DEFAULT_4SPLIT_PRESETS,
   ]);
-  const [imageOptions, setImageOptions] = useState(DEFAULT_IMAGE_OPTIONS);
+  const [imageOptions, setImageOptions] = usePersistedImageOptions();
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const { status, result, generate, reset } = useStudioGenerate({
     type: "detail-extract",
-    mode: "standard",
+    mode: resolveMode(imageOptions.imageSize),
     onTokenInsufficient: () => setTokenDialogOpen(true),
     onSuccess: () =>
       toast.success(
@@ -61,7 +62,6 @@ export default function StudioDetailExtractPage() {
     const formData = new FormData();
     formData.set("sourceImage", sourceFile);
     formData.set("extractionMode", extractionMode);
-    formData.set("mode", "standard");
     appendImageOptions(formData, imageOptions);
 
     if (extractionMode === "4-split") {

@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
   const aspectRatio = parseAspectRatio(formData.get("aspectRatio"));
   const imageSize = parseImageSize(formData.get("imageSize"));
   const userPrompt = formData.get("userPrompt") as string | null;
+  const garmentCategory = formData.get("garmentCategory") as string | null;
 
   if (!sourceFile || !referenceFile) {
     return NextResponse.json(
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
     aspectRatio,
     imageSize,
     userPrompt: userPrompt || undefined,
+    garmentCategory: garmentCategory || undefined,
   });
 
   if (!result.success) {

@@ -10,16 +10,14 @@ import { ImageOptionsSelector } from "@/components/studio/image-options-selector
 import { AutoFittingResultGrid } from "@/components/studio/auto-fitting-result-grid";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useAutoFittingGenerate } from "@/hooks/use-auto-fitting-generate";
-import { type ImageGenerationOptions } from "@/types/studio";
+import { usePersistedImageOptions } from "@/hooks/use-persisted-image-options";
 import { AUTO_FITTING_POSE_COUNT } from "@/types/auto-fitting";
 import { toast } from "sonner";
 
 export default function AutoFittingPage() {
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [stylePrompt, setStylePrompt] = useState("");
-  const [imageOptions, setImageOptions] = useState<ImageGenerationOptions>({
-    imageSize: "1K",
-  });
+  const [imageOptions, setImageOptions] = usePersistedImageOptions();
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const { items, isProcessing, progress, generate, reset, downloadZip } =

@@ -14,19 +14,20 @@ import { PromptInput } from "@/components/studio/prompt-input";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
 import { useStudioDownload } from "@/hooks/use-studio-download";
-import { DEFAULT_IMAGE_OPTIONS, appendImageOptions } from "@/config/studio";
+import { usePersistedImageOptions } from "@/hooks/use-persisted-image-options";
+import { appendImageOptions, resolveMode } from "@/config/studio";
 
 export default function StudioPoseTransferPage() {
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [poseType, setPoseType] = useState<"preset" | "custom">("preset");
   const [selectedPresetId, setSelectedPresetId] = useState<string>("");
   const [poseReferenceFile, setPoseReferenceFile] = useState<File | null>(null);
-  const [imageOptions, setImageOptions] = useState(DEFAULT_IMAGE_OPTIONS);
+  const [imageOptions, setImageOptions] = usePersistedImageOptions();
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const { status, result, generate, reset } = useStudioGenerate({
     type: "pose-transfer",
-    mode: "standard",
+    mode: resolveMode(imageOptions.imageSize),
     onTokenInsufficient: () => setTokenDialogOpen(true),
     onSuccess: () => toast.success("포즈가 변경되었습니다"),
   });
@@ -44,7 +45,6 @@ export default function StudioPoseTransferPage() {
     } else {
       formData.set("poseReferenceImage", poseReferenceFile!);
     }
-    formData.set("mode", "standard");
     appendImageOptions(formData, imageOptions);
     await generate(formData);
   }, [

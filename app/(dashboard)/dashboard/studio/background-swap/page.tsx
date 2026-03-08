@@ -13,17 +13,18 @@ import { PromptInput } from "@/components/studio/prompt-input";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
 import { useStudioDownload } from "@/hooks/use-studio-download";
-import { DEFAULT_IMAGE_OPTIONS, appendImageOptions } from "@/config/studio";
+import { usePersistedImageOptions } from "@/hooks/use-persisted-image-options";
+import { appendImageOptions, resolveMode } from "@/config/studio";
 
 export default function StudioBackgroundSwapPage() {
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [referenceFile, setReferenceFile] = useState<File | null>(null);
-  const [imageOptions, setImageOptions] = useState(DEFAULT_IMAGE_OPTIONS);
+  const [imageOptions, setImageOptions] = usePersistedImageOptions();
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const { status, result, generate, reset } = useStudioGenerate({
     type: "background-swap",
-    mode: "standard",
+    mode: resolveMode(imageOptions.imageSize),
     onTokenInsufficient: () => setTokenDialogOpen(true),
     onSuccess: () => toast.success("이미지가 생성되었습니다"),
     onError: (msg) => toast.error(msg),
@@ -34,7 +35,6 @@ export default function StudioBackgroundSwapPage() {
     const formData = new FormData();
     formData.set("sourceImage", sourceFile);
     formData.set("referenceImage", referenceFile);
-    formData.set("mode", "standard");
     appendImageOptions(formData, imageOptions);
     await generate(formData);
   }, [sourceFile, referenceFile, imageOptions, generate]);

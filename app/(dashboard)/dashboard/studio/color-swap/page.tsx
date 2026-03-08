@@ -22,7 +22,8 @@ import { PromptInput } from "@/components/studio/prompt-input";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
 import { useStudioDownload } from "@/hooks/use-studio-download";
-import { DEFAULT_IMAGE_OPTIONS, appendImageOptions } from "@/config/studio";
+import { usePersistedImageOptions } from "@/hooks/use-persisted-image-options";
+import { appendImageOptions, resolveMode } from "@/config/studio";
 
 type ColorMode = "hex" | "reference";
 
@@ -32,12 +33,12 @@ export default function StudioColorSwapPage() {
   const [colorMode, setColorMode] = useState<ColorMode>("hex");
   const [referenceFile, setReferenceFile] = useState<File | null>(null);
   const [garmentRegion, setGarmentRegion] = useState("auto");
-  const [imageOptions, setImageOptions] = useState(DEFAULT_IMAGE_OPTIONS);
+  const [imageOptions, setImageOptions] = usePersistedImageOptions();
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const { status, result, generate, reset } = useStudioGenerate({
     type: "color-swap",
-    mode: "standard",
+    mode: resolveMode(imageOptions.imageSize),
     onTokenInsufficient: () => setTokenDialogOpen(true),
     onSuccess: () => toast.success("색상이 변경되었습니다"),
   });
@@ -47,7 +48,6 @@ export default function StudioColorSwapPage() {
     const formData = new FormData();
     formData.set("sourceImage", sourceFile);
     formData.set("garmentRegion", garmentRegion);
-    formData.set("mode", "standard");
     appendImageOptions(formData, imageOptions);
 
     if (colorMode === "hex") {

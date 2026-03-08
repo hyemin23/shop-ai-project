@@ -50,6 +50,7 @@ interface ProcessOptions {
   poseReferenceFile?: File | null;
   extractionMode?: "rose-cut" | "4-split" | "nukki";
   detailPresets?: string[];
+  garmentCategory?: string;
   autoFittingStylePrompt?: string;
   ugcGender?: string;
   ugcAgeGroup?: string;
@@ -137,7 +138,7 @@ export async function processSingleStudioRequest(
           base64: refProcessed.base64,
           mimeType: refProcessed.mimeType,
         });
-        prompt = PROMPTS.tryOn(undefined, options.userPrompt);
+        prompt = PROMPTS.tryOn(options.garmentCategory || undefined, options.userPrompt);
         historyParams.referenceImage = "uploaded";
         break;
       }

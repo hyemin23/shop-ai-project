@@ -19,9 +19,10 @@ import { PosePresetGallery } from "@/components/studio/pose-preset-gallery";
 import { ImageUploadZone } from "@/components/studio/image-upload-zone";
 import { ImageOptionsSelector } from "@/components/studio/image-options-selector";
 import { PromptInput } from "@/components/studio/prompt-input";
-import { appendImageOptions } from "@/config/studio";
+import { appendImageOptions, resolveMode } from "@/config/studio";
 import { useBatchGenerate } from "@/hooks/use-batch-generate";
-import { type StudioType, type ImageGenerationOptions } from "@/types/studio";
+import { usePersistedImageOptions } from "@/hooks/use-persisted-image-options";
+import { type StudioType } from "@/types/studio";
 
 export default function BatchPage() {
   const [type, setType] = useState<StudioType>("try-on");
@@ -34,14 +35,12 @@ export default function BatchPage() {
   const [poseType, setPoseType] = useState<"preset" | "custom">("preset");
   const [presetId, setPresetId] = useState("front-standing");
   const [userPrompt, setUserPrompt] = useState("");
-  const [imageOptions, setImageOptions] = useState<ImageGenerationOptions>({
-    imageSize: "1K",
-  });
+  const [imageOptions, setImageOptions] = usePersistedImageOptions();
 
   const { items, isProcessing, progress, generate, reset, downloadZip } =
     useBatchGenerate({
       type,
-      mode: "standard",
+      mode: resolveMode(imageOptions.imageSize),
       onComplete: () => {},
     });
 

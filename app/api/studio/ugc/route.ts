@@ -6,7 +6,8 @@ import { type UgcSSEEvent, UGC_MAX_SCENES } from "@/types/ugc";
 import { getUgcScenesForTarget } from "@/config/ugc";
 import { getCreditCost } from "@/lib/tokens";
 import { type UgcGender, type UgcAgeGroup } from "@/types/ugc";
-import { type ImageSize } from "@/types/studio";
+import { type ImageSize, type GenerationMode } from "@/types/studio";
+import { resolveMode } from "@/config/studio";
 import { batchRateLimiter } from "@/lib/rate-limit";
 
 export const maxDuration = 300;
@@ -37,7 +38,8 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
 
   const sourceImage = formData.get("sourceImage") as File | null;
-  const imageSize = (formData.get("imageSize") as string) || "1K";
+  const imageSize = (formData.get("imageSize") as ImageSize) || "1K";
+  const mode: GenerationMode = resolveMode(imageSize);
   const gender = (formData.get("gender") as UgcGender) || "female";
   const ageGroup = (formData.get("ageGroup") as UgcAgeGroup) || "20s";
   const aspectRatio = (formData.get("aspectRatio") as string) || "9:16";
@@ -142,7 +144,7 @@ export async function POST(request: NextRequest) {
       user_id: userId,
       status: "processing",
       type: "ugc",
-      mode: "standard",
+      mode,
       total_items: totalItems,
       params: {
         gender,
@@ -203,7 +205,7 @@ export async function POST(request: NextRequest) {
           chunk.map((scene, i) =>
             processSingleStudioRequest({
               type: "ugc",
-              mode: "standard",
+              mode,
               sourceFile: sourceImage,
               userId,
               sessionId,

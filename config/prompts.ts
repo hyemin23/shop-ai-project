@@ -15,23 +15,56 @@ function appendUserPrompt(basePrompt: string, userPrompt?: string): string {
 }
 
 export const PROMPTS = {
-  tryOn: (context?: string, userPrompt?: string) =>
-    appendUserPrompt(
-      `You are a professional fashion image editing AI. Your task is to replace the clothing on the model in the first image with the clothing shown in the second image.
+  tryOn: (garmentCategory?: string, userPrompt?: string) => {
+    const CATEGORY_LABELS: Record<string, string> = {
+      top: "upper-body garment (shirt, blouse, knit, hoodie, sweatshirt)",
+      bottom: "lower-body garment (pants, skirt, shorts)",
+      outerwear: "outer layer (jacket, coat, cardigan, blazer)",
+      "one-piece": "full-body garment (dress, jumpsuit, overall)",
+    };
+    const category = garmentCategory && CATEGORY_LABELS[garmentCategory]
+      ? garmentCategory
+      : undefined;
+    const categoryLabel = category ? CATEGORY_LABELS[category] : undefined;
 
-Step 1: Analyze the model — memorize the face, hairstyle, skin tone, body proportions, pose, and background with pixel-perfect detail.
-Step 2: Analyze the reference garment — capture its design, color, pattern, texture, neckline, sleeves, and overall silhouette.
-Step 3: Remove the original clothing from the model while preserving the body shape and pose.
-Step 4: Dress the model in the reference garment, adapting it naturally to the model's body proportions and current pose.
-Step 5: Ensure the garment drapes, folds, and wrinkles realistically based on the pose and body shape, with proper shadows and highlights.
+    return appendUserPrompt(
+      `You are a garment-swap engine. Replace ONE garment on the model (image 1) with the reference garment (image 2). Output a single photo-realistic image.
 
-Critical constraints:
-- Face, hairstyle, skin tone, body proportions, and background must remain unchanged.
-- Only the clothing should change — do not alter accessories unless they conflict with the new garment.
-- The final result must look like a natural photograph, not AI-generated.
-${WATERMARK_INSTRUCTION}${context ? ` Additional context: ${context}` : ""}`,
+STEP 0 — EXTRACT GARMENT FROM REFERENCE (image 2):
+The reference image may show a model wearing it, a flat-lay, a product photo, or a close-up.
+${category
+  ? `The target garment is PRE-CLASSIFIED as: "${category}" (${categoryLabel}).
+Look at image 2 and extract ONLY the ${categoryLabel} — COMPLETELY IGNORE any other clothing visible in image 2 (pants, skirts, shoes, accessories, etc.). They are NOT part of the swap.`
+  : `Classify the reference garment as: top / bottom / outerwear / one-piece.
+Extract ONLY that garment from image 2 — ignore everything else.`}
+Focus on: silhouette, color, pattern, texture, neckline, sleeve length, hem shape.
+
+STEP 1 — SWAP: On image 1, replace ONLY the ${category ?? "classified"} garment with the extracted garment. Adapt fit, draping, and wrinkles to the model's exact pose and body.
+
+STEP 2 — OUTPUT the FULL original image with the swap applied — same resolution, same crop, same framing as image 1.
+
+PRESERVE (copy unchanged from image 1):
+• Full image frame, crop, canvas size
+• Face, hair, skin tone, hands, body proportions, pose
+• Background, floor, wall, lighting, shadows
+• ALL accessories — if absent in image 1, absent in output
+• Shoes and footwear
+• Every garment OUTSIDE the swap category must stay PIXEL-IDENTICAL:
+${category === "top" ? "  → You are swapping the TOP only. The pants/skirt, shoes, and all other items must remain exactly as in image 1. Do NOT copy pants from image 2."
+  : category === "bottom" ? "  → You are swapping the BOTTOM only. The top/jacket, shoes, and all other items must remain exactly as in image 1."
+  : category === "outerwear" ? "  → You are swapping the OUTERWEAR only. The inner top, bottom, shoes must remain exactly as in image 1."
+  : "  → top swap: pants/skirt identical | bottom swap: top identical | outerwear swap: inner + bottom identical"}
+
+FORBIDDEN:
+• Cropping, zooming, or reframing the image
+• Changing color/style of ANY non-target clothing
+• Transferring ANY clothing from image 2 other than the target garment (e.g. do NOT copy pants/shoes/accessories from the reference image)
+• Adding or removing ANY accessory
+• Blending the reference image's model body, face, pose, or background into the output
+${WATERMARK_INSTRUCTION}`,
       userPrompt,
-    ),
+    );
+  },
 
   colorSwapFromReference: (garmentType: string, userPrompt?: string) =>
     appendUserPrompt(

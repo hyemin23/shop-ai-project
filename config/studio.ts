@@ -4,6 +4,7 @@ import {
   type AspectRatio,
   type ImageSize,
   type ImageGenerationOptions,
+  type GenerationMode,
 } from "@/types/studio";
 
 export const ASPECT_RATIO_PRESETS: { value: AspectRatio; label: string }[] = [
@@ -121,6 +122,11 @@ export const PROMPT_PLACEHOLDERS: Record<string, string> = {
   batch: "예: 전체적으로 밝은 톤으로 처리해주세요",
 };
 
+/** 4K 해상도 선택 시 premium(Pro) 모델 사용, 그 외 standard(Flash) */
+export function resolveMode(imageSize?: ImageSize): GenerationMode {
+  return imageSize === "4K" ? "premium" : "standard";
+}
+
 export function appendImageOptions(
   formData: FormData,
   options: ImageGenerationOptions,
@@ -140,3 +146,25 @@ export const IMAGE_CONSTRAINTS = {
 } as const;
 
 export const COOLDOWN_MS = 3000;
+
+export const SERVICE_TYPE_LABELS: Record<string, string> = {
+  "try-on": "의류 교체",
+  "color-swap": "색상 변경",
+  "pose-transfer": "포즈 변경",
+  "background-swap": "배경 변경",
+  "multi-pose": "멀티포즈",
+  "detail-extract": "상세 추출",
+  "auto-fitting": "자동피팅",
+  "ugc": "UGC 이미지",
+};
+
+export const SERVICE_TYPE_COLORS: Record<string, string> = {
+  "try-on": "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-500",
+  "color-swap": "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border-purple-500",
+  "pose-transfer": "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border-amber-500",
+  "background-swap": "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border-green-500",
+  "multi-pose": "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 border-rose-500",
+  "detail-extract": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300 border-cyan-500",
+  "auto-fitting": "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 border-orange-500",
+  "ugc": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 border-indigo-500",
+};

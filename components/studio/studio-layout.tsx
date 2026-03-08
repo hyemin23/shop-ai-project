@@ -1,7 +1,7 @@
 // 스튜디오 페이지 공통 레이아웃 컴포넌트
 import { Monitor } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface StudioLayoutProps {
   title: string;
@@ -50,16 +50,10 @@ export function StudioLayout({
       {/* 본문: 2단 그리드 */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="overflow-hidden">
-          <CardHeader className="border-b bg-muted/30">
-            <CardTitle className="text-base">입력</CardTitle>
-          </CardHeader>
           <CardContent className="pt-6">{inputSection}</CardContent>
         </Card>
 
         <Card className="overflow-hidden">
-          <CardHeader className="border-b bg-muted/30">
-            <CardTitle className="text-base">결과</CardTitle>
-          </CardHeader>
           <CardContent className="pt-6">{resultSection}</CardContent>
         </Card>
       </div>
