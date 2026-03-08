@@ -22,10 +22,10 @@ export function InstructionChips({
             type="button"
             onClick={() => onToggle(chip.id)}
             className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+              "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
               isSelected
                 ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-background text-muted-foreground hover:bg-muted"
+                : "border-border bg-muted/50 text-foreground hover:bg-muted hover:border-muted-foreground/30"
             )}
           >
             {chip.label}
