@@ -273,23 +273,26 @@ ${WATERMARK_INSTRUCTION}`,
 
   fourSplitCut: (details: string[], userPrompt?: string) =>
     appendUserPrompt(
-      `You are a professional fashion product photographer. Create a "4-split detail" composition — a single image divided into 4 equal quadrants arranged in a 2×2 grid, each showing a high-resolution close-up of a specific garment detail from the provided image.
+      `You are a professional fashion product photographer. Create a "4-split detail" composition — a single image divided into 4 equal quadrants arranged in a 2×2 grid, each showing a high-resolution close-up of a specific garment detail.
 
-Step 1: Analyze the garment comprehensively.
-Step 2: Generate exactly 4 close-up quadrants:
+CRITICAL: You must extract and zoom into the ACTUAL garment in the provided photo. Do NOT imagine, hallucinate, or generate a different garment. Every detail must come directly from the EXACT clothing item shown in the input image.
+
+Step 1: Carefully study the provided image — identify the garment type (hoodie, jacket, shirt, etc.), its structural features (hood, zipper, buttons, pockets, collar style), fabric, color, and all visible construction details. Memorize these features exactly.
+Step 2: For each of the 4 detail areas below, mentally crop into the corresponding region of the ACTUAL garment in the photo and magnify it:
   - Top-left: ${details[0]}
   - Top-right: ${details[1]}
   - Bottom-left: ${details[2]}
   - Bottom-right: ${details[3]}
-Step 3: Each quadrant must be a sharp, high-magnification close-up that clearly shows fine details like texture, stitching, and construction quality.
-Step 4: Use consistent lighting and color temperature across all 4 quadrants.
+Step 3: Each quadrant must faithfully reproduce what is ACTUALLY visible in that area of the original garment — same fabric color, same texture, same construction. If the garment has a hood, the neckline/collar detail MUST show the hood. If it has a zipper, show the ACTUAL zipper.
+Step 4: Use consistent soft studio lighting across all 4 quadrants.
 Step 5: Arrange them in a clean 2×2 grid with thin white dividing lines between quadrants.
 
 Critical constraints:
 - Generate ONE image containing 4 quadrants in a 2×2 grid layout.
-- Do NOT include any model body, face, or background in any quadrant.
-- Each quadrant must focus on a different detail area.
-- All quadrant colors must match the original garment.
+- NEVER alter the garment's structure — if it has a hood, show the hood; if it has snaps instead of buttons, show snaps. Be faithful to the original.
+- NEVER substitute similar-looking details from a different garment. Each detail must be recognizable as belonging to the SAME item in the input photo.
+- Do NOT include any model body, face, or background in any quadrant — only the garment detail.
+- All colors, textures, and patterns must exactly match the original garment.
 - The result must look like professional product detail photography.
 ${WATERMARK_INSTRUCTION}`,
       userPrompt,
