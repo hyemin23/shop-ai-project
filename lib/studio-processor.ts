@@ -325,7 +325,7 @@ export async function processSingleStudioRequest(
         betaApiKey = profile.gemini_api_key;
       }
 
-      if (profile && !profile.is_master && !profile.is_beta) {
+      if (profile && !profile.is_master) {
         const cost = getCreditCost(options.imageSize);
         if ((profile.token_balance ?? 0) < cost) {
           throw new TokenInsufficientError();
@@ -409,9 +409,9 @@ export async function processSingleStudioRequest(
       .select("id")
       .single();
 
-    // 토큰 차감 (베타 유저는 자체 API 키 사용이므로 토큰 차감 스킵, 배치 예약 시에도 스킵)
+    // 토큰 차감 (마스터 유저와 배치 예약 시에만 스킵)
     let tokensSpent = 0;
-    if (historyData?.id && !betaApiKey && !isMasterUser && !options.skipTokenSpend) {
+    if (historyData?.id && !isMasterUser && !options.skipTokenSpend) {
       try {
         const result = await spendTokensForGeneration(
           supabase,
