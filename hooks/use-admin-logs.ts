@@ -13,6 +13,8 @@ export interface AdminLogsFilter {
   serviceType: GenerationServiceType | "all";
   from: string | null;
   userSearch: string | null;
+  userId: string | null;
+  userLabel: string | null;
 }
 
 export interface UseAdminLogsReturn {
@@ -32,11 +34,18 @@ export interface UseAdminLogsReturn {
 
 const PAGE_SIZE = 20;
 
+function getDefaultFrom(): string {
+  const d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
 const DEFAULT_FILTER: AdminLogsFilter = {
   status: "all",
   serviceType: "all",
-  from: null,
+  from: getDefaultFrom(),
   userSearch: null,
+  userId: null,
+  userLabel: null,
 };
 
 // snake_case DB row → camelCase GenerationLog
@@ -64,12 +73,17 @@ function mapLogRow(row: Record<string, unknown>): GenerationLog {
   };
 }
 
-export function useAdminLogs(): UseAdminLogsReturn {
+export function useAdminLogs(
+  initialFilter?: Partial<AdminLogsFilter>,
+): UseAdminLogsReturn {
   const [logs, setLogs] = useState<GenerationLog[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefunding, setIsRefunding] = useState(false);
-  const [filter, setFilterState] = useState<AdminLogsFilter>(DEFAULT_FILTER);
+  const [filter, setFilterState] = useState<AdminLogsFilter>(() => ({
+    ...DEFAULT_FILTER,
+    ...initialFilter,
+  }));
   const [page, setPage] = useState(0);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -88,9 +102,11 @@ export function useAdminLogs(): UseAdminLogsReturn {
       params.set("offset", String(page * PAGE_SIZE));
 
       if (filter.status !== "all") params.set("status", filter.status);
-      if (filter.serviceType !== "all") params.set("serviceType", filter.serviceType);
+      if (filter.serviceType !== "all")
+        params.set("serviceType", filter.serviceType);
       if (filter.from) params.set("from", filter.from);
       if (filter.userSearch) params.set("userSearch", filter.userSearch);
+      if (filter.userId) params.set("userId", filter.userId);
 
       const res = await fetch(`/api/admin/generation-logs?${params}`, {
         signal: controller.signal,

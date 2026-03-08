@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase/server";
+import { escapeSQLLike } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     if (search) {
-      const sanitized = search.replace(/[%_\\]/g, "\\$&");
+      const sanitized = escapeSQLLike(search);
       query = query.or(
         `email.ilike.%${sanitized}%,display_name.ilike.%${sanitized}%`,
       );

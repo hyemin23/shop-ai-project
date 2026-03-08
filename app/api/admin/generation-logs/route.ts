@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase/server";
+import { escapeSQLLike } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,13 +33,16 @@ export async function GET(request: NextRequest) {
     const serviceType = searchParams.get("serviceType");
     const from = searchParams.get("from");
     const userSearch = searchParams.get("userSearch");
+    const userId = searchParams.get("userId");
     const limit = Math.min(Number(searchParams.get("limit") || 50), 200);
     const cursor = searchParams.get("cursor");
     const offset = cursor ? 0 : Number(searchParams.get("offset") || 0);
 
     let query = supabase
       .from("generation_log")
-      .select("*, profiles!user_id(email, display_name)", { count: "exact" })
+      .select("*, profiles!user_id(email, display_name)", {
+        count: "estimated",
+      })
       .order("created_at", { ascending: false })
       .limit(limit);
 
@@ -51,10 +55,24 @@ export async function GET(request: NextRequest) {
 
     if (status) query = query.eq("status", status);
     if (serviceType) query = query.eq("service_type", serviceType);
-    if (from) query = query.gte("created_at", from);
+
+    // userId 직접 필터 (프로필 조인 검색보다 훨씬 빠름)
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+
+    if (from) {
+      query = query.gte("created_at", from);
+    } else if (!userId && !userSearch) {
+      // 전체 조회 시 기본 7일 제한 (유저/검색 필터 있으면 제한 안함)
+      const sevenDaysAgo = new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      query = query.gte("created_at", sevenDaysAgo);
+    }
 
     if (userSearch) {
-      const sanitized = userSearch.replace(/[%_\\]/g, "\\$&");
+      const sanitized = escapeSQLLike(userSearch);
       const { data: matchedProfiles } = await supabase
         .from("profiles")
         .select("id")

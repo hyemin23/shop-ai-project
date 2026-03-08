@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAdminLogs } from "@/hooks/use-admin-logs";
 import { LogFilterBar } from "@/components/admin/log-filter-bar";
 import { GenerationLogTable } from "@/components/admin/generation-log-table";
@@ -8,6 +9,10 @@ import { RefundDialog } from "@/components/admin/refund-dialog";
 import type { GenerationLog } from "@/types/video";
 
 export default function AdminLogsPage() {
+  const searchParams = useSearchParams();
+  const initialUserId = searchParams.get("userId");
+  const initialUserLabel = searchParams.get("userLabel");
+
   const {
     logs,
     total,
@@ -20,7 +25,15 @@ export default function AdminLogsPage() {
     totalPages,
     refund,
     isRefunding,
-  } = useAdminLogs();
+  } = useAdminLogs(
+    initialUserId
+      ? {
+          userId: initialUserId,
+          userLabel: initialUserLabel,
+          from: null,
+        }
+      : undefined,
+  );
 
   const [refundTarget, setRefundTarget] = useState<GenerationLog | null>(null);
 

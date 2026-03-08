@@ -1,4 +1,7 @@
 {
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true"
+  },
   "permissions": {
     "allow": [
       "Bash",
@@ -14,7 +17,8 @@
       "WebFetch(domain:docs.tosspayments.com)",
       "WebFetch(domain:buildupspace.vercel.app)",
       "WebFetch(domain:npm.im)",
-      "WebFetch(domain:www.npmjs.com)"
+      "WebFetch(domain:www.npmjs.com)",
+      "mcp__supabase__get_logs"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -74,8 +78,5 @@
       }
     ]
   },
-  "skipDangerousModePermissionPrompt": true,
-  "env": {
-    "ENABLE_TOOL_SEARCH": "true"
-  }
+  "skipDangerousModePermissionPrompt": true
 }

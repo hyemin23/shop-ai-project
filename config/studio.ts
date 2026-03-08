@@ -131,7 +131,7 @@ export const PROMPT_PLACEHOLDERS: Record<string, string> = {
     "예: 버튼의 정교함을 강조해주세요, 원단 결을 더 선명하게 보여주세요",
   "auto-fitting":
     "예: 스트릿 캐주얼 느낌으로, 밝은 조명에서 촬영한 것처럼",
-  batch: "예: 전체적으로 밝은 톤으로 처리해주세요",
+
 };
 
 /** 4K 해상도 선택 시 premium(Pro) 모델 사용, 그 외 standard(Flash) */

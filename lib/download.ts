@@ -14,3 +14,35 @@ export async function downloadImage(url: string, filename: string) {
   document.body.removeChild(a);
   URL.revokeObjectURL(blobUrl);
 }
+
+interface ZipItem {
+  url: string;
+  fileName: string;
+}
+
+export async function downloadAsZip(
+  items: ZipItem[],
+  zipName: string,
+): Promise<void> {
+  const JSZip = (await import("jszip")).default;
+  const zip = new JSZip();
+
+  await Promise.all(
+    items.map(async ({ url, fileName }) => {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const ext =
+        blob.type.split("/")[1] === "jpeg"
+          ? "jpg"
+          : blob.type.split("/")[1] || "png";
+      zip.file(`${fileName}.${ext}`, blob);
+    }),
+  );
+
+  const content = await zip.generateAsync({ type: "blob" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(content);
+  a.download = zipName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}

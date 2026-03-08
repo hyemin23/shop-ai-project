@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ImageToVideoForm } from "@/components/video/image-to-video-form";
 import { VideoGenerationStatusDisplay } from "@/components/video/video-generation-status";
 import { VideoResultViewer } from "@/components/video/video-result-viewer";
-import { useImageToVideoGenerate } from "@/hooks/use-image-to-video-generate";
+import { useVideoGenerate } from "@/hooks/use-video-generate";
+import type { ImageToVideoRequest } from "@/types/video";
 
 export default function ImageToVideoPage() {
   const {
@@ -18,7 +19,8 @@ export default function ImageToVideoPage() {
     isOnline,
     submit,
     reset,
-  } = useImageToVideoGenerate({
+  } = useVideoGenerate<ImageToVideoRequest>({
+    apiPath: "/api/video/image-to-video",
     onSuccess: () => {
       toast.success("비디오 생성 완료", {
         description: "영상이 성공적으로 생성되었습니다.",

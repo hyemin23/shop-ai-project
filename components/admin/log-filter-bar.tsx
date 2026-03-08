@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, Search } from "lucide-react";
+import { RotateCcw, Search, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import type { AdminLogsFilter } from "@/hooks/use-admin-logs";
 
 interface LogFilterBarProps {
@@ -39,9 +40,29 @@ export function LogFilterBar({ filter, onFilterChange }: LogFilterBarProps) {
   const [localUserSearch, setLocalUserSearch] = useState(filter.userSearch ?? "");
 
   const hasFilter =
-    filter.status !== "all" || filter.serviceType !== "all" || !!filter.from || !!filter.userSearch;
+    filter.status !== "all" ||
+    filter.serviceType !== "all" ||
+    !!filter.from ||
+    !!filter.userSearch ||
+    !!filter.userId;
 
   return (
+    <div className="space-y-2">
+      {filter.userId && filter.userLabel && (
+        <Badge
+          variant="secondary"
+          className="inline-flex items-center gap-1 px-3 py-1 text-sm"
+        >
+          {filter.userLabel}
+          <button
+            type="button"
+            onClick={() => onFilterChange({ userId: null, userLabel: null })}
+            className="ml-1 rounded-full p-0.5 hover:bg-muted"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </Badge>
+      )}
     <div className="flex flex-wrap items-center gap-3">
       <Select
         value={filter.status}
@@ -111,13 +132,21 @@ export function LogFilterBar({ filter, onFilterChange }: LogFilterBarProps) {
           size="sm"
           onClick={() => {
             setLocalUserSearch("");
-            onFilterChange({ status: "all", serviceType: "all", from: null, userSearch: null });
+            onFilterChange({
+              status: "all",
+              serviceType: "all",
+              from: null,
+              userSearch: null,
+              userId: null,
+              userLabel: null,
+            });
           }}
         >
           <RotateCcw className="mr-1 h-3.5 w-3.5" />
           초기화
         </Button>
       )}
+    </div>
     </div>
   );
 }

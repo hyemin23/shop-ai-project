@@ -4,7 +4,6 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import type {
   VideoGenerationStatus,
-  TextToVideoRequest,
   KlingTaskStatus,
 } from "@/types/video";
 import {
@@ -14,27 +13,29 @@ import {
 } from "@/config/video";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 
-interface UseVideoGenerateOptions {
+interface UseVideoGenerateOptions<T> {
+  apiPath: string;
   onSuccess?: (videoUrl: string) => void;
   onError?: (error: string) => void;
   onTokenInsufficient?: () => void;
 }
 
-interface UseVideoGenerateReturn {
+interface UseVideoGenerateReturn<T> {
   status: VideoGenerationStatus;
   videoUrl: string | null;
   error: string | null;
   elapsedSeconds: number;
   isOnline: boolean;
-  submit: (params: TextToVideoRequest) => Promise<void>;
+  submit: (params: T) => Promise<void>;
   reset: () => void;
 }
 
-export function useVideoGenerate({
+export function useVideoGenerate<T = Record<string, unknown>>({
+  apiPath,
   onSuccess,
   onError,
   onTokenInsufficient,
-}: UseVideoGenerateOptions = {}): UseVideoGenerateReturn {
+}: UseVideoGenerateOptions<T>): UseVideoGenerateReturn<T> {
   const [status, setStatus] = useState<VideoGenerationStatus>("idle");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +84,7 @@ export function useVideoGenerate({
         }
 
         try {
-          const res = await fetch(`/api/video/text-to-video/${taskId}`);
+          const res = await fetch(`${apiPath}/${taskId}`);
           const data = await res.json();
 
           const taskStatus: KlingTaskStatus = data.status;
@@ -104,11 +105,11 @@ export function useVideoGenerate({
         }
       }, VIDEO_POLLING_INTERVAL_MS);
     },
-    [stopPolling, onSuccess, onError],
+    [apiPath, stopPolling, onSuccess, onError],
   );
 
   const submit = useCallback(
-    async (params: TextToVideoRequest) => {
+    async (params: T) => {
       if (!navigator.onLine) {
         toast.warning("오프라인 상태입니다", {
           description: "인터넷 연결을 확인한 후 다시 시도해주세요.",
@@ -129,7 +130,7 @@ export function useVideoGenerate({
       setElapsedSeconds(0);
 
       try {
-        const res = await fetch("/api/video/text-to-video", {
+        const res = await fetch(apiPath, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(params),
@@ -161,7 +162,7 @@ export function useVideoGenerate({
         onError?.("네트워크 오류가 발생했습니다.");
       }
     },
-    [pollTask, onError, onTokenInsufficient],
+    [apiPath, pollTask, onError, onTokenInsufficient],
   );
 
   const reset = useCallback(() => {

@@ -11,7 +11,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight, Coins, FlaskConical } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Coins,
+  FileText,
+  FlaskConical,
+} from "lucide-react";
+import Link from "next/link";
 import type { AdminUser } from "@/hooks/use-admin-users";
 
 interface UserTableProps {
@@ -134,6 +141,19 @@ export function UserTable({
                     >
                       <FlaskConical className="mr-1 h-3 w-3" />
                       베타
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      asChild
+                    >
+                      <Link
+                        href={`/dashboard/admin/logs?userId=${u.id}&userLabel=${encodeURIComponent(u.displayName || u.email)}`}
+                      >
+                        <FileText className="mr-1 h-3 w-3" />
+                        로그
+                      </Link>
                     </Button>
                   </div>
                 </TableCell>

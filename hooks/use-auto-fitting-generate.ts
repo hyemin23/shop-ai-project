@@ -6,6 +6,8 @@ import {
   type AutoFittingSSEEvent,
 } from "@/types/auto-fitting";
 import { AUTO_FITTING_PRESETS } from "@/config/auto-fitting";
+import { consumeSSEStream } from "@/lib/sse";
+import { downloadAsZip } from "@/lib/download";
 
 interface UseAutoFittingGenerateOptions {
   onComplete?: (results: AutoFittingItemState[]) => void;
@@ -90,60 +92,26 @@ export function useAutoFittingGenerate({
           throw new Error(errorData.error || "자동피팅 처리 요청 실패");
         }
 
-        const reader = response.body?.getReader();
-        if (!reader) throw new Error("스트림을 읽을 수 없습니다.");
+        await consumeSSEStream<AutoFittingSSEEvent>(response, (event) => {
+          if (event.type === "batch_complete") {
+            if (event.batchId) setBatchId(event.batchId);
+            return;
+          }
 
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        function processSSELines(text: string) {
-          const lines = text.split("\n\n").filter(Boolean);
-          for (const line of lines) {
-            const dataLine = line
-              .split("\n")
-              .find((l) => l.startsWith("data: "));
-            if (!dataLine) continue;
-
-            const event: AutoFittingSSEEvent = JSON.parse(dataLine.slice(6));
-
-            if (event.type === "batch_complete") {
-              if (event.batchId) setBatchId(event.batchId);
-              continue;
+          setItems((prev) => {
+            const updated = [...prev];
+            if (updated[event.index]) {
+              updated[event.index] = {
+                ...updated[event.index],
+                status: event.status,
+                resultImageUrl: event.resultImageUrl,
+                error: event.error,
+                processingTime: event.processingTime,
+              };
             }
-
-            setItems((prev) => {
-              const updated = [...prev];
-              if (updated[event.index]) {
-                updated[event.index] = {
-                  ...updated[event.index],
-                  status: event.status,
-                  resultImageUrl: event.resultImageUrl,
-                  error: event.error,
-                  processingTime: event.processingTime,
-                };
-              }
-              return updated;
-            });
-          }
-        }
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            // 스트림 종료 시 버퍼에 남은 이벤트 처리
-            if (buffer.trim()) processSSELines(buffer);
-            break;
-          }
-
-          buffer += decoder.decode(value, { stream: true });
-
-          const lines = buffer.split("\n\n");
-          buffer = lines.pop() || "";
-
-          if (lines.length > 0) {
-            processSSELines(lines.join("\n\n"));
-          }
-        }
+            return updated;
+          });
+        });
 
         setIsProcessing(false);
         setItems((current) => {
@@ -246,28 +214,13 @@ export function useAutoFittingGenerate({
     );
     if (successItems.length === 0) return;
 
-    const JSZip = (await import("jszip")).default;
-    const zip = new JSZip();
-
-    await Promise.all(
-      successItems.map(async (item) => {
-        const response = await fetch(item.resultImageUrl!);
-        const blob = await response.blob();
-        const ext =
-          blob.type.split("/")[1] === "jpeg"
-            ? "jpg"
-            : blob.type.split("/")[1] || "png";
-        zip.file(`fitting_${item.index + 1}_${item.poseName}.${ext}`, blob);
-      }),
+    await downloadAsZip(
+      successItems.map((item) => ({
+        url: item.resultImageUrl!,
+        fileName: `fitting_${item.index + 1}_${item.poseName}`,
+      })),
+      `auto_fitting_${new Date().toISOString().slice(0, 10)}.zip`,
     );
-
-    const content = await zip.generateAsync({ type: "blob" });
-    const url = URL.createObjectURL(content);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `auto_fitting_${new Date().toISOString().slice(0, 10)}.zip`;
-    a.click();
-    URL.revokeObjectURL(url);
   }, [items]);
 
   return {

@@ -99,11 +99,11 @@ export async function POST(request: NextRequest) {
   if (userId) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("token_balance, is_master")
+      .select("token_balance, is_master, is_beta")
       .eq("id", userId)
       .single();
 
-    if (profile && !profile.is_master) {
+    if (profile && !profile.is_master && !profile.is_beta) {
       if ((profile.token_balance ?? 0) < totalCost) {
         return new Response(
           JSON.stringify({

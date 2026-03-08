@@ -8,6 +8,7 @@ import { TextToVideoForm } from "@/components/video/text-to-video-form";
 import { VideoGenerationStatusDisplay } from "@/components/video/video-generation-status";
 import { VideoResultViewer } from "@/components/video/video-result-viewer";
 import { useVideoGenerate } from "@/hooks/use-video-generate";
+import type { TextToVideoRequest } from "@/types/video";
 
 export default function TextToVideoPage() {
   const {
@@ -18,7 +19,8 @@ export default function TextToVideoPage() {
     isOnline,
     submit,
     reset,
-  } = useVideoGenerate({
+  } = useVideoGenerate<TextToVideoRequest>({
+    apiPath: "/api/video/text-to-video",
     onSuccess: () => {
       toast.success("비디오 생성 완료", {
         description: "영상이 성공적으로 생성되었습니다.",
