@@ -21,12 +21,19 @@ const videoGroup = dashboardConfig.sidebarNavGroups.find((g) => g.title === "AI 
 const studioFeatures = studioGroup?.items.filter((item) => featureCardStyles[item.href]) ?? [];
 const videoFeatures = videoGroup?.items.filter((item) => featureCardStyles[item.href]) ?? [];
 
+const GREETINGS = [
+  { text: "오늘의 룩북을 완성해볼까요?", emoji: "👗" },
+  { text: "새로운 핏을 만들어 볼 시간이에요", emoji: "✨" },
+  { text: "촬영 없이 피팅컷을 만들어보세요", emoji: "📸" },
+  { text: "AI가 셀러의 시간을 아껴드릴게요", emoji: "⏰" },
+  { text: "오늘도 매출 올리는 이미지 만들어봐요", emoji: "🔥" },
+  { text: "신상 이미지, AI로 빠르게 완성하세요", emoji: "🛍️" },
+];
+
 function getGreeting(): { text: string; emoji: string } {
-  const hour = new Date().getHours();
-  if (hour < 6) return { text: "늦은 밤이에요", emoji: "🌙" };
-  if (hour < 12) return { text: "좋은 아침이에요", emoji: "☀️" };
-  if (hour < 18) return { text: "좋은 오후예요", emoji: "🌤️" };
-  return { text: "좋은 저녁이에요", emoji: "🌆" };
+  const now = new Date();
+  const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+  return GREETINGS[seed % GREETINGS.length];
 }
 
 const TYPEWRITER_PHRASES = [

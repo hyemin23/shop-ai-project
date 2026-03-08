@@ -64,6 +64,12 @@ export function RefundDialog({
               <span className="font-mono text-xs">{log.id.slice(0, 12)}...</span>
             </div>
             <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">사용자</span>
+              <span className="text-sm">
+                {log.userDisplayName || log.userEmail || "알 수 없음"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
               <span className="text-muted-foreground">서비스</span>
               <Badge variant="outline">{log.serviceType}</Badge>
             </div>

@@ -43,8 +43,9 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     if (search) {
+      const sanitized = search.replace(/[%_\\]/g, "\\$&");
       query = query.or(
-        `email.ilike.%${search}%,display_name.ilike.%${search}%`,
+        `email.ilike.%${sanitized}%,display_name.ilike.%${sanitized}%`,
       );
     }
 

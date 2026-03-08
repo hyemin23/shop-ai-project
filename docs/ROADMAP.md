@@ -30,15 +30,19 @@
 - Phase 2 완료: UI/UX 완성 (Task 005~010 전체 완료)
 - Phase 3 완료: 핵심 기능 구현 (Task 011~016 전체 완료)
 - Phase 4 완료: 고급 기능 구현 (Task 017~021 전체 완료)
-- Phase 5 완료: 관리자 대시보드 UI 구현 (Task 022~024 전체 완료)
+- Phase 5 완료: 관리자 대시보드 UI 구현 (Task 022~023 전체 완료)
+- Phase 6 완료: 서비스 안정화 및 법적 준비 (Task 024~028 전체 완료)
+- Phase 7 완료: 서비스 확장 기능 (Task 029~032 전체 완료)
 - 소셜 로그인 완료: Supabase Auth 카카오/구글 OAuth 연동, 보호 라우트, 세션→유저 연결
 - 토스 페이먼츠 결제 완료: 토큰 충전 결제 플로우, 패키지 선택, 결제 승인/웹훅
 - 토큰 관리 UI 완료: 잔액 Badge, 거래 내역, 무료 체험 배너, 토큰 부족 모달, 설정 페이지
 - 토큰 차감 시스템 완료: 이미지 생성 시 자동 차감 + Fallback 환불 + 무료 체험 한도
 - 배치 처리 완료: SSE 스트리밍 배치 API, 다중 이미지 업로드, ZIP 다운로드, 공통 처리 로직 추출
 - 성능 최적화 완료: 이미지 리사이즈/WebP, LRU 캐시, DB 인덱스, SEO 메타데이터/JSON-LD, CI/CD, Sentry
-- 관리자 대시보드 완료: 생성 로그 조회/필터/환불 UI, 통계 대시보드, isMaster 조건부 사이드바, 접근 제어
-- 프로젝트 상태: 전체 Phase 1~5 완료, 프로덕션 배포 준비 완료
+- 관리자 대시보드 완료: 생성 로그 조회/필터/환불 UI, 사용자 관리, 통계 대시보드, isMaster 조건부 사이드바
+- UGC 이미지 생성 완료: Gemini 기반 UGC 씬 생성, 타겟 선택, 결과 그리드
+- 구독 시스템 완료: 토스 빌링키 자동결제, 구독 관리 UI, 웹훅 연동
+- 프로젝트 상태: 전체 Phase 1~7 완료, 프로덕션 배포 완료
 
 ---
 
@@ -516,6 +520,128 @@
 
 ---
 
+### Phase 6: 서비스 안정화 및 법적 준비 ✅
+
+> 프로덕션 배포 전 법적 필수 페이지, 보안 강화, 사용자 관리 기능, 에러 처리를 완성한다.
+
+#### ✅ Task 024: 구현하다 -- 관리자 사용자 관리 -- 유저 목록 조회/토큰 충전/베타 권한
+
+- ✅ `hooks/use-admin-users.ts` 생성: 사용자 목록 조회/검색/페이지네이션/충전/베타 관리 훅
+- ✅ `components/admin/user-table.tsx` 생성: 사용자 테이블 (이메일, 잔액, 베타 상태, 생성일)
+- ✅ `components/admin/user-charge-dialog.tsx` 생성: 토큰 직접 충전 모달
+- ✅ `components/admin/user-beta-dialog.tsx` 생성: 베타 테스터 권한 설정 모달
+- ✅ `app/(dashboard)/dashboard/admin/users/page.tsx` 생성: 사용자 관리 페이지
+- ✅ `app/api/admin/users/route.ts` 생성: GET (사용자 목록) + PATCH (토큰 충전/베타 설정)
+
+**의존성**: Task 022 (관리자 라우트 및 접근 제어)
+**산출물**: 관리자 사용자 관리 UI 완성
+
+---
+
+#### ✅ Task 025: 구현하다 -- 법적 필수 페이지 및 약관 동의 -- 서비스 운영 법적 요건
+
+- ✅ `app/(marketing)/terms/page.tsx` 생성: 이용약관 페이지
+- ✅ `app/(marketing)/privacy/page.tsx` 생성: 개인정보처리방침 페이지
+- ✅ `supabase/migrations/013_consent_records.sql` 생성: 약관 동의 기록 테이블
+- ✅ `supabase/migrations/012_beta_user_support.sql` 생성: 베타 유저 지원 마이그레이션
+
+**의존성**: Phase 5 완료
+**산출물**: 법적 필수 페이지 및 약관 동의 시스템
+
+---
+
+#### ✅ Task 026: 구현하다 -- 보안 강화 및 에러 처리 -- 웹훅 검증, 에러 페이지, 쿠키 배너
+
+- ✅ `app/error.tsx` 생성: 전역 에러 페이지
+- ✅ `app/not-found.tsx` 생성: 404 페이지
+- ✅ `components/cookie-consent.tsx` 생성: 쿠키 동의 배너
+- ✅ 토스 웹훅 보안 검증 강화
+
+**의존성**: Task 025 (법적 페이지)
+**산출물**: 에러 처리 + 쿠키 배너 + 웹훅 보안
+
+---
+
+#### ✅ Task 027: 구현하다 -- 회원 탈퇴 및 마케팅 페이지 -- 계정 삭제, Pricing/FAQ
+
+- ✅ `app/api/account/delete/route.ts` 생성: 회원 탈퇴 API (cascade 삭제)
+- ✅ `supabase/migrations/014_account_deletion_cascade.sql` 생성: 탈퇴 시 데이터 cascade 삭제
+- ✅ `app/(marketing)/pricing/page.tsx` 생성: 요금제 안내 페이지
+- ✅ `app/(marketing)/faq/page.tsx` 생성: FAQ 페이지
+
+**의존성**: Task 025 (법적 페이지)
+**산출물**: 회원 탈퇴 + 마케팅 페이지
+
+---
+
+#### ✅ Task 028: 최적화하다 -- 스케일링 개선 -- 배치 병렬처리, API 재시도, DB 인덱스
+
+- ✅ `supabase/migrations/015_scaling_improvements.sql` 생성: 스케일링용 인덱스 추가
+- ✅ 배치 병렬처리 최적화
+- ✅ API 재시도 로직 개선
+- ✅ 토큰 예약 시스템 개선
+
+**의존성**: Phase 5 전체 완료
+**산출물**: 스케일링 12가지 문제 개선
+
+---
+
+### Phase 7: 서비스 확장 기능 ✅
+
+> 기존 이미지 생성 외 UGC 이미지 생성, 구독 시스템, 통합 Generation Log 등 신규 기능을 추가한다.
+
+#### ✅ Task 029: 구현하다 -- 통합 Generation Log -- 스튜디오/비디오 통합 로그 시스템
+
+- ✅ `supabase/migrations/009_generation_log.sql` 생성: 통합 `generation_logs` 테이블 + RLS
+- ✅ `supabase/migrations/010_history_retention.sql` 생성: 30일 보관 정책
+- ✅ `types/video.ts` 생성: `GenerationLog`, `GenerationLogStatus`, `GenerationServiceType` 타입
+- ✅ `app/api/admin/generation-logs/route.ts` 생성: 관리자 로그 조회 API
+- ✅ `app/api/admin/refund/route.ts` 생성: 관리자 환불 API
+- ✅ 토큰 실패 복구 시스템 구현
+
+**의존성**: Phase 6 전체 완료
+**산출물**: 통합 Generation Log 시스템
+
+---
+
+#### ✅ Task 030: 구현하다 -- Kling AI 비디오 생성 타입 및 클라이언트 -- 이미지→비디오 기반
+
+- ✅ `types/video.ts` 확장: `KlingModel`, `KlingApiRequest/Response`, `TextToVideoRequest`, `ImageToVideoRequest`, `CameraMovement`, `VideoStyle` 등 전체 타입
+- ✅ `lib/kling.ts` 생성: Kling AI API 클라이언트 래퍼
+- ✅ `hooks/use-video-generate.ts` 생성: 비디오 생성 커스텀 훅
+
+**의존성**: Task 029 (통합 로그)
+**산출물**: Kling AI 비디오 생성 인프라
+
+---
+
+#### ✅ Task 031: 구현하다 -- UGC 이미지 생성 -- Gemini 기반 UGC 씬 생성 기능
+
+- ✅ `app/(dashboard)/dashboard/studio/ugc/page.tsx` 생성: UGC 이미지 생성 페이지
+- ✅ `app/api/studio/ugc/route.ts` 생성: UGC 생성 API 엔드포인트
+- ✅ `components/studio/ugc-scene-grid.tsx` 생성: UGC 씬 선택 그리드
+- ✅ `components/studio/ugc-target-selector.tsx` 생성: UGC 타겟 선택 컴포넌트
+- ✅ `components/studio/ugc-result-grid.tsx` 생성: UGC 결과 그리드
+- ✅ `hooks/use-ugc-generate.ts` 생성: UGC 생성 커스텀 훅
+
+**의존성**: Task 029 (통합 로그), Phase 3 (Gemini API)
+**산출물**: UGC 이미지 생성 기능 완성
+
+---
+
+#### ✅ Task 032: 구현하다 -- 구독 시스템 -- 토스 빌링키 자동결제 연동
+
+- ✅ `app/(dashboard)/dashboard/subscription/page.tsx` 생성: 구독 관리 페이지
+- ✅ `app/api/subscription/route.ts` 생성: GET (구독 조회) + POST (구독 생성)
+- ✅ `app/api/subscription/authorize/route.ts` 생성: 빌링키 발급 승인
+- ✅ `app/api/subscription/cancel/route.ts` 생성: 구독 해지
+- ✅ `supabase/migrations/011_fix_is_master_rls.sql` 적용: RLS 정책 수정
+
+**의존성**: Task 018 (토스 페이먼츠 결제)
+**산출물**: 구독 시스템 완성
+
+---
+
 ## 주요 의존성 그래프
 
 ```
@@ -550,8 +676,25 @@ Phase 3 (기능)
 Phase 4 (고급)
   Task 017 (인증) ──────┬──> Task 018 (결제)
   Task 018 (결제) ──────┬──> Task 019 (토큰 UI)
+                        └──> Task 032 (구독) [Phase 7]
   Task 015 (연결) ──────┬──> Task 020 (배치)
   Phase 3 전체 ─────────┬──> Task 021 (최적화)
+
+Phase 5 (관리자)
+  Task 022 (관리자 라우트) ──> Task 023 (로그 UI)
+                             └──> Task 024 (사용자 관리) [Phase 6]
+
+Phase 6 (안정화)
+  Task 024 (사용자 관리) ──> Task 025 (법적 페이지)
+  Task 025 (법적 페이지) ──┬──> Task 026 (보안/에러)
+                           └──> Task 027 (탈퇴/마케팅)
+  Phase 5 전체 ────────────┬──> Task 028 (스케일링)
+
+Phase 7 (확장)
+  Phase 6 전체 ────────────┬──> Task 029 (통합 로그)
+  Task 029 (통합 로그) ────┬──> Task 030 (Kling 비디오)
+                           └──> Task 031 (UGC 이미지)
+  Task 018 (결제) ─────────┬──> Task 032 (구독)
 ```
 
 ## 병렬 작업 가이드
@@ -680,4 +823,50 @@ components/admin/log-filter-bar.tsx               # Task 023 ✅
 components/admin/generation-log-table.tsx         # Task 023 ✅
 components/admin/refund-dialog.tsx                # Task 023 ✅
 app/(dashboard)/dashboard/admin/logs/page.tsx     # Task 023 ✅
+```
+
+### Phase 6에서 생성/수정되는 파일 ✅
+
+```
+hooks/use-admin-users.ts                          # Task 024 ✅
+components/admin/user-table.tsx                   # Task 024 ✅
+components/admin/user-charge-dialog.tsx           # Task 024 ✅
+components/admin/user-beta-dialog.tsx             # Task 024 ✅
+app/(dashboard)/dashboard/admin/users/page.tsx    # Task 024 ✅
+app/api/admin/users/route.ts                      # Task 024 ✅
+app/(marketing)/terms/page.tsx                    # Task 025 ✅
+app/(marketing)/privacy/page.tsx                  # Task 025 ✅
+supabase/migrations/012_beta_user_support.sql     # Task 025 ✅
+supabase/migrations/013_consent_records.sql       # Task 025 ✅
+app/error.tsx                                     # Task 026 ✅
+app/not-found.tsx                                 # Task 026 ✅
+components/cookie-consent.tsx                     # Task 026 ✅
+app/api/account/delete/route.ts                   # Task 027 ✅
+supabase/migrations/014_account_deletion_cascade.sql # Task 027 ✅
+app/(marketing)/pricing/page.tsx                  # Task 027 ✅
+app/(marketing)/faq/page.tsx                      # Task 027 ✅
+supabase/migrations/015_scaling_improvements.sql  # Task 028 ✅
+```
+
+### Phase 7에서 생성/수정되는 파일 ✅
+
+```
+supabase/migrations/009_generation_log.sql        # Task 029 ✅
+supabase/migrations/010_history_retention.sql     # Task 029 ✅
+types/video.ts                                    # Task 029/030 ✅
+app/api/admin/generation-logs/route.ts            # Task 029 ✅
+app/api/admin/refund/route.ts                     # Task 029 ✅
+lib/kling.ts                                      # Task 030 ✅
+hooks/use-video-generate.ts                       # Task 030 ✅
+app/(dashboard)/dashboard/studio/ugc/page.tsx     # Task 031 ✅
+app/api/studio/ugc/route.ts                       # Task 031 ✅
+components/studio/ugc-scene-grid.tsx              # Task 031 ✅
+components/studio/ugc-target-selector.tsx         # Task 031 ✅
+components/studio/ugc-result-grid.tsx             # Task 031 ✅
+hooks/use-ugc-generate.ts                         # Task 031 ✅
+app/(dashboard)/dashboard/subscription/page.tsx   # Task 032 ✅
+app/api/subscription/route.ts                     # Task 032 ✅
+app/api/subscription/authorize/route.ts           # Task 032 ✅
+app/api/subscription/cancel/route.ts              # Task 032 ✅
+supabase/migrations/011_fix_is_master_rls.sql     # Task 032 ✅
 ```

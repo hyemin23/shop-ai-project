@@ -12,7 +12,7 @@ import { UgcSceneGrid } from "@/components/studio/ugc-scene-grid";
 import { UgcResultGrid } from "@/components/studio/ugc-result-grid";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useUgcGenerate } from "@/hooks/use-ugc-generate";
-import { type ImageGenerationOptions } from "@/types/studio";
+import { usePersistedImageOptions } from "@/hooks/use-persisted-image-options";
 import { type UgcGender, type UgcAgeGroup } from "@/types/ugc";
 import { getUgcScenesForTarget } from "@/config/ugc";
 import { toast } from "sonner";
@@ -23,10 +23,7 @@ export default function UgcPage() {
   const [ageGroup, setAgeGroup] = useState<UgcAgeGroup>("20s");
   const [selectedSceneIds, setSelectedSceneIds] = useState<string[]>([]);
   const [userPrompt, setUserPrompt] = useState("");
-  const [imageOptions, setImageOptions] = useState<ImageGenerationOptions>({
-    aspectRatio: "9:16",
-    imageSize: "1K",
-  });
+  const [imageOptions, setImageOptions] = usePersistedImageOptions();
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const scenes = useMemo(

@@ -29,6 +29,8 @@ export interface GenerationLog {
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
+  userEmail?: string;
+  userDisplayName?: string;
 }
 
 export type KlingModel =

@@ -117,7 +117,7 @@ export function GenerationLogTable({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[100px]">일시</TableHead>
-              <TableHead className="w-[90px]">사용자</TableHead>
+              <TableHead className="w-[160px]">사용자</TableHead>
               <TableHead className="w-[70px]">서비스</TableHead>
               <TableHead>액션</TableHead>
               <TableHead className="w-[80px]">상태</TableHead>
@@ -135,8 +135,17 @@ export function GenerationLogTable({
                   <TableCell className="text-xs whitespace-nowrap">
                     {formatDate(log.createdAt)}
                   </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {truncate(log.userId, 8)}
+                  <TableCell className="text-xs">
+                    <div className="flex flex-col">
+                      <span className="font-medium truncate">
+                        {log.userDisplayName || log.userEmail || "-"}
+                      </span>
+                      {log.userEmail && log.userDisplayName && (
+                        <span className="text-muted-foreground text-[11px] truncate">
+                          {log.userEmail}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -157,10 +166,10 @@ export function GenerationLogTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right font-mono text-sm">
-                    {log.tokensCharged || "-"}
+                    {log.tokensCharged != null ? log.tokensCharged : "-"}
                   </TableCell>
                   <TableCell className="text-right font-mono text-sm">
-                    {log.tokensRefunded || "-"}
+                    {log.tokensRefunded != null ? log.tokensRefunded : "-"}
                   </TableCell>
                   <TableCell className="max-w-[150px]">
                     {log.errorMessage ? (
