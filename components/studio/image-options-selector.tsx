@@ -77,7 +77,7 @@ export function ImageOptionsSelector({
         </div>
       </div>
 
-      <div className="rounded-md bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+      <div className="rounded-md bg-muted/30 px-3 py-2 text-xs text-muted-foreground" suppressHydrationWarning>
         {creditCount > 1 ? (
           <>
             {creditCount}개 {creditLabel ?? "이미지"} &times; {unitCost}{" "}

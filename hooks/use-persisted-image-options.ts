@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback, useSyncExternalStore } from "react";
+import { useState, useCallback } from "react";
 import { type ImageGenerationOptions } from "@/types/studio";
 import { DEFAULT_IMAGE_OPTIONS } from "@/config/studio";
 
 const STORAGE_KEY = "ddokpick:image-options";
 
-function getSnapshot(): ImageGenerationOptions {
+function loadSaved(): ImageGenerationOptions {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_IMAGE_OPTIONS;
@@ -20,23 +20,19 @@ function getSnapshot(): ImageGenerationOptions {
   }
 }
 
-function getServerSnapshot(): ImageGenerationOptions {
-  return DEFAULT_IMAGE_OPTIONS;
-}
-
-function subscribe(callback: () => void): () => void {
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
-}
-
 /**
  * 마지막으로 선택한 비율/해상도를 localStorage에 자동 저장하고,
  * 다음 페이지 로드 시 복원하는 훅.
  * userPrompt는 페이지마다 다르므로 저장하지 않음.
+ *
+ * lazy initializer: 클라이언트에서는 localStorage에서 복원,
+ * SSR에서는 DEFAULT_IMAGE_OPTIONS 반환.
  */
 export function usePersistedImageOptions() {
-  const persisted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const [options, setOptionsState] = useState(persisted);
+  const [options, setOptionsState] = useState<ImageGenerationOptions>(() => {
+    if (typeof window === "undefined") return DEFAULT_IMAGE_OPTIONS;
+    return loadSaved();
+  });
 
   const setOptions = useCallback((next: ImageGenerationOptions) => {
     setOptionsState(next);
