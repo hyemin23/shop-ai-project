@@ -9,6 +9,14 @@ export const GEMINI_MODELS: Record<GenerationMode, GeminiModel> = {
 const WATERMARK_INSTRUCTION =
   "If the source image contains any watermarks, logos, or text overlays, remove them completely in the output so the result is clean.";
 
+const FACELESS_CROP_INSTRUCTION = `
+FACELESS CROPPING (MANDATORY):
+- Crop the output so the model's face is NOT visible. Frame the image from roughly the chin/neck down to the feet.
+- The top of the frame should start at the upper chest or neck area — do NOT include eyes, nose, mouth, or forehead.
+- Maintain full-body framing: the entire outfit from shoulders to shoes must be visible.
+- Keep the original background, lighting, and composition — only adjust the vertical crop to exclude the face.
+- Do NOT blur, mask, or distort the face — simply crop it out of frame.`;
+
 function appendUserPrompt(basePrompt: string, userPrompt?: string): string {
   if (!userPrompt?.trim()) return basePrompt;
   return `${basePrompt}\n\nAdditional user instructions: ${userPrompt.trim().slice(0, PROMPT_CONSTRAINTS.maxLength)}`;
@@ -39,6 +47,13 @@ Look at image 2 and extract ONLY the ${categoryLabel} — COMPLETELY IGNORE any 
 Extract ONLY that garment from image 2 — ignore everything else.`}
 Focus on: silhouette, color, pattern, texture, neckline, sleeve length, hem shape.
 
+SILHOUETTE FIDELITY: Reproduce the garment's fit EXACTLY as shown in image 2:
+- If oversized/loose → output must be equally loose on the model
+- If slim/fitted → output must be equally fitted
+- Hem position (crop/hip/knee/ankle) must match image 2 precisely
+- Sleeve length must match image 2 precisely
+- Do NOT normalize any garment to "regular fit"
+
 STEP 1 — SWAP: On image 1, replace ONLY the ${category ?? "classified"} garment with the extracted garment. Adapt fit, draping, and wrinkles to the model's exact pose and body.
 
 STEP 2 — OUTPUT the FULL original image with the swap applied — same resolution, same crop, same framing as image 1.
@@ -49,6 +64,9 @@ PRESERVE (copy unchanged from image 1):
 • Background, floor, wall, lighting, shadows
 • ALL accessories — if absent in image 1, absent in output
 • Shoes and footwear
+• Garment silhouette volume (oversized stays oversized, slim stays slim)
+• Garment hem position relative to body
+• Sleeve length and cuff style
 • Every garment OUTSIDE the swap category must stay PIXEL-IDENTICAL:
 ${category === "top" ? "  → You are swapping the TOP only. The pants/skirt, shoes, and all other items must remain exactly as in image 1. Do NOT copy pants from image 2."
   : category === "bottom" ? "  → You are swapping the BOTTOM only. The top/jacket, shoes, and all other items must remain exactly as in image 1."
@@ -60,8 +78,11 @@ FORBIDDEN:
 • Changing color/style of ANY non-target clothing
 • Transferring ANY clothing from image 2 other than the target garment (e.g. do NOT copy pants/shoes/accessories from the reference image)
 • Adding or removing ANY accessory
+• Normalizing garment fit — if reference is oversized, output MUST be oversized
+• Changing garment length (crop↔long)
 • Blending the reference image's model body, face, pose, or background into the output
-${WATERMARK_INSTRUCTION}`,
+${WATERMARK_INSTRUCTION}
+${FACELESS_CROP_INSTRUCTION}`,
       userPrompt,
     );
   },
@@ -80,7 +101,8 @@ Critical constraints:
 - Do not modify anything outside the ${garmentType} — face, skin, hair, background, and other clothing must remain identical.
 - Do not flatten or remove fabric texture, wrinkles, or fold details.
 - The final result must look like the garment was originally manufactured in the reference color.
-${WATERMARK_INSTRUCTION}`,
+${WATERMARK_INSTRUCTION}
+${FACELESS_CROP_INSTRUCTION}`,
       userPrompt,
     ),
 
@@ -97,7 +119,8 @@ Critical constraints:
 - Do not modify anything outside the ${garmentType} — face, skin, hair, background, and other clothing must remain identical.
 - Do not flatten or remove fabric texture, wrinkles, or fold details.
 - The final result must look like the garment was originally manufactured in the target color.
-${WATERMARK_INSTRUCTION}`,
+${WATERMARK_INSTRUCTION}
+${FACELESS_CROP_INSTRUCTION}`,
       userPrompt,
     ),
 
@@ -110,11 +133,18 @@ Step 2: Repose the model's body to match the target pose while maintaining the e
 Step 3: Adapt the clothing to the new pose — ensure sleeves, collars, hemlines, and fabric panels drape, stretch, and fold naturally for the new body position.
 Step 4: Maintain the original background and ensure the model's placement, ground contact, and shadow remain consistent with the new pose.
 
+MOVEMENT INTENSITY (MANDATORY):
+- Keep ALL movements subtle and minimal — no exaggerated strides, wide leg spreads, or dramatic arm gestures.
+- Walking poses: narrow stride only (feet no more than one shoe-length apart).
+- Arm/hand poses: gentle, relaxed positioning — avoid theatrical or forced gestures.
+- The overall impression should be calm and natural, as if the model is barely moving.
+
 Critical constraints:
 - Face, hairstyle, skin tone, and body proportions must remain identical — only the pose changes.
 - The clothing must remain the same garment with the same color, pattern, and texture — adapt it to the new pose, do not replace it.
 - The final result must look like a natural photograph taken in the new pose.
-${WATERMARK_INSTRUCTION}`,
+${WATERMARK_INSTRUCTION}
+${FACELESS_CROP_INSTRUCTION}`,
       userPrompt,
     ),
 
@@ -132,7 +162,8 @@ Critical constraints:
 - The model must remain completely unchanged — do not modify, relight, recolor, or retouch any part of the person or clothing.
 - Only adjust the background to ensure seamless integration.
 - The final result should look like a natural photograph taken in the new location.
-${WATERMARK_INSTRUCTION}`,
+${WATERMARK_INSTRUCTION}
+${FACELESS_CROP_INSTRUCTION}`,
       userPrompt,
     ),
 
@@ -164,17 +195,24 @@ ${WATERMARK_INSTRUCTION}`,
 Target pose: ${poseDescription}
 
 Step 1: Analyze the model — memorize the face, hairstyle, skin tone, body proportions, clothing details (color, texture, pattern, accessories), and background.
-Step 2: Repose the model's body to match the target pose exactly, ensuring a full-body 1:1 composition where the entire body from head to toe is visible.
+Step 2: Repose the model's body to match the target pose exactly, ensuring a full-body 1:1 composition where the entire outfit from shoulders to shoes is visible.
 Step 3: Adapt the clothing to the new pose — ensure sleeves, collars, hemlines, and fabric panels drape, stretch, and fold naturally for the new body position.
 Step 4: Maintain the original background and ensure the model's placement, ground contact, and shadow remain consistent with the new pose.
 Step 5: Ensure the output is a clean, professional full-body shot suitable for e-commerce product listings.
 
+MOVEMENT INTENSITY (MANDATORY):
+- Keep ALL movements subtle and minimal — no exaggerated strides, wide leg spreads, or dramatic arm gestures.
+- Walking poses: narrow stride only (feet no more than one shoe-length apart).
+- Arm/hand poses: gentle, relaxed positioning — avoid theatrical or forced gestures.
+- The overall impression should be calm and natural, as if the model is barely moving.
+
 Critical constraints:
 - Face, hairstyle, skin tone, and body proportions must remain identical — only the pose changes.
 - The clothing must remain the same garment with the same color, pattern, and texture — adapt it to the new pose, do not replace it.
-- The output must be a full-body 1:1 shot showing the entire body from head to toe.
+- The output must be a full-body 1:1 shot showing the entire outfit from shoulders to shoes.
 - The final result must look like a natural photograph taken in the new pose.
-${WATERMARK_INSTRUCTION}`,
+${WATERMARK_INSTRUCTION}
+${FACELESS_CROP_INSTRUCTION}`,
       stylePrompt,
     ),
 

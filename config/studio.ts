@@ -29,6 +29,18 @@ export const POSE_PRESETS: PosePreset[] = [
     thumbnailUrl: "/images/poses/front-standing.webp",
   },
   {
+    id: "turn-left-45",
+    name: "왼쪽 45도 회전",
+    description: "몸을 왼쪽으로 45도 틀어 서 있는 포즈, 정면과 측면 실루엣이 동시에 보이는 각도",
+    thumbnailUrl: "/images/poses/turn-left-45.webp",
+  },
+  {
+    id: "turn-right-45",
+    name: "오른쪽 45도 회전",
+    description: "몸을 오른쪽으로 45도 틀어 서 있는 포즈, 정면과 측면 실루엣이 동시에 보이는 각도",
+    thumbnailUrl: "/images/poses/turn-right-45.webp",
+  },
+  {
     id: "side-left",
     name: "왼쪽 측면 서기",
     description: "왼쪽 측면을 보여주는 서 있는 포즈",
@@ -47,10 +59,22 @@ export const POSE_PRESETS: PosePreset[] = [
     thumbnailUrl: "/images/poses/back-standing.webp",
   },
   {
+    id: "back-turn-45",
+    name: "뒤돌아 45도",
+    description: "등을 보이되 몸을 45도 각도로 살짝 틀어 서 있는 포즈, 후면 디테일이 자연스럽게 보이는 각도",
+    thumbnailUrl: "/images/poses/back-turn-45.webp",
+  },
+  {
     id: "walking",
     name: "걷는 포즈",
-    description: "자연스럽게 걷고 있는 동적인 포즈",
+    description: "한 발을 살짝 앞에 둔 채 가볍게 걷는 듯한 포즈, 보폭은 좁고 동작은 미세하게",
     thumbnailUrl: "/images/poses/walking.webp",
+  },
+  {
+    id: "stride-walk",
+    name: "한 발 앞으로",
+    description: "한 발을 반 보폭 정도만 앞으로 내딛고 서 있는 포즈, 과장 없이 자연스러운 체중 이동으로 옷의 드레이프가 살짝 보이는 각도",
+    thumbnailUrl: "/images/poses/stride-walk.webp",
   },
   {
     id: "hand-on-hip",
@@ -65,22 +89,10 @@ export const POSE_PRESETS: PosePreset[] = [
     thumbnailUrl: "/images/poses/hands-in-pockets.webp",
   },
   {
-    id: "sitting",
-    name: "앉은 포즈",
-    description: "의자에 앉아있는 편안한 포즈",
-    thumbnailUrl: "/images/poses/sitting.webp",
-  },
-  {
-    id: "leaning",
-    name: "기대는 포즈",
-    description: "벽이나 구조물에 기대어 있는 포즈",
-    thumbnailUrl: "/images/poses/leaning.webp",
-  },
-  {
-    id: "upper-body",
-    name: "상반신 클로즈업",
-    description: "상반신을 강조하는 클로즈업 포즈",
-    thumbnailUrl: "/images/poses/upper-body.webp",
+    id: "one-hand-on-collar",
+    name: "한 손 칼라 터치",
+    description: "한 손으로 칼라나 옷깃을 가볍게 잡고 있는 포즈, 상의 디테일이 강조되는 자연스러운 손 위치",
+    thumbnailUrl: "/images/poses/one-hand-on-collar.webp",
   },
 ];
 
@@ -136,6 +148,32 @@ export function appendImageOptions(
   if (options.userPrompt?.trim())
     formData.set("userPrompt", options.userPrompt.trim());
 }
+
+export const INSTRUCTION_CHIPS = [
+  {
+    id: "no-ref-accessories",
+    label: "악세사리 무시",
+    promptText:
+      "Do NOT transfer any accessories (glasses, necklace, earrings, watch, hat, bag) from the reference image to the output. Only the target garment should be transferred.",
+  },
+  {
+    id: "fit-slim",
+    label: "슬림하게",
+    promptText:
+      "Fit the garment closer to the body, reducing excess fabric volume by about 30% compared to the reference image, while preserving the original design, color, and pattern.",
+  },
+  {
+    id: "fit-loose",
+    label: "루즈하게",
+    promptText:
+      "Add about 30% more fabric volume, making the garment hang looser from the body compared to the reference image, while preserving the original design, color, and pattern.",
+  },
+] as const;
+
+export const CHIP_CONFLICTS: Record<string, string> = {
+  "fit-slim": "fit-loose",
+  "fit-loose": "fit-slim",
+};
 
 export const IMAGE_CONSTRAINTS = {
   maxSizeBytes: 10 * 1024 * 1024,

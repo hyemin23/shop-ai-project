@@ -10,12 +10,18 @@ import { ImageUploadZone } from "@/components/studio/image-upload-zone";
 import { ResultViewer } from "@/components/studio/result-viewer";
 import { ImageOptionsSelector } from "@/components/studio/image-options-selector";
 import { PromptInput } from "@/components/studio/prompt-input";
+import { InstructionChips } from "@/components/studio/instruction-chips";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useStudioGenerate } from "@/hooks/use-studio-generate";
 import { useStudioDownload } from "@/hooks/use-studio-download";
 import { usePersistedImageOptions } from "@/hooks/use-persisted-image-options";
 import { useGarmentClassify } from "@/hooks/use-garment-classify";
-import { appendImageOptions, resolveMode } from "@/config/studio";
+import {
+  appendImageOptions,
+  resolveMode,
+  INSTRUCTION_CHIPS,
+  CHIP_CONFLICTS,
+} from "@/config/studio";
 
 const CATEGORY_BADGE_COLORS: Record<string, string> = {
   top: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
@@ -35,6 +41,7 @@ export default function StudioTryOnPage() {
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [referenceFile, setReferenceFile] = useState<File | null>(null);
   const [imageOptions, setImageOptions] = usePersistedImageOptions();
+  const [selectedChipIds, setSelectedChipIds] = useState<string[]>([]);
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
   const {
@@ -62,6 +69,17 @@ export default function StudioTryOnPage() {
     [classify, resetClassify],
   );
 
+  const handleChipToggle = useCallback((id: string) => {
+    setSelectedChipIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((c) => c !== id);
+      }
+      const conflict = CHIP_CONFLICTS[id];
+      const next = conflict ? prev.filter((c) => c !== conflict) : [...prev];
+      return [...next, id];
+    });
+  }, []);
+
   const handleGenerate = useCallback(async () => {
     if (!sourceFile || !referenceFile) return;
     const formData = new FormData();
@@ -70,9 +88,17 @@ export default function StudioTryOnPage() {
     if (classifyResult) {
       formData.set("garmentCategory", classifyResult.category);
     }
-    appendImageOptions(formData, imageOptions);
+    const chipTexts = selectedChipIds
+      .map((id) => INSTRUCTION_CHIPS.find((c) => c.id === id)?.promptText)
+      .filter(Boolean)
+      .join(" ");
+    const combinedPrompt = [chipTexts, imageOptions.userPrompt]
+      .filter(Boolean)
+      .join("\n");
+    const optionsWithChips = { ...imageOptions, userPrompt: combinedPrompt || undefined };
+    appendImageOptions(formData, optionsWithChips);
     await generate(formData);
-  }, [sourceFile, referenceFile, classifyResult, imageOptions, generate]);
+  }, [sourceFile, referenceFile, classifyResult, selectedChipIds, imageOptions, generate]);
 
   const download = useStudioDownload("try-on");
 
@@ -140,6 +166,10 @@ export default function StudioTryOnPage() {
                 setImageOptions({ ...imageOptions, userPrompt: v })
               }
               disabled={status === "processing"}
+            />
+            <InstructionChips
+              selectedIds={selectedChipIds}
+              onToggle={handleChipToggle}
             />
             <ImageOptionsSelector
               options={imageOptions}
