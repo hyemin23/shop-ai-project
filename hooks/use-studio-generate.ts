@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
+import { invalidateTokenBalance } from "@/hooks/use-token-balance";
 import {
   type StudioStatus,
   type StudioType,
@@ -108,6 +109,7 @@ export function useStudioGenerate({
           });
         }
 
+        invalidateTokenBalance();
         onSuccess?.(data);
       } catch {
         setStatus("error");

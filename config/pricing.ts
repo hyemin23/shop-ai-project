@@ -40,6 +40,8 @@ export const TOKEN_PACKAGES: TokenPackage[] = [
 
 export const FREE_TRIAL_TOKENS = 30;
 
+export const SIGNUP_BONUS_TOKENS = 3;
+
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id: "sub_lite",

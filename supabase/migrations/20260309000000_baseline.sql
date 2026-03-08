@@ -255,11 +255,13 @@ CREATE POLICY "Service role can manage subscriptions" ON subscriptions
 
 -- ==================== 5. FUNCTIONS ====================
 
--- handle_new_user: OAuth 호환 (Google/Kakao)
+-- handle_new_user: OAuth 호환 (Google/Kakao) + 회원가입 보너스 토큰
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS trigger AS $$
+DECLARE
+  v_signup_bonus CONSTANT integer := 3;
 BEGIN
-  INSERT INTO public.profiles (id, email, display_name, avatar_url)
+  INSERT INTO public.profiles (id, email, display_name, avatar_url, token_balance)
   VALUES (
     NEW.id,
     NEW.email,
@@ -269,8 +271,13 @@ BEGIN
       NEW.raw_user_meta_data->>'preferred_username',
       NEW.raw_user_meta_data->>'user_name'
     ),
-    NEW.raw_user_meta_data->>'avatar_url'
+    NEW.raw_user_meta_data->>'avatar_url',
+    v_signup_bonus
   );
+
+  INSERT INTO public.token_transactions (user_id, type, amount, balance, description)
+  VALUES (NEW.id, 'charge', v_signup_bonus, v_signup_bonus, '회원가입 축하 무료 토큰');
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;

@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import { type UgcItemState, type UgcSSEEvent } from "@/types/ugc";
 import { consumeSSEStream } from "@/lib/sse";
 import { downloadAsZip } from "@/lib/download";
+import { invalidateTokenBalance } from "@/hooks/use-token-balance";
 
 interface UseUgcGenerateOptions {
   onComplete?: (results: UgcItemState[]) => void;
@@ -102,6 +103,7 @@ export function useUgcGenerate({
         });
 
         setIsProcessing(false);
+        invalidateTokenBalance();
         setItems((current) => {
           onComplete?.(current);
           return current;

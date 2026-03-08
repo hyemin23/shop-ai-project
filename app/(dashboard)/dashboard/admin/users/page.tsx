@@ -6,7 +6,8 @@ import { UserTable } from "@/components/admin/user-table";
 import { UserChargeDialog } from "@/components/admin/user-charge-dialog";
 import { UserBetaDialog } from "@/components/admin/user-beta-dialog";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, RefreshCw } from "lucide-react";
 import type { AdminUser } from "@/hooks/use-admin-users";
 
 export default function AdminUsersPage() {
@@ -24,9 +25,11 @@ export default function AdminUsersPage() {
     updateBetaStatus,
     isCharging,
     isUpdating,
+    refresh,
   } = useAdminUsers();
 
   const [chargeTarget, setChargeTarget] = useState<AdminUser | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [betaTarget, setBetaTarget] = useState<AdminUser | null>(null);
 
   return (
@@ -38,14 +41,29 @@ export default function AdminUsersPage() {
         </p>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="이메일 또는 이름으로 검색"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex items-center gap-2">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="이메일 또는 이름으로 검색"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={isRefreshing}
+          onClick={async () => {
+            setIsRefreshing(true);
+            await refresh();
+            setIsRefreshing(false);
+          }}
+        >
+          <RefreshCw className={`mr-1 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          새로고침
+        </Button>
       </div>
 
       <UserTable

@@ -8,6 +8,7 @@ import {
 } from "@/types/multi-pose";
 import { consumeSSEStream } from "@/lib/sse";
 import { downloadAsZip } from "@/lib/download";
+import { invalidateTokenBalance } from "@/hooks/use-token-balance";
 
 interface UseMultiPoseGenerateOptions {
   mode?: GenerationMode;
@@ -118,6 +119,7 @@ export function useMultiPoseGenerate({
         });
 
         setIsProcessing(false);
+        invalidateTokenBalance();
         setItems((current) => {
           onComplete?.(current);
           return current;

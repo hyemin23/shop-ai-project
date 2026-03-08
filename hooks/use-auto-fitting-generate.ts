@@ -8,6 +8,7 @@ import {
 import { AUTO_FITTING_PRESETS } from "@/config/auto-fitting";
 import { consumeSSEStream } from "@/lib/sse";
 import { downloadAsZip } from "@/lib/download";
+import { invalidateTokenBalance } from "@/hooks/use-token-balance";
 
 interface UseAutoFittingGenerateOptions {
   onComplete?: (results: AutoFittingItemState[]) => void;
@@ -114,6 +115,7 @@ export function useAutoFittingGenerate({
         });
 
         setIsProcessing(false);
+        invalidateTokenBalance();
         setItems((current) => {
           onComplete?.(current);
           return current;
@@ -179,6 +181,7 @@ export function useAutoFittingGenerate({
         }
 
         const data = await response.json();
+        invalidateTokenBalance();
         setItems((prev) => {
           const updated = [...prev];
           updated[index] = {

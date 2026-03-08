@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
+import { invalidateTokenBalance } from "@/hooks/use-token-balance";
 import type {
   VideoGenerationStatus,
   KlingTaskStatus,
@@ -93,6 +94,7 @@ export function useVideoGenerate<T = Record<string, unknown>>({
             stopPolling();
             setStatus("succeed");
             setVideoUrl(data.videoUrl);
+            invalidateTokenBalance();
             onSuccess?.(data.videoUrl);
           } else if (taskStatus === "failed") {
             stopPolling();

@@ -70,8 +70,8 @@ export function useAdminUsers(): UseAdminUsersReturn {
     debounceRef.current = setTimeout(() => setDebouncedSearch(s), 300);
   }, []);
 
-  const fetchUsers = useCallback(async () => {
-    setIsLoading(true);
+  const fetchUsers = useCallback(async (silent = false) => {
+    if (!silent) setIsLoading(true);
     try {
       const params = new URLSearchParams();
       params.set("limit", String(PAGE_SIZE));
@@ -85,15 +85,16 @@ export function useAdminUsers(): UseAdminUsersReturn {
       setUsers((data.users ?? []).map(mapUserRow));
       setTotal(data.total ?? 0);
     } catch {
-      toast.error("사용자 조회에 실패했습니다.");
+      if (!silent) toast.error("사용자 조회에 실패했습니다.");
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   }, [debouncedSearch, page]);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
 
   const chargeTokens = useCallback(
     async (userId: string, amount: number): Promise<boolean> => {
