@@ -16,9 +16,11 @@ interface UseAutoFittingGenerateOptions {
 interface UseAutoFittingGenerateReturn {
   items: AutoFittingItemState[];
   isProcessing: boolean;
+  retryingIndex: number | null;
   batchId: string | null;
   progress: { completed: number; total: number; failed: number };
   generate: (formData: FormData) => Promise<void>;
+  retryItem: (index: number) => Promise<void>;
   reset: () => void;
   downloadZip: () => Promise<void>;
 }
@@ -30,7 +32,9 @@ export function useAutoFittingGenerate({
 }: UseAutoFittingGenerateOptions): UseAutoFittingGenerateReturn {
   const [items, setItems] = useState<AutoFittingItemState[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [retryingIndex, setRetryingIndex] = useState<number | null>(null);
   const [batchId, setBatchId] = useState<string | null>(null);
+  const lastFormDataRef = useRef<FormData | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const progress = {
@@ -46,6 +50,7 @@ export function useAutoFittingGenerate({
       if (isProcessing) return;
 
       abortRef.current = new AbortController();
+      lastFormDataRef.current = formData;
       setIsProcessing(true);
       setBatchId(null);
 
@@ -101,6 +106,11 @@ export function useAutoFittingGenerate({
 
             const event: AutoFittingSSEEvent = JSON.parse(dataLine.slice(6));
 
+            if (event.type === "batch_complete") {
+              if (event.batchId) setBatchId(event.batchId);
+              continue;
+            }
+
             setItems((prev) => {
               const updated = [...prev];
               if (updated[event.index]) {
@@ -114,10 +124,6 @@ export function useAutoFittingGenerate({
               }
               return updated;
             });
-
-            if (event.type === "batch_complete" && event.batchId) {
-              setBatchId(event.batchId);
-            }
           }
         }
 
@@ -161,6 +167,79 @@ export function useAutoFittingGenerate({
     setBatchId(null);
   }, []);
 
+  const retryItem = useCallback(
+    async (index: number) => {
+      const item = items[index];
+      if (!item || !lastFormDataRef.current) return;
+      const preset = AUTO_FITTING_PRESETS[index];
+      if (!preset) return;
+
+      setRetryingIndex(index);
+      setItems((prev) => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], status: "processing", error: undefined };
+        return updated;
+      });
+
+      try {
+        const original = lastFormDataRef.current;
+        const formData = new FormData();
+        formData.set("sourceImage", original.get("sourceImage") as File);
+        formData.set("presetId", preset.id);
+        if (original.get("imageSize"))
+          formData.set("imageSize", original.get("imageSize") as string);
+        if (original.get("stylePrompt"))
+          formData.set("stylePrompt", original.get("stylePrompt") as string);
+
+        const response = await fetch("/api/studio/auto-fitting/retry", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 402 && errorData.code === "TOKEN_INSUFFICIENT") {
+            onTokenInsufficient?.();
+            setItems((prev) => {
+              const updated = [...prev];
+              updated[index] = { ...updated[index], status: "error", error: "토큰 부족" };
+              return updated;
+            });
+            return;
+          }
+          throw new Error(errorData.error || "재생성 실패");
+        }
+
+        const data = await response.json();
+        setItems((prev) => {
+          const updated = [...prev];
+          updated[index] = {
+            ...updated[index],
+            status: "success",
+            resultImageUrl: data.resultImageUrl,
+            processingTime: data.processingTime,
+            error: undefined,
+          };
+          return updated;
+        });
+      } catch (error) {
+        setItems((prev) => {
+          const updated = [...prev];
+          updated[index] = {
+            ...updated[index],
+            status: "error",
+            error: (error as Error).message,
+          };
+          return updated;
+        });
+        onError?.((error as Error).message);
+      } finally {
+        setRetryingIndex(null);
+      }
+    },
+    [items, onError, onTokenInsufficient],
+  );
+
   const downloadZip = useCallback(async () => {
     const successItems = items.filter(
       (i) => i.status === "success" && i.resultImageUrl,
@@ -194,9 +273,11 @@ export function useAutoFittingGenerate({
   return {
     items,
     isProcessing,
+    retryingIndex,
     batchId,
     progress,
     generate,
+    retryItem,
     reset,
     downloadZip,
   };

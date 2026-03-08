@@ -20,7 +20,7 @@ export default function AutoFittingPage() {
   const [imageOptions, setImageOptions] = usePersistedImageOptions();
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
 
-  const { items, isProcessing, progress, generate, reset, downloadZip } =
+  const { items, isProcessing, retryingIndex, progress, generate, retryItem, reset, downloadZip } =
     useAutoFittingGenerate({
       onComplete: () => {
         toast.success("자동피팅 생성이 완료되었습니다.");
@@ -148,6 +148,8 @@ export default function AutoFittingPage() {
             <AutoFittingResultGrid
               items={items}
               onDownloadAll={downloadZip}
+              onRetryItem={retryItem}
+              retryingIndex={retryingIndex}
               isProcessing={isProcessing}
             />
           </CardContent>

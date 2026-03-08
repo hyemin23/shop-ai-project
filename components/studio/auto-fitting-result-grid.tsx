@@ -1,22 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Loader2, AlertCircle, SkipForward } from "lucide-react";
+import { Download, Loader2, AlertCircle, SkipForward, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { type AutoFittingItemState } from "@/types/auto-fitting";
 import { downloadImage } from "@/lib/download";
 
 interface AutoFittingResultGridProps {
   items: AutoFittingItemState[];
   onDownloadAll: () => void;
+  onRetryItem?: (index: number) => void;
+  retryingIndex?: number | null;
   isProcessing: boolean;
 }
 
 export function AutoFittingResultGrid({
   items,
   onDownloadAll,
+  onRetryItem,
+  retryingIndex,
   isProcessing,
 }: AutoFittingResultGridProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -99,6 +104,18 @@ export function AutoFittingResultGrid({
                 <span className="text-[10px] text-destructive">
                   {item.error || "오류 발생"}
                 </span>
+                {onRetryItem && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 gap-1 px-2 text-[10px]"
+                    onClick={() => onRetryItem(item.index)}
+                    disabled={retryingIndex !== null || isProcessing}
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    재생성
+                  </Button>
+                )}
               </div>
             ) : item.status === "skipped" ? (
               <div className="flex h-full flex-col items-center justify-center gap-2 bg-muted/30 p-2 text-center">
@@ -127,6 +144,9 @@ export function AutoFittingResultGrid({
         onOpenChange={(open) => !open && setPreviewUrl(null)}
       >
         <DialogContent className="max-w-3xl p-2">
+          <VisuallyHidden>
+            <DialogTitle>확대 미리보기</DialogTitle>
+          </VisuallyHidden>
           {previewUrl && (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
