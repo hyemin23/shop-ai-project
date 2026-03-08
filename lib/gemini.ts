@@ -112,11 +112,16 @@ async function callModel(
 
   console.log(`[Gemini] Request | model=${modelId} images=${images.length} config=${JSON.stringify(config.imageConfig ?? {})}`);
 
-  const response = await aiClient.models.generateContent({
-    model: modelId,
-    contents,
-    config,
-  });
+  const response = await Promise.race([
+    aiClient.models.generateContent({
+      model: modelId,
+      contents,
+      config,
+    }),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("GEMINI_TIMEOUT: 120초 내 응답 없음")), 120_000),
+    ),
+  ]);
 
   const candidate = response.candidates?.[0];
   const parts = candidate?.content?.parts;
