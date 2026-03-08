@@ -273,27 +273,27 @@ ${WATERMARK_INSTRUCTION}`,
 
   fourSplitCut: (details: string[], userPrompt?: string) =>
     appendUserPrompt(
-      `You are a professional fashion product photographer. Create a "4-split detail" composition — a single image divided into 4 equal quadrants arranged in a 2×2 grid, each showing a high-resolution close-up of a specific garment detail.
+      `Edit the provided image to create a "4-split detail" composition. This is an IMAGE EDITING task — you must work directly from the pixels of the provided photo, NOT generate new content from imagination.
 
-CRITICAL: Analyze the ACTUAL garment in the provided photo, then create product-style detail shots as if the garment was removed from the model and photographed flat on a studio surface. Do NOT simply crop the original photo — instead, reconstruct each detail area showing ONLY the garment fabric and construction, with NO human body parts visible.
+Your task: Take the provided garment photo and edit it into a single image with 4 equal quadrants in a 2×2 grid. Each quadrant is a zoomed-in crop of a specific detail area from the ORIGINAL image, with the model's body removed and replaced with a clean neutral background.
 
-Step 1: Carefully study the provided image — identify the garment type (hoodie, jacket, shirt, etc.), its structural features (hood, zipper, buttons, pockets, collar style), fabric, color, and all visible construction details. Memorize these features exactly.
-Step 2: For each of the 4 detail areas below, imagine the garment laid flat on a neutral background and photograph that specific area in close-up:
+Step 1: Analyze the provided image pixel by pixel — identify every visible detail of the garment: exact zipper style, exact ribbing pattern, exact fabric weave, exact color shade.
+Step 2: For each quadrant, crop and zoom into the relevant area of the ORIGINAL photo, then inpaint/remove any visible skin, hands, or body — replacing them with the garment fabric or neutral background:
   - Top-left: ${details[0]}
   - Top-right: ${details[1]}
   - Bottom-left: ${details[2]}
   - Bottom-right: ${details[3]}
-Step 3: Each quadrant must faithfully reproduce the ACTUAL garment's details — same fabric color, same texture, same construction. If the garment has a hood, the neckline/collar detail MUST show the hood. If it has a zipper, show the ACTUAL zipper style.
-Step 4: Present each detail as a clean product photograph — the garment piece only, on a soft neutral background, with professional studio lighting.
-Step 5: Arrange them in a clean 2×2 grid with thin white dividing lines between quadrants.
+Step 3: The details in each quadrant must be pixel-faithful to the original — the EXACT same zipper teeth, the EXACT same ribbing thickness, the EXACT same stitch pattern. Do not hallucinate or invent details that aren't visible in the source.
+Step 4: Clean up each quadrant — remove body parts by inpainting with garment fabric or neutral background. Use soft studio lighting.
+Step 5: Arrange the 4 quadrants in a 2×2 grid with thin white dividing lines.
 
 Critical constraints:
+- This is EDITING, not generation. Every texture and construction detail must come from the actual pixels of the input image.
 - Generate ONE image containing 4 quadrants in a 2×2 grid layout.
-- ABSOLUTELY NO human body parts — no hands, fingers, skin, wrists, neck, or any flesh tones. Show ONLY the garment.
-- Each quadrant should look like an e-commerce product detail photo — garment only, no model.
-- NEVER alter the garment's structure — if it has a hood, show the hood; if it has snaps instead of buttons, show snaps.
-- NEVER substitute details from a different garment. Each detail must match the EXACT item in the input photo.
-- All colors, textures, and patterns must exactly match the original garment.
+- NO human body parts — inpaint/remove all skin, hands, fingers, neck. Show only garment.
+- Do NOT invent zipper styles, button shapes, or stitch patterns that aren't in the original.
+- If a detail area is not clearly visible in the source, show the closest available area rather than imagining it.
+- All colors must exactly match the original photo's color values.
 ${WATERMARK_INSTRUCTION}`,
       userPrompt,
     ),
