@@ -40,7 +40,7 @@ export function ImageOptionsSelector({
                 className={cn(
                   "rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200",
                   selectedRatio === preset.value
-                    ? "bg-background text-foreground shadow-sm"
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 )}
                 onClick={() =>
@@ -64,7 +64,7 @@ export function ImageOptionsSelector({
               className={cn(
                 "rounded-md px-4 py-1.5 text-xs font-medium transition-all duration-200",
                 selectedSize === preset.value
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               )}
               onClick={() =>

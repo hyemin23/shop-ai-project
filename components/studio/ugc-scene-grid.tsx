@@ -109,7 +109,7 @@ export function UgcSceneGrid({
                     key={scene.id}
                     className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm transition-colors ${
                       isSelected
-                        ? "border-primary bg-primary/5"
+                        ? "border-primary bg-primary/10 ring-1 ring-primary/30"
                         : "border-border hover:bg-muted/50"
                     } ${isDisabled && !isSelected ? "cursor-not-allowed opacity-50" : ""}`}
                   >
