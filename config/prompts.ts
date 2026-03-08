@@ -10,12 +10,13 @@ const WATERMARK_INSTRUCTION =
   "If the source image contains any watermarks, logos, or text overlays, remove them completely in the output so the result is clean.";
 
 const FACELESS_CROP_INSTRUCTION = `
-FACELESS CROPPING (MANDATORY):
-- Crop the output so the model's face is NOT visible. Frame the image from roughly the chin/neck down to the feet.
-- The top of the frame should start at the upper chest or neck area — do NOT include eyes, nose, mouth, or forehead.
-- Maintain full-body framing: the entire outfit from shoulders to shoes must be visible.
-- Keep the original background, lighting, and composition — only adjust the vertical crop to exclude the face.
-- Do NOT blur, mask, or distort the face — simply crop it out of frame.`;
+FACELESS FRAMING (MANDATORY):
+- Frame the shot as if taken from a slightly farther distance — show the full body with natural headroom above the model.
+- Include the model's head silhouette and hair, but crop so the face is NOT recognizable: cut off at approximately the nose or mouth level. The forehead, eyes, and nose bridge should NOT be visible.
+- There should be comfortable empty space (about 10-15% of frame height) above the top of the head, like a real full-body fashion photograph.
+- Show the entire outfit from shoulders to shoes with natural proportions — do NOT compress or crop the body tightly.
+- Keep the original background, lighting, and composition.
+- Do NOT blur, pixelate, or mask the face — simply frame it out of view naturally.`;
 
 function appendUserPrompt(basePrompt: string, userPrompt?: string): string {
   if (!userPrompt?.trim()) return basePrompt;
