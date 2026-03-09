@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getUserOrSessionId, checkBetaUser } from "@/lib/auth";
 import { createImageToVideoTask } from "@/lib/kling";
 import { VIDEO_CREDIT_COST } from "@/config/pricing";
+import { KLING_MODEL } from "@/config/video";
 import { createServiceClient } from "@/lib/supabase/server";
 import { TokenInsufficientError } from "@/lib/tokens";
 import {
@@ -33,14 +34,6 @@ const imageToVideoSchema = z.object({
     ),
   prompt: z.string().max(2500).optional(),
   negativePrompt: z.string().max(2500).optional(),
-  model: z.enum([
-    "kling-v1",
-    "kling-v1-6",
-    "kling-v2-master",
-    "kling-v2-1-master",
-    "kling-v2-5-turbo",
-    "kling-v2-6",
-  ]),
   aspectRatio: z.enum(["16:9", "9:16", "1:1"]),
   duration: z.enum(["5", "10"]),
   mode: z.enum(["std", "pro"]),
@@ -81,7 +74,6 @@ export async function POST(request: NextRequest) {
       imageUrl,
       prompt,
       negativePrompt,
-      model,
       aspectRatio,
       duration,
       mode,
@@ -119,7 +111,7 @@ export async function POST(request: NextRequest) {
         imageUrl,
         prompt,
         negativePrompt,
-        model,
+        model: KLING_MODEL,
         aspectRatio,
         duration,
         mode,
@@ -134,7 +126,7 @@ export async function POST(request: NextRequest) {
 
     // Kling API 호출 (Supabase public URL을 직접 전달)
     const response = await createImageToVideoTask({
-      model_name: model,
+      model_name: KLING_MODEL,
       image: imageUrl,
       prompt: prompt || undefined,
       negative_prompt: negativePrompt || undefined,

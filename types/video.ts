@@ -33,13 +33,7 @@ export interface GenerationLog {
   userDisplayName?: string;
 }
 
-export type KlingModel =
-  | "kling-v1"
-  | "kling-v1-6"
-  | "kling-v2-master"
-  | "kling-v2-1-master"
-  | "kling-v2-5-turbo"
-  | "kling-v2-6";
+export type KlingModel = "kling-v2-6";
 
 export type KlingAspectRatio = "16:9" | "9:16" | "1:1";
 export type KlingDuration = "5" | "10";
@@ -81,7 +75,6 @@ export interface ImageToVideoRequest {
   imageUrl: string;
   prompt?: string;
   negativePrompt?: string;
-  model: KlingModel;
   aspectRatio: KlingAspectRatio;
   duration: KlingDuration;
   mode: KlingMode;

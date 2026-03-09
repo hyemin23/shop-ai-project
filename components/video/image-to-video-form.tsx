@@ -21,7 +21,6 @@ import {
   Loader2,
 } from "lucide-react";
 import {
-  KLING_MODEL_PRESETS,
   KLING_ASPECT_RATIO_PRESETS,
   KLING_DURATION_PRESETS,
   KLING_MODE_PRESETS,
@@ -30,7 +29,6 @@ import {
 } from "@/config/video";
 import { VIDEO_CREDIT_COST } from "@/config/pricing";
 import type {
-  KlingModel,
   KlingAspectRatio,
   KlingDuration,
   KlingMode,
@@ -59,9 +57,6 @@ export function ImageToVideoForm({
   // Options
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("");
-  const [model, setModel] = useState<KlingModel>(
-    DEFAULT_IMAGE_TO_VIDEO_OPTIONS.model,
-  );
   const [aspectRatio, setAspectRatio] = useState<KlingAspectRatio>(
     DEFAULT_IMAGE_TO_VIDEO_OPTIONS.aspectRatio,
   );
@@ -143,7 +138,6 @@ export function ImageToVideoForm({
         imageUrl: uploadData.url,
         prompt: prompt.trim() || undefined,
         negativePrompt: negativePrompt.trim() || undefined,
-        model,
         aspectRatio,
         duration,
         mode,
@@ -236,28 +230,8 @@ export function ImageToVideoForm({
         />
       </div>
 
-      {/* Model / Aspect Ratio / Duration / Mode */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>모델</Label>
-          <Select
-            value={model}
-            onValueChange={(v) => setModel(v as KlingModel)}
-            disabled={isBusy}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {KLING_MODEL_PRESETS.map((p) => (
-                <SelectItem key={p.value} value={p.value}>
-                  {p.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
+      {/* Aspect Ratio / Duration / Mode */}
+      <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label>비율</Label>
           <Select
