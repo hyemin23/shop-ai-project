@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Zap } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,8 +21,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { siteConfig } from "@/config/site";
 import { UserMenu } from "@/components/user-menu";
+import { BrandLogo } from "@/components/dashboard/brand-logo";
 import { dashboardConfig } from "@/config/dashboard";
 import { type SidebarNavGroup } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
@@ -52,15 +52,8 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4">
-        <Link href="/" className="group/logo flex items-center gap-2.5 font-bold text-lg tracking-tight select-none" draggable={false}>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary shadow-sm shadow-primary/25 transition-transform duration-200 group-hover/logo:scale-105">
-            <Zap className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <span className="group-data-[collapsible=icon]:hidden">
-            {siteConfig.name}
-          </span>
-        </Link>
+      <SidebarHeader className="border-b px-4 py-3 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-3">
+        <BrandLogo />
       </SidebarHeader>
 
       <SidebarContent>

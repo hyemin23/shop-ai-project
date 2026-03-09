@@ -1,7 +1,7 @@
 import { type SiteConfig } from "@/types";
 
 export const siteConfig: SiteConfig = {
-  name: "똑픽",
+  name: "똑핏",
   description:
     "동대문 의류 셀러를 위한 AI 이미지 편집 B2B SaaS. 의류 교체, 색상 변경, 포즈 변경을 건당 수백 원, 수 분 이내로.",
   url: "https://ddokpick.com",

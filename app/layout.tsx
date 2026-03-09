@@ -21,8 +21,8 @@ const notoSansKR = Noto_Sans_KR({
 
 export const metadata: Metadata = {
   title: {
-    default: "똑픽 (DDokPick)",
-    template: "%s | 똑픽",
+    default: "똑핏",
+    template: "%s | 똑핏",
   },
   description:
     "동대문 의류 셀러를 위한 AI 이미지 편집 서비스. 의류 교체, 색상 변경, 포즈 변경을 건당 1,000원 이하, 수 분 이내로.",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    siteName: "똑픽 (DDokPick)",
+    siteName: "똑핏",
   },
   twitter: {
     card: "summary_large_image",

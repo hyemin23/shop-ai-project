@@ -1,14 +1,23 @@
-import { Zap } from "lucide-react";
 import Link from "next/link";
-import { siteConfig } from "@/config/site";
+import { cn } from "@/lib/utils";
 
-export function Logo() {
+interface LogoProps {
+  className?: string;
+}
+
+export function Logo({ className }: LogoProps) {
   return (
-    <Link href="/" className="group flex items-center gap-2.5 font-bold text-lg tracking-tight select-none" draggable={false}>
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-sm shadow-primary/25 transition-transform duration-200 group-hover:scale-105">
-        <Zap className="h-4 w-4 text-primary-foreground" />
-      </div>
-      <span>{siteConfig.name}</span>
+    <Link
+      href="/"
+      className={cn(
+        "group flex items-center select-none outline-none",
+        className,
+      )}
+      draggable={false}
+    >
+      <span className="text-xl font-extrabold tracking-tight transition-opacity group-hover:opacity-80">
+        똑핏
+      </span>
     </Link>
   );
 }

@@ -88,6 +88,9 @@ export function HeroSection() {
 
         {/* Headline with typewriter */}
         <div className="animate-fade-in-up space-y-4" style={{ animationDelay: "100ms" }}>
+          <p className="text-sm font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+            똑똑, 핏 나왔습니다
+          </p>
           <h1 className="max-w-4xl text-[2.5rem] font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
             촬영 없이 만드는
             <br />

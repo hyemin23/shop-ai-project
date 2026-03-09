@@ -4,7 +4,7 @@ import { FeaturesSection } from "@/components/marketing/features-section";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: "똑픽 (DDokPick) — AI 의류 이미지 편집 서비스",
+  title: "똑핏 — AI 의류 이미지 편집 서비스",
   description:
     "동대문 의류 셀러를 위한 AI 이미지 편집 B2B SaaS. 의류 교체, 색상 변경, 포즈 변경을 건당 수백 원, 수 분 이내로.",
   keywords: [
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "포즈 변경",
   ],
   openGraph: {
-    title: "똑픽 (DDokPick) — AI 의류 이미지 편집",
+    title: "똑핏 — AI 의류 이미지 편집",
     description:
       "의류 교체·색상 변경·포즈 변경을 AI로. 동대문 셀러를 위한 초간편 이미지 편집 서비스.",
     url: siteConfig.url,
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "똑픽 (DDokPick) — AI 의류 이미지 편집",
+    title: "똑핏 — AI 의류 이미지 편집",
     description:
       "의류 교체·색상 변경·포즈 변경을 AI로. 동대문 셀러를 위한 초간편 이미지 편집 서비스.",
   },
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "똑픽 (DDokPick)",
+  name: "똑핏",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description: siteConfig.description,
