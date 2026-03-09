@@ -18,7 +18,16 @@
       "WebFetch(domain:buildupspace.vercel.app)",
       "WebFetch(domain:npm.im)",
       "WebFetch(domain:www.npmjs.com)",
-      "mcp__supabase__get_logs"
+      "mcp__supabase__get_logs",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__apply_migration",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "WebFetch(domain:app.klingai.com)",
+      "mcp__shrimp-task-manager__list_tasks",
+      "mcp__supabase__list_tables"
     ]
   },
   "enableAllProjectMcpServers": true,
