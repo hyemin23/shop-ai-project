@@ -14,16 +14,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   Coins,
   Video,
   Upload,
   X,
-  ChevronDown,
   Loader2,
 } from "lucide-react";
 import {
@@ -33,13 +27,6 @@ import {
   KLING_MODE_PRESETS,
   DEFAULT_IMAGE_TO_VIDEO_OPTIONS,
   VIDEO_PROMPT_CONSTRAINTS,
-  CAMERA_MOVEMENT_PRESETS,
-  VIDEO_STYLE_PRESETS,
-  VIDEO_LIGHTING_PRESETS,
-  VIDEO_COLOR_GRADING_PRESETS,
-  VIDEO_RESOLUTION_PRESETS,
-  VIDEO_FPS_PRESETS,
-  VIDEO_SOUND_PRESETS,
 } from "@/config/video";
 import { VIDEO_CREDIT_COST } from "@/config/pricing";
 import type {
@@ -47,13 +34,6 @@ import type {
   KlingAspectRatio,
   KlingDuration,
   KlingMode,
-  CameraMovement,
-  VideoStyle,
-  VideoLighting,
-  VideoColorGrading,
-  VideoResolution,
-  VideoFps,
-  VideoSound,
   ImageToVideoRequest,
   VideoGenerationStatus,
 } from "@/types/video";
@@ -76,7 +56,7 @@ export function ImageToVideoForm({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Basic options
+  // Options
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("");
   const [model, setModel] = useState<KlingModel>(
@@ -93,33 +73,6 @@ export function ImageToVideoForm({
   );
   const [cfgScale, setCfgScale] = useState(
     DEFAULT_IMAGE_TO_VIDEO_OPTIONS.cfg_scale,
-  );
-  const [motionStrength, setMotionStrength] = useState(
-    DEFAULT_IMAGE_TO_VIDEO_OPTIONS.motionStrength,
-  );
-  const [cameraMovement, setCameraMovement] = useState<CameraMovement>(
-    DEFAULT_IMAGE_TO_VIDEO_OPTIONS.cameraMovement,
-  );
-
-  // Advanced options
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [fps, setFps] = useState<VideoFps>(
-    DEFAULT_IMAGE_TO_VIDEO_OPTIONS.fps,
-  );
-  const [resolution, setResolution] = useState<VideoResolution>(
-    DEFAULT_IMAGE_TO_VIDEO_OPTIONS.resolution,
-  );
-  const [lighting, setLighting] = useState<VideoLighting>(
-    DEFAULT_IMAGE_TO_VIDEO_OPTIONS.lighting,
-  );
-  const [colorGrading, setColorGrading] = useState<VideoColorGrading>(
-    DEFAULT_IMAGE_TO_VIDEO_OPTIONS.colorGrading,
-  );
-  const [videoStyle, setVideoStyle] = useState<VideoStyle>(
-    DEFAULT_IMAGE_TO_VIDEO_OPTIONS.style,
-  );
-  const [sound, setSound] = useState<VideoSound>(
-    DEFAULT_IMAGE_TO_VIDEO_OPTIONS.sound,
   );
 
   const isBusy = status === "submitting" || status === "polling";
@@ -195,14 +148,6 @@ export function ImageToVideoForm({
         duration,
         mode,
         cfg_scale: cfgScale,
-        motionStrength,
-        cameraMovement,
-        fps,
-        resolution,
-        lighting,
-        colorGrading,
-        style: videoStyle,
-        sound,
       });
     } catch {
       setIsUploading(false);
@@ -377,7 +322,7 @@ export function ImageToVideoForm({
       {/* CFG Scale Slider */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label>프롬프트 충실도 (cfg_scale)</Label>
+          <Label>프롬프트 충실도</Label>
           <span className="text-sm text-muted-foreground">{cfgScale.toFixed(1)}</span>
         </div>
         <Slider
@@ -392,187 +337,6 @@ export function ImageToVideoForm({
           낮을수록 자유로운 해석, 높을수록 프롬프트에 충실
         </p>
       </div>
-
-      {/* Motion Strength Slider */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <Label>모션 강도</Label>
-          <span className="text-sm text-muted-foreground">
-            {motionStrength.toFixed(1)}
-          </span>
-        </div>
-        <Slider
-          value={[motionStrength]}
-          onValueChange={([v]) => setMotionStrength(v)}
-          min={0}
-          max={1}
-          step={0.1}
-          disabled={isBusy}
-        />
-        <p className="text-xs text-muted-foreground">
-          낮을수록 미세한 움직임, 높을수록 역동적인 움직임
-        </p>
-      </div>
-
-      {/* Camera Movement */}
-      <div className="space-y-2">
-        <Label>카메라 움직임</Label>
-        <Select
-          value={cameraMovement}
-          onValueChange={(v) => setCameraMovement(v as CameraMovement)}
-          disabled={isBusy}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {CAMERA_MOVEMENT_PRESETS.map((p) => (
-              <SelectItem key={p.value} value={p.value}>
-                {p.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Advanced Options */}
-      <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
-        <CollapsibleTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full justify-between"
-          >
-            고급 설정
-            <ChevronDown
-              className={`h-4 w-4 transition-transform ${advancedOpen ? "rotate-180" : ""}`}
-            />
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-4 pt-2">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>해상도</Label>
-              <Select
-                value={resolution}
-                onValueChange={(v) => setResolution(v as VideoResolution)}
-                disabled={isBusy}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {VIDEO_RESOLUTION_PRESETS.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>FPS</Label>
-              <Select
-                value={String(fps)}
-                onValueChange={(v) => setFps(Number(v) as VideoFps)}
-                disabled={isBusy}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {VIDEO_FPS_PRESETS.map((p) => (
-                    <SelectItem key={p.value} value={String(p.value)}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>스타일</Label>
-              <Select
-                value={videoStyle}
-                onValueChange={(v) => setVideoStyle(v as VideoStyle)}
-                disabled={isBusy}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {VIDEO_STYLE_PRESETS.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>조명</Label>
-              <Select
-                value={lighting}
-                onValueChange={(v) => setLighting(v as VideoLighting)}
-                disabled={isBusy}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {VIDEO_LIGHTING_PRESETS.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>컬러 그레이딩</Label>
-              <Select
-                value={colorGrading}
-                onValueChange={(v) => setColorGrading(v as VideoColorGrading)}
-                disabled={isBusy}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {VIDEO_COLOR_GRADING_PRESETS.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>사운드</Label>
-              <Select
-                value={sound}
-                onValueChange={(v) => setSound(v as VideoSound)}
-                disabled={isBusy}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {VIDEO_SOUND_PRESETS.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
 
       {/* Credit Cost */}
       <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-3">

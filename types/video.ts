@@ -77,22 +77,6 @@ export interface KlingApiResponse {
 
 // Image-to-Video types
 
-export type CameraMovement =
-  | "static"
-  | "zoom-in"
-  | "zoom-out"
-  | "pan-left"
-  | "pan-right"
-  | "pan-up"
-  | "pan-down";
-
-export type VideoStyle = "photorealistic" | "cinematic" | "anime" | "3d-animation";
-export type VideoLighting = "natural" | "studio" | "dramatic" | "warm" | "cool";
-export type VideoColorGrading = "none" | "cinematic" | "vintage" | "cold" | "warm";
-export type VideoResolution = "1080p" | "4K";
-export type VideoFps = 24 | 30;
-export type VideoSound = "off" | "on";
-
 export interface ImageToVideoRequest {
   imageUrl: string;
   prompt?: string;
@@ -102,14 +86,6 @@ export interface ImageToVideoRequest {
   duration: KlingDuration;
   mode: KlingMode;
   cfg_scale: number;
-  motionStrength: number;
-  cameraMovement: CameraMovement;
-  fps: VideoFps;
-  resolution: VideoResolution;
-  lighting: VideoLighting;
-  colorGrading: VideoColorGrading;
-  style: VideoStyle;
-  sound: VideoSound;
 }
 
 export interface KlingImageToVideoApiRequest {

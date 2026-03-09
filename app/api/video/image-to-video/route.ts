@@ -45,30 +45,6 @@ const imageToVideoSchema = z.object({
   duration: z.enum(["5", "10"]),
   mode: z.enum(["std", "pro"]),
   cfg_scale: z.number().min(0).max(1).default(0.5),
-  motionStrength: z.number().min(0).max(1).default(0.5),
-  cameraMovement: z
-    .enum([
-      "static",
-      "zoom-in",
-      "zoom-out",
-      "pan-left",
-      "pan-right",
-      "pan-up",
-      "pan-down",
-    ])
-    .default("static"),
-  fps: z.union([z.literal(24), z.literal(30)]).default(24),
-  resolution: z.enum(["1080p", "4K"]).default("4K"),
-  lighting: z
-    .enum(["natural", "studio", "dramatic", "warm", "cool"])
-    .default("natural"),
-  colorGrading: z
-    .enum(["none", "cinematic", "vintage", "cold", "warm"])
-    .default("none"),
-  style: z
-    .enum(["photorealistic", "cinematic", "anime", "3d-animation"])
-    .default("photorealistic"),
-  sound: z.enum(["off", "on"]).default("off"),
 });
 
 export async function POST(request: NextRequest) {
@@ -110,14 +86,6 @@ export async function POST(request: NextRequest) {
       duration,
       mode,
       cfg_scale,
-      motionStrength,
-      cameraMovement,
-      fps,
-      resolution,
-      lighting,
-      colorGrading,
-      style,
-      sound,
     } = parsed.data;
 
     const cost = VIDEO_CREDIT_COST[duration] ?? 10;
@@ -156,14 +124,6 @@ export async function POST(request: NextRequest) {
         duration,
         mode,
         cfg_scale,
-        motionStrength,
-        cameraMovement,
-        fps,
-        resolution,
-        lighting,
-        colorGrading,
-        style,
-        sound,
       },
     });
 
