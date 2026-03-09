@@ -1,7 +1,10 @@
 import { type Metadata } from "next";
 import { HeroSection } from "@/components/marketing/hero-section";
+import { StatsSection } from "@/components/marketing/stats-section";
+import { ShowcaseSection } from "@/components/marketing/showcase-section";
 import { FeaturesSection } from "@/components/marketing/features-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
+import { CtaSection } from "@/components/marketing/cta-section";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -58,8 +61,11 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <HeroSection />
+      <StatsSection />
+      <ShowcaseSection />
       <FeaturesSection />
       <PricingSection />
+      <CtaSection />
     </>
   );
 }

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   SUBSCRIPTION_PLANS,
-  TOKEN_PACKAGES,
   FREE_TRIAL_TOKENS,
 } from "@/config/pricing";
 
@@ -102,45 +101,6 @@ export function PricingSection() {
               </Button>
             </div>
           ))}
-        </div>
-
-        {/* 단건 충전 */}
-        <div className="mt-16">
-          <div className="mb-6 text-center">
-            <h3 className="text-lg font-semibold">단건 충전</h3>
-            <p className="mt-1 text-sm text-muted-foreground">정기 구독 없이 필요할 때만</p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {TOKEN_PACKAGES.map((pkg) => (
-              <div
-                key={pkg.id}
-                className={`relative rounded-2xl border bg-card px-6 py-5 transition-all duration-200 hover:shadow-md ${
-                  pkg.recommended ? "border-primary ring-1 ring-primary" : ""
-                }`}
-              >
-                {pkg.recommended && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 px-3">
-                    인기
-                  </Badge>
-                )}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-bold">{pkg.name}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {formatPrice(pkg.tokens)} 크레딧
-                      {pkg.bonusTokens ? ` + ${formatPrice(pkg.bonusTokens)} 보너스` : ""}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xl font-extrabold">{formatPrice(pkg.price)}<span className="text-sm font-normal text-muted-foreground">원</span></p>
-                  </div>
-                </div>
-                <Button asChild className="mt-4 w-full" variant="outline" size="sm">
-                  <Link href="/login">충전하기</Link>
-                </Button>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* 크레딧 사용량 */}
