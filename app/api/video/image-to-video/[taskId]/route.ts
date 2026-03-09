@@ -12,8 +12,17 @@ export async function GET(
   { params }: { params: Promise<{ taskId: string }> },
 ) {
   try {
-    await getUserOrSessionId();
+    const { userId, sessionId } = await getUserOrSessionId();
     const { taskId } = await params;
+
+    // taskId 소유권 검증
+    const logOwner = await verifyTaskOwnership(taskId, userId, sessionId);
+    if (!logOwner) {
+      return NextResponse.json(
+        { success: false, status: "failed", error: "접근 권한이 없습니다." },
+        { status: 403 },
+      );
+    }
 
     const response = await queryImageToVideoTask(taskId);
 
@@ -91,4 +100,23 @@ async function findLogIdByTaskId(taskId: string): Promise<string | null> {
     .eq("external_task_id", taskId)
     .single();
   return data?.id ?? null;
+}
+
+async function verifyTaskOwnership(
+  taskId: string,
+  userId: string | null,
+  sessionId: string,
+): Promise<boolean> {
+  const supabase = createServiceClient();
+  const { data } = await supabase
+    .from("generation_log")
+    .select("id")
+    .eq("external_task_id", taskId)
+    .or(
+      userId
+        ? `user_id.eq.${userId},session_id.eq.${sessionId}`
+        : `session_id.eq.${sessionId}`,
+    )
+    .single();
+  return !!data;
 }

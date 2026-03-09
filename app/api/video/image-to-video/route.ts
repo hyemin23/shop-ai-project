@@ -8,10 +8,29 @@ import { TokenInsufficientError } from "@/lib/tokens";
 import {
   createGenerationLog,
   updateGenerationLog,
+  refundGenerationLog,
 } from "@/lib/generation-log";
 
+const ALLOWED_IMAGE_HOSTS = [
+  "itdnavotqsdimdwbudbw.supabase.co",
+  "kulxfkwgkdhsxwsurjpf.supabase.co",
+];
+
 const imageToVideoSchema = z.object({
-  imageUrl: z.string().url("유효한 이미지 URL이 필요합니다."),
+  imageUrl: z
+    .string()
+    .url("유효한 이미지 URL이 필요합니다.")
+    .refine(
+      (url) => {
+        try {
+          const host = new URL(url).hostname;
+          return ALLOWED_IMAGE_HOSTS.includes(host);
+        } catch {
+          return false;
+        }
+      },
+      { message: "허용되지 않는 이미지 URL입니다." },
+    ),
   prompt: z.string().max(2500).optional(),
   negativePrompt: z.string().max(2500).optional(),
   model: z.enum([
@@ -58,6 +77,13 @@ export async function POST(request: NextRequest) {
   try {
     const { userId, sessionId } = await getUserOrSessionId();
 
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "비디오 생성은 로그인이 필요합니다.", code: "LOGIN_REQUIRED" },
+        { status: 401 },
+      );
+    }
+
     if (await checkBetaUser(userId)) {
       return NextResponse.json(
         { success: false, error: "베타 테스터는 비디오 기능을 이용할 수 없습니다.", code: "BETA_VIDEO_BLOCKED" },
@@ -96,25 +122,23 @@ export async function POST(request: NextRequest) {
 
     const cost = VIDEO_CREDIT_COST[duration] ?? 10;
 
-    // Token balance check (차감은 API 성공 후)
-    if (userId) {
-      const supabase = createServiceClient();
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("token_balance")
-        .eq("id", userId)
-        .single();
+    // 토큰 선차감 (race condition 방지: 먼저 차감 → 실패 시 환불)
+    const supabase = createServiceClient();
+    const { error: spendError } = await supabase.rpc("spend_tokens", {
+      p_user_id: userId,
+      p_amount: cost,
+      p_description: `이미지 비디오 생성 (${duration}초)`,
+    });
 
-      if (!profile || (profile.token_balance ?? 0) < cost) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "토큰이 부족합니다. 토큰을 충전해주세요.",
-            code: "TOKEN_INSUFFICIENT",
-          },
-          { status: 402 },
-        );
+    if (spendError) {
+      if (spendError.message?.includes("TOKEN_INSUFFICIENT")) {
+        throw new TokenInsufficientError();
       }
+      console.error("Token spend error:", spendError);
+      return NextResponse.json(
+        { success: false, error: "토큰 차감 중 오류가 발생했습니다.", code: "VIDEO_003" },
+        { status: 500 },
+      );
     }
 
     // Generation log 생성
@@ -143,6 +167,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    await updateGenerationLog(logId, {
+      status: "tokens_spent",
+      tokensCharged: cost,
+    });
+
     // Kling API 호출 (Supabase public URL을 직접 전달)
     const response = await createImageToVideoTask({
       model_name: model,
@@ -156,6 +185,14 @@ export async function POST(request: NextRequest) {
     });
 
     if (response.code !== 0) {
+      // API 실패 → 즉시 환불
+      await supabase.rpc("refund_tokens", {
+        p_user_id: userId,
+        p_amount: cost,
+        p_description: `비디오 생성 실패 환불 (${duration}초)`,
+        p_reference_id: logId,
+      });
+
       await updateGenerationLog(logId, {
         status: "failed",
         errorCode: "VIDEO_001",
@@ -172,33 +209,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // API 성공 후 토큰 차감
-    if (userId) {
-      const serviceClient = createServiceClient();
-      const { error: spendError } = await serviceClient.rpc("spend_tokens", {
-        p_user_id: userId,
-        p_amount: cost,
-        p_description: `이미지 비디오 생성 (${duration}초)`,
-        p_reference_id: response.data.task_id,
-      });
-
-      if (spendError) {
-        if (spendError.message?.includes("TOKEN_INSUFFICIENT")) {
-          await updateGenerationLog(logId, {
-            status: "failed",
-            errorCode: "TOKEN_INSUFFICIENT",
-            errorMessage: "토큰 차감 실패",
-            externalTaskId: response.data.task_id,
-          });
-          throw new TokenInsufficientError();
-        }
-        console.error("Token spend error:", spendError);
-      }
-    }
-
+    // 성공 시 task_id 기록
     await updateGenerationLog(logId, {
-      status: "tokens_spent",
-      tokensCharged: userId ? cost : 0,
       externalTaskId: response.data.task_id,
     });
 
@@ -218,6 +230,11 @@ export async function POST(request: NextRequest) {
         },
         { status: 402 },
       );
+    }
+
+    // 토큰 선차감 후 예외 발생 시 환불
+    if (logId) {
+      await refundGenerationLog(logId);
     }
 
     await updateGenerationLog(logId, {
