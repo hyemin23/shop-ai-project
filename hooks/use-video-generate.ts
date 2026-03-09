@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { invalidateTokenBalance } from "@/hooks/use-token-balance";
 import type {
   VideoGenerationStatus,
-  KlingTaskStatus,
+  VideoTaskStatus,
 } from "@/types/video";
 import {
   VIDEO_POLLING_INTERVAL_MS,
@@ -88,7 +88,7 @@ export function useVideoGenerate<T = Record<string, unknown>>({
           const res = await fetch(`${apiPath}/${taskId}`);
           const data = await res.json();
 
-          const taskStatus: KlingTaskStatus = data.status;
+          const taskStatus: VideoTaskStatus = data.status;
 
           if (taskStatus === "succeed" && data.videoUrl) {
             stopPolling();

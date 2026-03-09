@@ -37,12 +37,13 @@ export async function GET(
         await refundGenerationLog(logId);
       }
 
+      console.error("Video poll API error:", response.message);
       return NextResponse.json(
         {
           success: false,
           taskId,
           status: "failed",
-          error: response.message || "상태 조회에 실패했습니다.",
+          error: "상태 조회에 실패했습니다.",
         },
         { status: 500 },
       );
@@ -64,7 +65,7 @@ export async function GET(
         } else {
           await updateGenerationLog(logId, {
             status: "failed",
-            errorCode: "KLING_FAILED",
+            errorCode: "VIDEO_GEN_FAILED",
             errorMessage: task_status_msg || "비디오 생성 실패",
           });
           await refundGenerationLog(logId);
@@ -72,12 +73,16 @@ export async function GET(
       }
     }
 
+    if (task_status === "failed") {
+      console.error("Video generation failed:", task_status_msg);
+    }
+
     return NextResponse.json({
       success: true,
       taskId,
       status: task_status,
       videoUrl,
-      error: task_status === "failed" ? task_status_msg : undefined,
+      error: task_status === "failed" ? "비디오 생성에 실패했습니다." : undefined,
     });
   } catch (error) {
     console.error("Query image-to-video error:", error);

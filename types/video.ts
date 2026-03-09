@@ -1,4 +1,4 @@
-// Video (Kling AI) types
+// Video types
 
 // Generation Log types (shared across studio & video)
 export type GenerationLogStatus =
@@ -33,12 +33,10 @@ export interface GenerationLog {
   userDisplayName?: string;
 }
 
-export type KlingModel = "kling-v2-6";
-
-export type KlingAspectRatio = "16:9" | "9:16" | "1:1";
-export type KlingDuration = "5" | "10";
-export type KlingMode = "std" | "pro";
-export type KlingTaskStatus = "submitted" | "processing" | "succeed" | "failed";
+// Public types (included in client bundle)
+export type VideoAspectRatio = "16:9" | "9:16" | "1:1";
+export type VideoDuration = "5" | "10";
+export type VideoMode = "std" | "pro";
 
 export type VideoGenerationStatus =
   | "idle"
@@ -47,47 +45,48 @@ export type VideoGenerationStatus =
   | "succeed"
   | "failed";
 
-export interface KlingVideoResult {
+export interface ImageToVideoRequest {
+  imageUrl: string;
+  prompt?: string;
+  negativePrompt?: string;
+  aspectRatio: VideoAspectRatio;
+  duration: VideoDuration;
+  mode: VideoMode;
+  cfg_scale: number;
+}
+
+// Server-only types (not included in client bundle)
+export type VideoTaskStatus = "submitted" | "processing" | "succeed" | "failed";
+
+export interface VideoApiResult {
   id: string;
   url: string;
   duration: string;
 }
 
-export interface KlingApiResponse {
+export interface VideoApiResponse {
   code: number;
   message: string;
   request_id: string;
   data: {
     task_id: string;
-    task_status: KlingTaskStatus;
+    task_status: VideoTaskStatus;
     task_status_msg?: string;
     task_result?: {
-      videos?: KlingVideoResult[];
+      videos?: VideoApiResult[];
     };
     created_at?: number;
     updated_at?: number;
   };
 }
 
-// Image-to-Video types
-
-export interface ImageToVideoRequest {
-  imageUrl: string;
-  prompt?: string;
-  negativePrompt?: string;
-  aspectRatio: KlingAspectRatio;
-  duration: KlingDuration;
-  mode: KlingMode;
-  cfg_scale: number;
-}
-
-export interface KlingImageToVideoApiRequest {
-  model_name: KlingModel;
+export interface VideoApiRequest {
+  model_name: string;
   image: string;
   prompt?: string;
   negative_prompt?: string;
-  mode?: KlingMode;
-  aspect_ratio?: KlingAspectRatio;
-  duration?: KlingDuration;
+  mode?: VideoMode;
+  aspect_ratio?: VideoAspectRatio;
+  duration?: VideoDuration;
   cfg_scale?: number;
 }

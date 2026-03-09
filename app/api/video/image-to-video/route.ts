@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getUserOrSessionId, checkBetaUser } from "@/lib/auth";
 import { createImageToVideoTask } from "@/lib/kling";
 import { VIDEO_CREDIT_COST } from "@/config/pricing";
-import { KLING_MODEL } from "@/config/video";
+import { VIDEO_MODEL } from "@/config/video";
 import { createServiceClient } from "@/lib/supabase/server";
 import { TokenInsufficientError } from "@/lib/tokens";
 import {
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         imageUrl,
         prompt,
         negativePrompt,
-        model: KLING_MODEL,
+        model: VIDEO_MODEL,
         aspectRatio,
         duration,
         mode,
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
 
     // Kling API 호출 (Supabase public URL을 직접 전달)
     const response = await createImageToVideoTask({
-      model_name: KLING_MODEL,
+      model_name: VIDEO_MODEL,
       image: imageUrl,
       prompt: prompt || undefined,
       negative_prompt: negativePrompt || undefined,
@@ -151,10 +151,11 @@ export async function POST(request: NextRequest) {
         errorMessage: response.message || "비디오 생성 요청이 실패했습니다.",
       });
 
+      console.error("Video API error:", response.message);
       return NextResponse.json(
         {
           success: false,
-          error: response.message || "비디오 생성 요청이 실패했습니다.",
+          error: "비디오 생성 요청이 실패했습니다.",
           code: "VIDEO_001",
         },
         { status: 500 },

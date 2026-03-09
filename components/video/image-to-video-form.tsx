@@ -21,17 +21,17 @@ import {
   Loader2,
 } from "lucide-react";
 import {
-  KLING_ASPECT_RATIO_PRESETS,
-  KLING_DURATION_PRESETS,
-  KLING_MODE_PRESETS,
+  VIDEO_ASPECT_RATIO_PRESETS,
+  VIDEO_DURATION_PRESETS,
+  VIDEO_MODE_PRESETS,
   DEFAULT_IMAGE_TO_VIDEO_OPTIONS,
   VIDEO_PROMPT_CONSTRAINTS,
 } from "@/config/video";
 import { VIDEO_CREDIT_COST } from "@/config/pricing";
 import type {
-  KlingAspectRatio,
-  KlingDuration,
-  KlingMode,
+  VideoAspectRatio,
+  VideoDuration,
+  VideoMode,
   ImageToVideoRequest,
   VideoGenerationStatus,
 } from "@/types/video";
@@ -57,13 +57,13 @@ export function ImageToVideoForm({
   // Options
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("");
-  const [aspectRatio, setAspectRatio] = useState<KlingAspectRatio>(
+  const [aspectRatio, setAspectRatio] = useState<VideoAspectRatio>(
     DEFAULT_IMAGE_TO_VIDEO_OPTIONS.aspectRatio,
   );
-  const [duration, setDuration] = useState<KlingDuration>(
+  const [duration, setDuration] = useState<VideoDuration>(
     DEFAULT_IMAGE_TO_VIDEO_OPTIONS.duration,
   );
-  const [mode, setMode] = useState<KlingMode>(
+  const [mode, setMode] = useState<VideoMode>(
     DEFAULT_IMAGE_TO_VIDEO_OPTIONS.mode,
   );
   const [cfgScale, setCfgScale] = useState(
@@ -236,14 +236,14 @@ export function ImageToVideoForm({
           <Label>비율</Label>
           <Select
             value={aspectRatio}
-            onValueChange={(v) => setAspectRatio(v as KlingAspectRatio)}
+            onValueChange={(v) => setAspectRatio(v as VideoAspectRatio)}
             disabled={isBusy}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {KLING_ASPECT_RATIO_PRESETS.map((p) => (
+              {VIDEO_ASPECT_RATIO_PRESETS.map((p) => (
                 <SelectItem key={p.value} value={p.value}>
                   {p.label}
                 </SelectItem>
@@ -256,14 +256,14 @@ export function ImageToVideoForm({
           <Label>길이</Label>
           <Select
             value={duration}
-            onValueChange={(v) => setDuration(v as KlingDuration)}
+            onValueChange={(v) => setDuration(v as VideoDuration)}
             disabled={isBusy}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {KLING_DURATION_PRESETS.map((p) => (
+              {VIDEO_DURATION_PRESETS.map((p) => (
                 <SelectItem key={p.value} value={p.value}>
                   {p.label}
                 </SelectItem>
@@ -276,14 +276,14 @@ export function ImageToVideoForm({
           <Label>모드</Label>
           <Select
             value={mode}
-            onValueChange={(v) => setMode(v as KlingMode)}
+            onValueChange={(v) => setMode(v as VideoMode)}
             disabled={isBusy}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {KLING_MODE_PRESETS.map((p) => (
+              {VIDEO_MODE_PRESETS.map((p) => (
                 <SelectItem key={p.value} value={p.value}>
                   {p.label}
                 </SelectItem>

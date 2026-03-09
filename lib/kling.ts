@@ -1,8 +1,8 @@
 import { SignJWT } from "jose";
 import { withRetry, isTransientError } from "@/lib/retry";
 import type {
-  KlingApiResponse,
-  KlingImageToVideoApiRequest,
+  VideoApiResponse,
+  VideoApiRequest,
 } from "@/types/video";
 
 const KLING_BASE_URL = "https://api-singapore.klingai.com";
@@ -40,7 +40,7 @@ async function generateToken(): Promise<string> {
 async function klingFetch(
   path: string,
   options?: RequestInit,
-): Promise<KlingApiResponse> {
+): Promise<VideoApiResponse> {
   return withRetry(
     async () => {
       const token = await generateToken();
@@ -68,8 +68,8 @@ async function klingFetch(
 }
 
 export async function createImageToVideoTask(
-  params: KlingImageToVideoApiRequest,
-): Promise<KlingApiResponse> {
+  params: VideoApiRequest,
+): Promise<VideoApiResponse> {
   return klingFetch("/v1/videos/image2video", {
     method: "POST",
     body: JSON.stringify(params),
@@ -78,6 +78,6 @@ export async function createImageToVideoTask(
 
 export async function queryImageToVideoTask(
   taskId: string,
-): Promise<KlingApiResponse> {
+): Promise<VideoApiResponse> {
   return klingFetch(`/v1/videos/image2video/${taskId}`);
 }
