@@ -25,9 +25,9 @@ import {
   Loader2,
   Play,
   X,
-  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
+import { downloadVideo } from "@/lib/download";
 
 interface VideoHistoryItem {
   id: string;
@@ -94,12 +94,24 @@ export function VideoHistoryList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, sort]);
 
-  function handleDownload(item: VideoHistoryItem) {
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  async function handleDownload(item: VideoHistoryItem) {
     if (!item.videoUrl) {
       toast.error("다운로드 링크가 만료되었습니다.");
       return;
     }
-    window.open(item.videoUrl, "_blank");
+    setDownloadingId(item.id);
+    try {
+      await downloadVideo(
+        item.videoUrl,
+        `video_${item.id.slice(0, 8)}.mp4`,
+      );
+    } catch {
+      toast.error("다운로드에 실패했습니다.");
+    } finally {
+      setDownloadingId(null);
+    }
   }
 
   if (authLoading) {
@@ -237,9 +249,14 @@ export function VideoHistoryList() {
                         size="icon"
                         className="h-9 w-9 text-muted-foreground hover:text-primary"
                         onClick={() => handleDownload(item)}
+                        disabled={downloadingId === item.id}
                         title="다운로드"
                       >
-                        <Download className="h-4 w-4" />
+                        {downloadingId === item.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4" />
+                        )}
                       </Button>
                     </>
                   )}
@@ -312,8 +329,13 @@ export function VideoHistoryList() {
                       size="icon"
                       className="h-8 w-8"
                       onClick={() => handleDownload(previewItem)}
+                      disabled={downloadingId === previewItem.id}
                     >
-                      <ExternalLink className="h-4 w-4" />
+                      {downloadingId === previewItem.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
                     </Button>
                   )}
                   <Button

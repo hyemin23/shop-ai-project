@@ -15,6 +15,22 @@ export async function downloadImage(url: string, filename: string) {
   URL.revokeObjectURL(blobUrl);
 }
 
+/**
+ * 외부 URL 비디오를 fetch → blob → 즉시 다운로드.
+ */
+export async function downloadVideo(url: string, filename: string) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(blobUrl);
+}
+
 interface ZipItem {
   url: string;
   fileName: string;
