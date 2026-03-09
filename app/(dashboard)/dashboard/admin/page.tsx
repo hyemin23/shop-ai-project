@@ -29,6 +29,11 @@ import {
 import { toast } from "sonner";
 import { useTokenBalance } from "@/hooks/use-token-balance";
 import { useAdminStats } from "@/hooks/use-admin-stats";
+import { useAdminChartStats } from "@/hooks/use-admin-chart-stats";
+import { DailyGenerationChart } from "@/components/admin/daily-generation-chart";
+import { ServiceBreakdownChart } from "@/components/admin/service-breakdown-chart";
+import { TokenConsumptionChart } from "@/components/admin/token-consumption-chart";
+import { TopUsersCard } from "@/components/admin/top-users-card";
 
 function formatNumber(n: number) {
   return n.toLocaleString("ko-KR");
@@ -37,6 +42,7 @@ function formatNumber(n: number) {
 export default function AdminPage() {
   const { balance, refresh: refreshBalance } = useTokenBalance();
   const stats = useAdminStats();
+  const chartStats = useAdminChartStats();
 
   const [masterAmount, setMasterAmount] = useState("");
   const [isMasterCharging, setIsMasterCharging] = useState(false);
@@ -164,6 +170,28 @@ export default function AdminPage() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* 차트 */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <DailyGenerationChart
+          data={chartStats.dailyGeneration}
+          isLoading={chartStats.isLoading}
+        />
+        <ServiceBreakdownChart
+          data={chartStats.serviceBreakdown}
+          isLoading={chartStats.isLoading}
+        />
+      </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <TokenConsumptionChart
+          data={chartStats.dailyTokens}
+          isLoading={chartStats.isLoading}
+        />
+        <TopUsersCard
+          data={chartStats.topUsers}
+          isLoading={chartStats.isLoading}
+        />
       </div>
 
       {/* 마스터 충전 */}
