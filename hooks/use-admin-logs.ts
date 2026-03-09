@@ -12,6 +12,7 @@ export interface AdminLogsFilter {
   status: GenerationLogStatus | "all";
   serviceType: GenerationServiceType | "all";
   from: string | null;
+  to: string | null;
   userSearch: string | null;
   userId: string | null;
   userLabel: string | null;
@@ -43,6 +44,7 @@ const DEFAULT_FILTER: AdminLogsFilter = {
   status: "all",
   serviceType: "all",
   from: getDefaultFrom(),
+  to: null,
   userSearch: null,
   userId: null,
   userLabel: null,
@@ -108,6 +110,7 @@ export function useAdminLogs(
       if (filter.serviceType !== "all")
         params.set("serviceType", filter.serviceType);
       if (filter.from) params.set("from", filter.from);
+      if (filter.to) params.set("to", filter.to);
       if (filter.userSearch) params.set("userSearch", filter.userSearch);
       if (filter.userId) params.set("userId", filter.userId);
 

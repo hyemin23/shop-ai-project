@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const serviceType = searchParams.get("serviceType");
     const from = searchParams.get("from");
+    const to = searchParams.get("to");
     const userSearch = searchParams.get("userSearch");
     const userId = searchParams.get("userId");
     const limit = Math.min(Number(searchParams.get("limit") || 50), 200);
@@ -69,6 +70,12 @@ export async function GET(request: NextRequest) {
         Date.now() - 7 * 24 * 60 * 60 * 1000,
       ).toISOString();
       query = query.gte("created_at", sevenDaysAgo);
+    }
+
+    if (to) {
+      // to 날짜의 끝(23:59:59)까지 포함
+      const toEnd = `${to}T23:59:59.999Z`;
+      query = query.lte("created_at", toEnd);
     }
 
     if (userSearch) {

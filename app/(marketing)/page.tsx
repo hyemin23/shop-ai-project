@@ -28,12 +28,21 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     type: "website",
     locale: "ko_KR",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "똑핏 — AI 의류 이미지 편집 서비스",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "똑핏 — AI 의류 이미지 편집",
     description:
       "의류 교체·색상 변경·포즈 변경을 AI로. 동대문 셀러를 위한 초간편 이미지 편집 서비스.",
+    images: ["/opengraph-image"],
   },
 };
 
