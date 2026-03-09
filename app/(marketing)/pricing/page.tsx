@@ -12,7 +12,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
 import {
-  TOKEN_PACKAGES,
   SUBSCRIPTION_PLANS,
   CREDIT_COST,
   VIDEO_CREDIT_COST,
@@ -38,7 +37,7 @@ export default function PricingPage() {
           합리적인 가격으로 시작하세요
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          무료 {FREE_TRIAL_TOKENS} 크레딧으로 체험하고, 필요한 만큼 충전하세요.
+          무료 {FREE_TRIAL_TOKENS} 크레딧으로 체험하고, 구독으로 합리적으로 이용하세요.
         </p>
       </div>
 
@@ -91,53 +90,6 @@ export default function PricingPage() {
                   variant={plan.recommended ? "default" : "outline"}
                 >
                   <Link href="/dashboard/subscription">구독하기</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* 단건 충전 */}
-      <section className="mt-20">
-        <h2 className="text-center text-xl font-semibold">단건 충전</h2>
-        <p className="mt-2 text-center text-sm text-muted-foreground">
-          필요할 때 원하는 만큼 충전하세요
-        </p>
-
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          {TOKEN_PACKAGES.map((pkg) => (
-            <Card
-              key={pkg.id}
-              className={
-                pkg.recommended
-                  ? "relative border-primary shadow-md"
-                  : undefined
-              }
-            >
-              {pkg.recommended && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  인기
-                </Badge>
-              )}
-              <CardHeader className="text-center">
-                <CardTitle className="text-lg">{pkg.name}</CardTitle>
-                <div className="mt-2">
-                  <span className="text-3xl font-bold">
-                    {formatPrice(pkg.price)}
-                  </span>
-                  <span className="text-sm text-muted-foreground">원</span>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {formatPrice(pkg.tokens)} 크레딧
-                  {pkg.bonusTokens
-                    ? ` + ${formatPrice(pkg.bonusTokens)} 보너스`
-                    : ""}
-                </p>
-              </CardHeader>
-              <CardFooter>
-                <Button asChild className="w-full" variant="outline">
-                  <Link href="/dashboard/tokens">충전하기</Link>
                 </Button>
               </CardFooter>
             </Card>
