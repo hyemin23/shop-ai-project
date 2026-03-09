@@ -7,7 +7,7 @@ import {
   ScanSearch,
   Sparkles,
 
-  FileImage,
+  LayoutTemplate,
   Camera,
   Video,
   History,
@@ -38,7 +38,7 @@ export const dashboardConfig: DashboardConfig = {
       // 상세페이지 자동화 (상품 상세 정보 카드 등)
       title: "상세페이지 자동화",
       items: [
-        { title: "상세 정보 카드", href: "/dashboard/studio/product-info", icon: FileImage, description: "상품 상세 정보 카드를 자동 생성" },
+        { title: "상세페이지 빌더", href: "/dashboard/studio/detail-page", icon: LayoutTemplate, description: "AI가 상세페이지 섹션을 자동 생성" },
       ],
     },
     {

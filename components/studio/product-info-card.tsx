@@ -20,6 +20,20 @@ export const ProductInfoCard = forwardRef<HTMLDivElement, ProductInfoCardProps>(
           boxSizing: "border-box",
         }}
       >
+        {/* PRODUCT INFO 타이틀 */}
+        <div
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            letterSpacing: "0.15em",
+            marginBottom: 36,
+            color: "#333",
+            textAlign: "center",
+          }}
+        >
+          PRODUCT INFO
+        </div>
+
         {/* COLOR */}
         <Section label="COLOR" value={data.colors || "-"} />
 

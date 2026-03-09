@@ -146,6 +146,7 @@ export function ImageUploadZone({
     <div
       role="button"
       tabIndex={0}
+      aria-label={description ? `${label} — ${description}` : label}
       onClick={() => inputRef.current?.click()}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
