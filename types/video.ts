@@ -53,24 +53,6 @@ export type VideoGenerationStatus =
   | "succeed"
   | "failed";
 
-export interface TextToVideoRequest {
-  prompt: string;
-  negativePrompt?: string;
-  model: KlingModel;
-  aspectRatio: KlingAspectRatio;
-  duration: KlingDuration;
-  mode: KlingMode;
-}
-
-export interface KlingApiRequest {
-  model_name: KlingModel;
-  prompt: string;
-  negative_prompt?: string;
-  mode?: KlingMode;
-  aspect_ratio?: KlingAspectRatio;
-  duration?: KlingDuration;
-}
-
 export interface KlingVideoResult {
   id: string;
   url: string;

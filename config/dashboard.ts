@@ -10,10 +10,6 @@ import {
   FileImage,
   Camera,
   Video,
-  ImagePlay,
-  Clapperboard,
-  RotateCw,
-  AudioLines,
   History,
   Coins,
   CreditCard,
@@ -42,15 +38,11 @@ export const dashboardConfig: DashboardConfig = {
       ],
     },
     {
-      // AI 비디오 생성 기능 모음 (베타 유저 접근 불가)
+      // AI 비디오 생성 (이미지 → 2~3초 상품 영상)
       title: "AI 비디오",
       hiddenForBeta: true,
       items: [
-        { title: "텍스트 비디오", href: "/dashboard/video/text-to-video", icon: Video, description: "텍스트 프롬프트로 AI 영상을 생성" },
-        { title: "이미지 비디오", href: "/dashboard/video/image-to-video", icon: ImagePlay, description: "이미지를 기반으로 AI 영상을 생성" },
-        { title: "모션 컨트롤", href: "/dashboard/video/motion-control", icon: Clapperboard, description: "정적 이미지를 자연스러운 움직임 영상으로 변환" },
-        { title: "상품 쇼케이스", href: "/dashboard/video/product-showcase", icon: RotateCw, description: "카메라 컨트롤로 상품 회전/줌인 영상 생성" },
-        { title: "립싱크", href: "/dashboard/video/lip-sync", icon: AudioLines, description: "상품 소개 영상에 나레이션 동기화" },
+        { title: "상품 영상 생성", href: "/dashboard/video/image-to-video", icon: Video, description: "상품 사진으로 원단/핏/디테일 영상 생성" },
       ],
     },
     {

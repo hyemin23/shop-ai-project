@@ -36,9 +36,9 @@ export default function ImageToVideoPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">이미지 비디오</h1>
+        <h1 className="text-2xl font-bold tracking-tight">상품 영상 생성</h1>
         <p className="text-muted-foreground">
-          이미지를 기반으로 AI 영상을 생성합니다. (Kling AI 기반)
+          상품 사진으로 원단/핏/디테일 영상을 생성합니다. (Kling AI 기반)
         </p>
       </div>
 

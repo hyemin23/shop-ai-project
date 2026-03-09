@@ -1,7 +1,6 @@
 import { SignJWT } from "jose";
 import { withRetry, isTransientError } from "@/lib/retry";
 import type {
-  KlingApiRequest,
   KlingApiResponse,
   KlingImageToVideoApiRequest,
 } from "@/types/video";
@@ -66,21 +65,6 @@ async function klingFetch(
     },
     { maxRetries: 2, baseDelayMs: 2000, shouldRetry: isTransientError },
   );
-}
-
-export async function createTextToVideoTask(
-  params: KlingApiRequest,
-): Promise<KlingApiResponse> {
-  return klingFetch("/v1/videos/text2video", {
-    method: "POST",
-    body: JSON.stringify(params),
-  });
-}
-
-export async function queryTextToVideoTask(
-  taskId: string,
-): Promise<KlingApiResponse> {
-  return klingFetch(`/v1/videos/text2video/${taskId}`);
 }
 
 export async function createImageToVideoTask(
