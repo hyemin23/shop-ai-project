@@ -31,7 +31,7 @@ import {
 } from "@/components/studio/detail-page/product-info-form";
 import { TokenInsufficientDialog } from "@/components/studio/token-insufficient-dialog";
 import { useDetailPageDownload } from "@/hooks/use-detail-page-download";
-import { SECTION_NAMES, colorChipSectionName } from "@/config/detail-page";
+import { SECTION_NAMES, colorChipSectionName, DETAIL_PAGE_COST } from "@/config/detail-page";
 import type { ProductInfoFormData } from "@/types/product-info";
 import type {
   DetailPageGenerateResponse,
@@ -117,7 +117,10 @@ export default function DetailPageBuilderPage() {
       }
 
       setGeneratedData(json.data);
-      toast.success("상세페이지 콘텐츠가 생성되었습니다.");
+      const spent = json.tokensSpent as number | undefined;
+      toast.success("상세페이지 콘텐츠가 생성되었습니다.", {
+        description: spent ? `${spent} 크레딧이 차감되었습니다.` : undefined,
+      });
     } catch {
       toast.error("네트워크 오류가 발생했습니다.");
     } finally {
@@ -211,11 +214,11 @@ export default function DetailPageBuilderPage() {
                   </>
                 )}
               </Button>
-              {!sourceFile && (
-                <p className="text-center text-xs text-muted-foreground">
-                  상품 이미지를 먼저 업로드해주세요
-                </p>
-              )}
+              <p className="text-center text-xs text-muted-foreground">
+                {!sourceFile
+                  ? "상품 이미지를 먼저 업로드해주세요"
+                  : `1회 생성 시 ${DETAIL_PAGE_COST} 크레딧이 차감됩니다`}
+              </p>
             </div>
           </CardContent>
         </Card>

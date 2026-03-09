@@ -1,5 +1,8 @@
 export const OUTPUT_WIDTH = 860;
 
+/** 상세페이지 빌더 1회 생성 크레딧 비용 */
+export const DETAIL_PAGE_COST = 2;
+
 export const SECTION_NAMES = {
   productName: "01_상품명헤더",
   catchphrase: "02_상품설명",
