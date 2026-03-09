@@ -32,7 +32,12 @@ export const dashboardConfig: DashboardConfig = {
         { title: "멀티포즈 변경", href: "/dashboard/studio/multi-pose", icon: Users, description: "여러 포즈를 한 번에 일괄 생성" },
         { title: "상세 추출", href: "/dashboard/studio/detail-extract", icon: ScanSearch, description: "상품 디테일을 확대하여 추출" },
         { title: "자동피팅생성기", href: "/dashboard/studio/auto-fitting", icon: Sparkles, description: "AI가 자동으로 피팅 이미지 생성" },
-
+      ],
+    },
+    {
+      // 상세페이지 자동화 (상품 상세 정보 카드 등)
+      title: "상세페이지 자동화",
+      items: [
         { title: "상세 정보 카드", href: "/dashboard/studio/product-info", icon: FileImage, description: "상품 상세 정보 카드를 자동 생성" },
       ],
     },

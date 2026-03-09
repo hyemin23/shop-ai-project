@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getUserOrSessionId, checkBetaUser } from "@/lib/auth";
 import { createImageToVideoTask } from "@/lib/kling";
 import { VIDEO_CREDIT_COST } from "@/config/pricing";
-import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { TokenInsufficientError } from "@/lib/tokens";
 import {
   createGenerationLog,
@@ -98,14 +98,14 @@ export async function POST(request: NextRequest) {
 
     // Token balance check (차감은 API 성공 후)
     if (userId) {
-      const supabase = await createClient();
-      const { data: balance } = await supabase
-        .from("token_balances")
-        .select("balance")
-        .eq("user_id", userId)
+      const supabase = createServiceClient();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("token_balance")
+        .eq("id", userId)
         .single();
 
-      if (!balance || balance.balance < cost) {
+      if (!profile || (profile.token_balance ?? 0) < cost) {
         return NextResponse.json(
           {
             success: false,
