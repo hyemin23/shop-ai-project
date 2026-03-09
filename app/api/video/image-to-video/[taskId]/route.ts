@@ -60,6 +60,7 @@ export async function GET(
         if (task_status === "succeed") {
           await updateGenerationLog(logId, {
             status: "succeed",
+            referenceId: videoUrl || undefined,
             completedAt: new Date().toISOString(),
           });
         } else {
