@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
     // Kling API 호출 (Supabase public URL을 직접 전달)
     const response = await createImageToVideoTask({
       model_name: model,
-      image_url: imageUrl,
+      image: imageUrl,
       prompt: prompt || undefined,
       negative_prompt: negativePrompt || undefined,
       mode,

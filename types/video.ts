@@ -114,8 +114,7 @@ export interface ImageToVideoRequest {
 
 export interface KlingImageToVideoApiRequest {
   model_name: KlingModel;
-  image?: string;
-  image_url?: string;
+  image: string;
   prompt?: string;
   negative_prompt?: string;
   mode?: KlingMode;
