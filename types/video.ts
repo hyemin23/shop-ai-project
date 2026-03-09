@@ -31,6 +31,8 @@ export interface GenerationLog {
   completedAt?: string;
   userEmail?: string;
   userDisplayName?: string;
+  sourceThumbUrl?: string | null;
+  resultThumbUrl?: string | null;
 }
 
 // Public types (included in client bundle)

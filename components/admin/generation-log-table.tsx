@@ -16,7 +16,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ChevronLeft, ChevronRight, RotateCcw, ImageIcon } from "lucide-react";
 import type { GenerationLog, GenerationLogStatus } from "@/types/video";
 
 interface GenerationLogTableProps {
@@ -83,7 +89,6 @@ export function GenerationLogTable({
   logs,
   total,
   page,
-  pageSize,
   totalPages,
   onPageChange,
   onRefund,
@@ -116,6 +121,7 @@ export function GenerationLogTable({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[80px]">이미지</TableHead>
               <TableHead className="w-[100px]">일시</TableHead>
               <TableHead className="w-[160px]">사용자</TableHead>
               <TableHead className="w-[70px]">서비스</TableHead>
@@ -132,6 +138,51 @@ export function GenerationLogTable({
               const badge = STATUS_BADGE[log.status];
               return (
                 <TableRow key={log.id}>
+                  <TableCell>
+                    {log.resultThumbUrl ? (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button className="group relative h-10 w-10 overflow-hidden rounded border bg-muted transition-shadow hover:ring-2 hover:ring-primary/30">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={log.resultThumbUrl}
+                              alt="결과"
+                              className="h-full w-full object-cover"
+                            />
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl p-2">
+                          <DialogTitle className="sr-only">생성 이미지 미리보기</DialogTitle>
+                          <div className="flex gap-2">
+                            {log.sourceThumbUrl && (
+                              <div className="flex-1">
+                                <p className="mb-1 text-center text-xs text-muted-foreground">원본</p>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={log.sourceThumbUrl}
+                                  alt="원본"
+                                  className="w-full rounded-lg"
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <p className="mb-1 text-center text-xs text-muted-foreground">결과</p>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={log.resultThumbUrl}
+                                alt="결과"
+                                className="w-full rounded-lg"
+                              />
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded border bg-muted/50">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground/40" />
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell className="text-xs whitespace-nowrap">
                     {formatDate(log.createdAt)}
                   </TableCell>

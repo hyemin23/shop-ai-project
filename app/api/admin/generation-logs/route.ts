@@ -95,9 +95,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // reference_id로 studio_history 썸네일 조회
+    const refIds = (logs ?? [])
+      .map((l) => l.reference_id)
+      .filter((id): id is string => !!id);
+
+    const thumbMap: Record<string, { source: string | null; result: string | null }> = {};
+    if (refIds.length > 0) {
+      const { data: histories } = await supabase
+        .from("studio_history")
+        .select("id, source_thumb_url, result_thumb_url, source_image_url, result_image_url")
+        .in("id", refIds);
+
+      for (const h of histories ?? []) {
+        thumbMap[h.id] = {
+          source: h.source_thumb_url || h.source_image_url || null,
+          result: h.result_thumb_url || h.result_image_url || null,
+        };
+      }
+    }
+
+    const enrichedLogs = (logs ?? []).map((log) => ({
+      ...log,
+      _thumbs: log.reference_id ? thumbMap[log.reference_id] ?? null : null,
+    }));
+
     return NextResponse.json({
       success: true,
-      logs: logs ?? [],
+      logs: enrichedLogs,
       total: count ?? 0,
     });
   } catch (error) {

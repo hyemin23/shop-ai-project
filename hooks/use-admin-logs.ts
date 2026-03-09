@@ -51,6 +51,7 @@ const DEFAULT_FILTER: AdminLogsFilter = {
 // snake_case DB row → camelCase GenerationLog
 function mapLogRow(row: Record<string, unknown>): GenerationLog {
   const profile = row.profiles as Record<string, unknown> | null;
+  const thumbs = row._thumbs as { source?: string | null; result?: string | null } | null;
   return {
     id: row.id as string,
     userId: (row.user_id as string) ?? null,
@@ -70,6 +71,8 @@ function mapLogRow(row: Record<string, unknown>): GenerationLog {
     completedAt: row.completed_at as string | undefined,
     userEmail: (profile?.email as string) ?? undefined,
     userDisplayName: (profile?.display_name as string) ?? undefined,
+    sourceThumbUrl: thumbs?.source ?? null,
+    resultThumbUrl: thumbs?.result ?? null,
   };
 }
 

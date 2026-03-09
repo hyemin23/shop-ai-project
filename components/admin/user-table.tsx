@@ -89,7 +89,14 @@ export function UserTable({
           <TableBody>
             {users.map((u) => (
               <TableRow key={u.id}>
-                <TableCell className="text-sm">{u.email}</TableCell>
+                <TableCell className="text-sm">
+                  <Link
+                    href={`/dashboard/admin/users/${u.id}`}
+                    className="hover:underline"
+                  >
+                    {u.email}
+                  </Link>
+                </TableCell>
                 <TableCell className="text-sm">
                   {u.displayName || "-"}
                 </TableCell>

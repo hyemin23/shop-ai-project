@@ -32,20 +32,30 @@ export async function GET() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-    // 최근 30일 로그 전체 조회 (집계용)
-    const [{ data: logs, error }, { data: topUsersRaw, error: topUsersError }] =
-      await Promise.all([
-        supabase
-          .from("generation_log")
-          .select("created_at, service_type, tokens_charged, status, user_id")
-          .gte("created_at", thirtyDaysAgo.toISOString())
-          .order("created_at", { ascending: true }),
-        supabase
-          .from("generation_log")
-          .select("user_id, profiles!user_id(email, display_name)")
-          .gte("created_at", thirtyDaysAgo.toISOString())
-          .not("user_id", "is", null),
-      ]);
+    // 최근 30일 로그 + 구독 + 유저 수 병렬 조회
+    const [
+      { data: logs, error },
+      { data: topUsersRaw, error: topUsersError },
+      { data: subscriptions },
+      { count: totalUsers },
+    ] = await Promise.all([
+      supabase
+        .from("generation_log")
+        .select("created_at, service_type, tokens_charged, status, user_id")
+        .gte("created_at", thirtyDaysAgo.toISOString())
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("generation_log")
+        .select("user_id, profiles!user_id(email, display_name)")
+        .gte("created_at", thirtyDaysAgo.toISOString())
+        .not("user_id", "is", null),
+      supabase
+        .from("subscriptions")
+        .select("plan_id, status, cancel_at_period_end, current_period_end"),
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true }),
+    ]);
 
     if (error) {
       console.error("Chart stats query error:", error);
@@ -91,6 +101,63 @@ export async function GET() {
       }
     }
 
+    // 4) Summary stats (기간별 건수 + 상태별 건수)
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    const weekAgo = new Date(now);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekAgoStr = weekAgo.toISOString().slice(0, 10);
+
+    let todayCount = 0;
+    let weekCount = 0;
+    const monthCount = (logs ?? []).length;
+    let successCount = 0;
+    let failedCount = 0;
+    let refundedCount = 0;
+
+    for (const log of logs ?? []) {
+      const dateKey = log.created_at.slice(0, 10);
+      if (dateKey === todayStr) todayCount++;
+      if (dateKey >= weekAgoStr) weekCount++;
+      if (log.status === "succeed") successCount++;
+      else if (log.status === "failed") failedCount++;
+      else if (log.status === "refunded") refundedCount++;
+    }
+
+    // 구독 현황 집계
+    const subByPlan: Record<string, number> = {};
+    let activeSubs = 0;
+    let cancelingSubs = 0;
+    let pastDueSubs = 0;
+    for (const sub of subscriptions ?? []) {
+      if (sub.status === "active") {
+        activeSubs++;
+        subByPlan[sub.plan_id] = (subByPlan[sub.plan_id] ?? 0) + 1;
+        if (sub.cancel_at_period_end) cancelingSubs++;
+      } else if (sub.status === "past_due") {
+        pastDueSubs++;
+      }
+    }
+
+    const subscriptionSummary = {
+      totalUsers: totalUsers ?? 0,
+      activeSubs,
+      cancelingSubs,
+      pastDueSubs,
+      byPlan: subByPlan,
+    };
+
+    const summary = {
+      todayCount,
+      weekCount,
+      monthCount,
+      successCount,
+      failedCount,
+      refundedCount,
+      studioCount: serviceMap.get("studio") ?? 0,
+      videoCount: serviceMap.get("video") ?? 0,
+    };
+
     const dailyGeneration = Array.from(dailyMap.entries()).map(
       ([date, count]) => ({ date, count }),
     );
@@ -103,7 +170,7 @@ export async function GET() {
       ([date, tokens]) => ({ date, tokens }),
     );
 
-    // 4) 유저별 사용량 TOP 10
+    // 5) 유저별 사용량 TOP 10
     const userCountMap = new Map<
       string,
       { email: string; displayName: string; count: number }
@@ -128,6 +195,8 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
+      summary,
+      subscriptionSummary,
       dailyGeneration,
       serviceBreakdown,
       dailyTokens,
