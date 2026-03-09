@@ -32,9 +32,15 @@ export const dashboardConfig: DashboardConfig = {
         { title: "멀티포즈 변경", href: "/dashboard/studio/multi-pose", icon: Users, description: "여러 포즈를 한 번에 일괄 생성" },
         { title: "상세 추출", href: "/dashboard/studio/detail-extract", icon: ScanSearch, description: "상품 디테일을 확대하여 추출" },
         { title: "자동피팅생성기", href: "/dashboard/studio/auto-fitting", icon: Sparkles, description: "AI가 자동으로 피팅 이미지 생성" },
-        { title: "UGC 이미지", href: "/dashboard/studio/ugc", icon: Camera, description: "타겟 맞춤 UGC 스타일 이미지 생성" },
 
         { title: "상세 정보 카드", href: "/dashboard/studio/product-info", icon: FileImage, description: "상품 상세 정보 카드를 자동 생성" },
+      ],
+    },
+    {
+      // UGC 스타일 이미지 생성 (스튜디오와 별도 카테고리)
+      title: "UGC",
+      items: [
+        { title: "UGC 이미지", href: "/dashboard/studio/ugc", icon: Camera, description: "타겟 맞춤 UGC 스타일 이미지 생성" },
       ],
     },
     {
