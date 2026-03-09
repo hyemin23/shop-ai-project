@@ -6,7 +6,7 @@ import {
   parseAspectRatio,
   parseImageSize,
 } from "@/lib/api-utils";
-import { type GenerationMode } from "@/types/studio";
+import { resolveMode } from "@/config/studio";
 import { type DetailExtractMode } from "@/types/detail-extract";
 
 export async function POST(request: NextRequest) {
@@ -15,9 +15,9 @@ export async function POST(request: NextRequest) {
 
   const sourceFile = formData.get("sourceImage") as File | null;
   const extractionMode = (formData.get("extractionMode") as DetailExtractMode) || "rose-cut";
-  const mode = (formData.get("mode") as GenerationMode) || "standard";
-  const aspectRatio = parseAspectRatio(formData.get("aspectRatio"));
   const imageSize = parseImageSize(formData.get("imageSize"));
+  const mode = resolveMode(imageSize);
+  const aspectRatio = parseAspectRatio(formData.get("aspectRatio"));
   const userPrompt = formData.get("userPrompt") as string | null;
 
   if (!sourceFile) {

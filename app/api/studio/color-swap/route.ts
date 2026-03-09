@@ -6,7 +6,7 @@ import {
   parseAspectRatio,
   parseImageSize,
 } from "@/lib/api-utils";
-import { type GenerationMode } from "@/types/studio";
+import { resolveMode } from "@/config/studio";
 
 export async function POST(request: NextRequest) {
   const { userId, sessionId } = await getUserOrSessionId();
@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
   const targetColor = formData.get("targetColor") as string | null;
   const referenceFile = formData.get("referenceImage") as File | null;
   const garmentRegion = (formData.get("garmentRegion") as string) || "auto";
-  const mode = (formData.get("mode") as GenerationMode) || "standard";
-  const aspectRatio = parseAspectRatio(formData.get("aspectRatio"));
   const imageSize = parseImageSize(formData.get("imageSize"));
+  const mode = resolveMode(imageSize);
+  const aspectRatio = parseAspectRatio(formData.get("aspectRatio"));
   const userPrompt = formData.get("userPrompt") as string | null;
 
   if (!sourceFile || (!targetColor && !referenceFile)) {
