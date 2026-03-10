@@ -44,3 +44,9 @@ next-env.d.ts
 color-swap-result.png
 test-model.png
 shrimp_data/
+
+# screenshots
+*.png
+
+# claude agent memory
+.claude/agent-memory/
