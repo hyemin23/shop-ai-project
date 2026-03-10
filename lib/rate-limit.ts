@@ -53,14 +53,14 @@ export class RateLimiter {
   }
 }
 
-// Studio API: 분당 10회 요청 제한
+// Studio API: 분당 5회 요청 제한 (인메모리 기반이므로 보수적)
 export const studioRateLimiter = new RateLimiter({
   windowMs: 60 * 1000,
-  maxRequests: 10,
+  maxRequests: 5,
 });
 
-// Batch API: 분당 3회 요청 제한 (리소스 집약적)
+// Batch API: 분당 2회 요청 제한 (리소스 집약적)
 export const batchRateLimiter = new RateLimiter({
   windowMs: 60 * 1000,
-  maxRequests: 3,
+  maxRequests: 2,
 });

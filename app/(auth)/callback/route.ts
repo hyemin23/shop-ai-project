@@ -2,10 +2,16 @@ import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
+function sanitizeRedirect(next: string): string {
+  // 상대경로만 허용, protocol-relative URL 차단
+  if (!next.startsWith("/") || next.startsWith("//")) return "/dashboard";
+  return next;
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = sanitizeRedirect(searchParams.get("next") ?? "/dashboard");
 
   // OAuth provider 에러 처리 (사용자 거부, provider 장애 등)
   const oauthError =

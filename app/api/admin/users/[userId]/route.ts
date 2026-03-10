@@ -1,30 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase/server";
-
-async function verifyMaster() {
-  const user = await getCurrentUser();
-  if (!user) return null;
-
-  const supabase = createServiceClient();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_master")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.is_master) return null;
-  return user;
-}
+import { requireMaster } from "@/lib/admin";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ) {
-  const master = await verifyMaster();
-  if (!master) {
-    return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
-  }
+  const { error: authError } = await requireMaster();
+  if (authError) return authError;
 
   const { userId } = await params;
   const supabase = createServiceClient();

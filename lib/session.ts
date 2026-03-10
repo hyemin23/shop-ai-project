@@ -25,7 +25,3 @@ export async function getSessionId(): Promise<string> {
 
   return newId;
 }
-
-export function getSessionIdFromHeader(headers: Headers): string | null {
-  return headers.get("x-session-id");
-}

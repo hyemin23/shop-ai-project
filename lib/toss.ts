@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto";
+
 const TOSS_API_URL = "https://api.tosspayments.com/v1";
 
 function getAuthHeader(): string {
@@ -65,8 +67,18 @@ export async function confirmPayment(
 /** 토스 웹훅 시크릿 검증 (토스 대시보드 → 개발 정보 → 웹훅 시크릿) */
 export function verifyWebhookSecret(requestBody: { secret?: string }): boolean {
   const webhookSecret = process.env.TOSS_WEBHOOK_SECRET;
-  if (!webhookSecret) return true; // 미설정 시 스킵 (개발 환경)
-  return requestBody.secret === webhookSecret;
+  if (!webhookSecret) {
+    // 프로덕션에서 미설정 시 모든 웹훅 거부
+    if (process.env.NODE_ENV === "production") return false;
+    // 개발 환경에서는 스킵
+    return true;
+  }
+  const requestSecret = requestBody.secret ?? "";
+  if (webhookSecret.length !== requestSecret.length) return false;
+  // 타이밍 공격 방어
+  const a = Buffer.from(webhookSecret);
+  const b = Buffer.from(requestSecret);
+  return timingSafeEqual(a, b);
 }
 
 /** paymentKey로 토스 결제 조회 — 실제 결제 존재 여부 확인 */
