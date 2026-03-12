@@ -6,9 +6,8 @@ import {
   type AutoFittingSSEEvent,
 } from "@/types/auto-fitting";
 import { AUTO_FITTING_PRESETS } from "@/config/auto-fitting";
-import { consumeSSEStream } from "@/lib/sse";
-import { downloadAsZip } from "@/lib/download";
 import { invalidateTokenBalance } from "@/hooks/use-token-balance";
+import { useBatchGenerate } from "@/hooks/use-batch-generate";
 
 interface UseAutoFittingGenerateOptions {
   onComplete?: (results: AutoFittingItemState[]) => void;
@@ -33,31 +32,23 @@ export function useAutoFittingGenerate({
   onError,
   onTokenInsufficient,
 }: UseAutoFittingGenerateOptions): UseAutoFittingGenerateReturn {
-  const [items, setItems] = useState<AutoFittingItemState[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [retryingIndex, setRetryingIndex] = useState<number | null>(null);
-  const [batchId, setBatchId] = useState<string | null>(null);
   const lastFormDataRef = useRef<FormData | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
 
-  const progress = {
-    completed: items.filter((i) => i.status === "success").length,
-    total: items.length,
-    failed: items.filter(
-      (i) => i.status === "error" || i.status === "skipped",
-    ).length,
-  };
+  const batch = useBatchGenerate<AutoFittingItemState, AutoFittingSSEEvent>(
+    {
+      apiEndpoint: "/api/studio/auto-fitting",
+      zipPrefix: "auto_fitting",
+      fileNameFn: (item) => `fitting_${item.index + 1}_${item.poseName}`,
+      errorMessage: "자동피팅 처리 요청 실패",
+    },
+    { onComplete, onError, onTokenInsufficient },
+  );
 
   const generate = useCallback(
     async (formData: FormData) => {
-      if (isProcessing) return;
-
-      abortRef.current = new AbortController();
       lastFormDataRef.current = formData;
-      setIsProcessing(true);
-      setBatchId(null);
 
-      // 프리셋에서 초기 상태 생성
       const initialItems: AutoFittingItemState[] = AUTO_FITTING_PRESETS.map(
         (preset, index) => ({
           index,
@@ -66,86 +57,21 @@ export function useAutoFittingGenerate({
           status: "pending" as const,
         }),
       );
-      setItems(initialItems);
 
-      try {
-        if (!navigator.onLine) {
-          throw new Error("네트워크 연결을 확인해주세요.");
-        }
-
-        const response = await fetch("/api/studio/auto-fitting", {
-          method: "POST",
-          body: formData,
-          signal: abortRef.current.signal,
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          if (
-            response.status === 402 &&
-            errorData.code === "TOKEN_INSUFFICIENT"
-          ) {
-            setIsProcessing(false);
-            setItems([]);
-            onTokenInsufficient?.();
-            return;
-          }
-          throw new Error(errorData.error || "자동피팅 처리 요청 실패");
-        }
-
-        await consumeSSEStream<AutoFittingSSEEvent>(response, (event) => {
-          if (event.type === "batch_complete") {
-            if (event.batchId) setBatchId(event.batchId);
-            return;
-          }
-
-          setItems((prev) => {
-            const updated = [...prev];
-            if (updated[event.index]) {
-              updated[event.index] = {
-                ...updated[event.index],
-                status: event.status,
-                resultImageUrl: event.resultImageUrl,
-                error: event.error,
-                processingTime: event.processingTime,
-              };
-            }
-            return updated;
-          });
-        });
-
-        setIsProcessing(false);
-        invalidateTokenBalance();
-        setItems((current) => {
-          onComplete?.(current);
-          return current;
-        });
-      } catch (error) {
-        setIsProcessing(false);
-        if ((error as Error).name !== "AbortError") {
-          onError?.((error as Error).message);
-        }
-      }
+      await batch.generate(formData, initialItems);
     },
-    [isProcessing, onComplete, onError, onTokenInsufficient],
+    [batch],
   );
-
-  const reset = useCallback(() => {
-    abortRef.current?.abort();
-    setItems([]);
-    setIsProcessing(false);
-    setBatchId(null);
-  }, []);
 
   const retryItem = useCallback(
     async (index: number) => {
-      const item = items[index];
+      const item = batch.items[index];
       if (!item || !lastFormDataRef.current) return;
       const preset = AUTO_FITTING_PRESETS[index];
       if (!preset) return;
 
       setRetryingIndex(index);
-      setItems((prev) => {
+      batch.setItems((prev) => {
         const updated = [...prev];
         updated[index] = { ...updated[index], status: "processing", error: undefined };
         return updated;
@@ -170,7 +96,7 @@ export function useAutoFittingGenerate({
           const errorData = await response.json();
           if (response.status === 402 && errorData.code === "TOKEN_INSUFFICIENT") {
             onTokenInsufficient?.();
-            setItems((prev) => {
+            batch.setItems((prev) => {
               const updated = [...prev];
               updated[index] = { ...updated[index], status: "error", error: "토큰 부족" };
               return updated;
@@ -182,7 +108,7 @@ export function useAutoFittingGenerate({
 
         const data = await response.json();
         invalidateTokenBalance();
-        setItems((prev) => {
+        batch.setItems((prev) => {
           const updated = [...prev];
           updated[index] = {
             ...updated[index],
@@ -194,7 +120,7 @@ export function useAutoFittingGenerate({
           return updated;
         });
       } catch (error) {
-        setItems((prev) => {
+        batch.setItems((prev) => {
           const updated = [...prev];
           updated[index] = {
             ...updated[index],
@@ -208,33 +134,18 @@ export function useAutoFittingGenerate({
         setRetryingIndex(null);
       }
     },
-    [items, onError, onTokenInsufficient],
+    [batch, onError, onTokenInsufficient],
   );
 
-  const downloadZip = useCallback(async () => {
-    const successItems = items.filter(
-      (i) => i.status === "success" && i.resultImageUrl,
-    );
-    if (successItems.length === 0) return;
-
-    await downloadAsZip(
-      successItems.map((item) => ({
-        url: item.resultImageUrl!,
-        fileName: `fitting_${item.index + 1}_${item.poseName}`,
-      })),
-      `auto_fitting_${new Date().toISOString().slice(0, 10)}.zip`,
-    );
-  }, [items]);
-
   return {
-    items,
-    isProcessing,
+    items: batch.items,
+    isProcessing: batch.isProcessing,
     retryingIndex,
-    batchId,
-    progress,
+    batchId: batch.batchId,
+    progress: batch.progress,
     generate,
     retryItem,
-    reset,
-    downloadZip,
+    reset: batch.reset,
+    downloadZip: batch.downloadZip,
   };
 }
