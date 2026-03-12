@@ -18,6 +18,7 @@ function parseOptions(raw: string | null): ImageGenerationOptions {
     return {
       aspectRatio: parsed.aspectRatio ?? DEFAULT_IMAGE_OPTIONS.aspectRatio,
       imageSize: parsed.imageSize ?? DEFAULT_IMAGE_OPTIONS.imageSize,
+      userPrompt: parsed.userPrompt,
     };
   } catch {
     return DEFAULT_IMAGE_OPTIONS;
@@ -57,6 +58,7 @@ export function usePersistedImageOptions() {
         JSON.stringify({
           aspectRatio: next.aspectRatio,
           imageSize: next.imageSize,
+          userPrompt: next.userPrompt,
         }),
       );
     } catch {
